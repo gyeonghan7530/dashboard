@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>管理会社ダッシュボード</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f1f4f9;--card:#fff;--pri:#0d1f3c;--acc:#2563eb;--acc2:#0ea5e9;--g:#059669;--r:#dc2626;--o:#ea580c;--pu:#7c3aed;--bd:#e2e8f0;--t1:#0f172a;--t2:#64748b;--t3:#94a3b8;--sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);--rd:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--t1);font-size:13px}
+.hdr{background:var(--pri);color:#fff;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:300;box-shadow:0 2px 14px rgba(0,0,0,.35)}
+.hdr-l{display:flex;align-items:center;gap:12px}
+.hdr-title{font-size:15px;font-weight:700}
+.hdr-pill{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:2px 10px;font-size:10px;font-family:'DM Mono',monospace}
+.hdr-r{text-align:right;font-size:11px;opacity:.55;font-family:'DM Mono',monospace;line-height:1.9}
+.tabs{background:#fff;border-bottom:2px solid var(--bd);padding:0 18px;display:flex;position:sticky;top:54px;z-index:299;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:12px 15px;cursor:pointer;font-size:12px;font-weight:500;color:var(--t2);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .16s;display:flex;align-items:center;gap:5px}
+.tab.on{color:var(--acc);border-bottom-color:var(--acc)}
+.tab:hover:not(.on){color:var(--t1);background:#f8fafc}
+.wrap{max-width:1600px;margin:0 auto;padding:16px 18px}
+.tc{display:none}.tc.on{display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.full{grid-column:1/-1}
+.card{background:var(--card);border-radius:var(--rd);padding:16px;box-shadow:var(--sh);border:1px solid var(--bd)}
+.ctitle{font-size:13px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--bg);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.ctitle small{font-size:11px;color:var(--t3);font-weight:400}
+canvas{max-height:270px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border-radius:var(--rd);padding:14px 16px;box-shadow:var(--sh);border:1px solid var(--bd);position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.kpi-l{font-size:10px;color:var(--t2);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.kpi-v{font-size:22px;font-weight:700;color:var(--acc);font-family:'DM Mono',monospace}
+.fbar{background:var(--card);border-radius:var(--rd);padding:12px 16px;margin-bottom:12px;box-shadow:var(--sh);border:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:10px;color:var(--t2);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.fg select,.fg input[type=number]{padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif;color:var(--t1);min-width:130px}
+.fg select:focus,.fg input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.rrow{display:flex;align-items:center;gap:6px}
+.rrow input{min-width:66px!important;max-width:76px;text-align:center}
+.rsep{color:var(--t3);font-weight:600}
+.runit{font-size:10px;color:var(--t3)}
+.fbar-r{margin-left:auto;display:flex;align-items:flex-end;gap:8px}
+.cntb{background:rgba(37,99,235,.07);border:1.5px solid rgba(37,99,235,.14);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--acc);font-family:'DM Mono',monospace}
+.cntb.z{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.15);color:var(--r)}
+.btn{padding:6px 14px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all .14s}
+.btn-d{background:var(--pri);color:#fff}
+.btn-d:hover{background:#1e3a5f;transform:translateY(-1px)}
+.ac{position:relative;display:flex;flex-direction:column;gap:3px}
+.ac input{min-width:270px;padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif}
+.ac input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.acd{position:absolute;top:calc(100% - 2px);left:0;min-width:100%;width:max-content;max-width:490px;background:#fff;border:1.5px solid var(--bd);border-top:none;border-radius:0 0 10px 10px;max-height:210px;overflow-y:auto;z-index:999;display:none;box-shadow:0 8px 28px rgba(0,0,0,.1)}
+.acd.op{display:block}
+.aci{padding:7px 13px;cursor:pointer;font-size:12px;border-bottom:1px solid #f8fafc}
+.aci:hover{background:#eff6ff;color:var(--acc)}
+.act{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;min-height:18px}
+.actag{display:inline-flex;align-items:center;gap:3px;background:#eff6ff;color:var(--acc);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.actag button{background:none;border:none;cursor:pointer;font-size:12px;color:#9ca3af}
+.tw{overflow-x:auto;max-height:500px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--pri);color:#fff;padding:9px 11px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:1;cursor:pointer;user-select:none}
+th:hover{background:#1c3660}
+td{padding:8px 11px;border-bottom:1px solid var(--bg);white-space:nowrap;vertical-align:middle}
+tr:hover td{background:#f8fafc}
+.tl{color:var(--acc);cursor:pointer;font-weight:600;white-space:normal;max-width:220px}
+.tl:hover{text-decoration:underline}
+.pgn{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--bg);font-size:12px;color:var(--t2)}
+.pgn .pb{display:flex;gap:6px}
+.pgn button{padding:5px 12px;border:1.5px solid var(--bd);border-radius:6px;cursor:pointer;background:#fff;font-size:12px;font-weight:600}
+.pgn button:hover:not(:disabled){background:var(--acc);color:#fff;border-color:var(--acc)}
+.pgn button:disabled{opacity:.3;cursor:not-allowed}
+.bw{display:flex;align-items:center;gap:5px;min-width:80px}
+.bbg{flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.bf{height:100%;border-radius:3px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.bg{background:#d1fae5;color:#065f46}.by{background:#fef3c7;color:#92400e}.br{background:#fee2e2;color:#991b1b}
+.mono{font-family:'DM Mono',monospace}
+.fav{background:none;border:none;cursor:pointer;font-size:15px;padding:2px 4px}
+.fav:hover{transform:scale(1.2)}
+.map-shell{display:flex;border-radius:var(--rd);overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh)}
+.map-area{flex:1;background:linear-gradient(150deg,#dbeafe,#e0f2fe 50%,#ede9fe);min-height:540px}
+.map-area svg{width:100%;height:100%;min-height:540px}
+.map-panel{width:290px;flex-shrink:0;background:var(--pri);color:#fff;overflow-y:auto;max-height:580px}
+.mp-in{padding:18px}
+.mp-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);gap:10px;text-align:center;padding:40px 20px}
+.mp-ph .ico{font-size:34px;opacity:.35}
+.pname{font-size:22px;font-weight:700;margin-bottom:3px}
+.ptot{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:16px;font-family:'DM Mono',monospace}
+.mrow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:12px}
+.mrow .ml{color:rgba(255,255,255,.5)}.mrow .mr{font-weight:700;font-family:'DM Mono',monospace}
+.msec{margin:12px 0 6px;font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.7px;font-weight:700}
+.mco{padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.mco-r{font-size:9px;color:rgba(255,255,255,.3);margin-bottom:1px}
+.mco-n{color:#fff;font-size:11px;line-height:1.4}
+.mco-c{color:#7dd3fc;font-family:'DM Mono',monospace;font-size:11px}
+.map-btn{margin-top:14px;width:100%;padding:8px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
+.map-btn:hover{background:rgba(255,255,255,.2)}
+.pp{cursor:pointer;stroke:#fff;stroke-width:0.5;transition:opacity .15s}
+.pp:hover{opacity:.72}
+.pp.sel{stroke:#fff;stroke-width:2;filter:drop-shadow(0 0 6px rgba(37,99,235,.7))}
+.mleg-w{display:flex;gap:10px;align-items:center}
+.mleg{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)}
+.mleg-c{width:11px;height:11px;border-radius:3px}
+.mx-wrap{overflow-x:auto}
+.mxt{border-collapse:collapse;font-size:11px}
+.mxt th{background:var(--pri);color:#fff;padding:7px 10px;font-size:10px;font-weight:600}
+.mxt th.rh{text-align:left;min-width:150px;background:#132038;white-space:normal;padding:8px 10px}
+.mxt td{border:1px solid var(--bd);padding:0;cursor:pointer}
+.mxt td:hover{filter:brightness(.88)}
+.mc{padding:7px 10px;min-width:90px;min-height:60px;display:flex;flex-direction:column;gap:2px}
+.mc-n{font-size:14px;font-weight:700;font-family:'DM Mono',monospace}
+.mc-b{height:3px;background:rgba(0,0,0,.1);border-radius:2px;margin:2px 0}
+.mc-bf{height:100%;border-radius:2px;background:rgba(0,0,0,.22)}
+.mc-c{font-size:9.5px;opacity:.75;line-height:1.3;white-space:normal;max-width:82px}
+.mc-r{font-size:9.5px;opacity:.6}
+.h0{background:#f8fafc;color:#94a3b8}.h1{background:#d1fae5;color:#064e3b}
+.h2{background:#fef3c7;color:#78350f}.h3{background:#fee2e2;color:#7f1d1d}
+.tc-cell{background:#eff6ff;text-align:center;font-weight:700;font-family:'DM Mono',monospace;font-size:12px;padding:8px;border:1px solid var(--bd)}
+.mx-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:9px;margin-bottom:14px}
+.mxs{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 13px;box-shadow:var(--sh)}
+.mxs-l{font-size:10px;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.mxs-v{font-size:17px;font-weight:700;color:var(--acc);font-family:'DM Mono',monospace;margin-top:3px}
+.mbg{display:none;position:fixed;inset:0;background:rgba(10,20,40,.62);z-index:1000;justify-content:center;align-items:center;backdrop-filter:blur(4px)}
+.mbg.on{display:flex}
+.modal{background:#fff;border-radius:18px;width:93%;max-width:1000px;max-height:90vh;overflow-y:auto;padding:24px;position:relative;box-shadow:0 28px 70px rgba(0,0,0,.22)}
+.mx-btn{position:absolute;top:12px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.mx-btn:hover{background:#f1f5f9}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:16px;padding-right:30px}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mg .full{grid-column:1/-1}
+.cr-list{display:flex;flex-direction:column;gap:4px}
+.cr-item{display:flex;align-items:center;gap:8px;padding:5px 8px;background:#fef2f2;border-radius:6px;border-left:3px solid var(--r);font-size:12px}
+.cr-bar{flex:1;height:4px;background:#fca5a5;border-radius:2px;overflow:hidden;max-width:80px}
+.cr-bf{height:100%;background:var(--r);border-radius:2px}
+.divider{height:1px;background:var(--bg);margin:10px 0}
+@media(max-width:900px){.g2,.g3,.mg,.map-shell{display:block}.map-panel{width:100%;max-height:280px}}
+</style>
+</head>
+<body>
+
+<div id="loading" style="position:fixed;inset:0;background:#0d1f3c;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;gap:18px">
+  <div style="font-size:32px">🏢</div>
+  <div style="font-size:16px;font-weight:700;letter-spacing:-.2px">管理会社ダッシュボード</div>
+  <div style="width:240px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden">
+    <div id="lprog" style="height:100%;background:linear-gradient(90deg,#2563eb,#0ea5e9);border-radius:2px;width:0%;transition:width .4s ease"></div>
+  </div>
+  <div id="lmsg" style="font-size:12px;opacity:.55">BigQueryからデータを取得中...</div>
+</div>
+
+<div class="hdr">
+  <div class="hdr-l">
+    <span class="hdr-title">🏢 管理会社ダッシュボード</span>
+    <span class="hdr-pill">2025 保証データ</span>
+  </div>
+  <div class="hdr-r">
+    <div>保証 <span class="mono" id="hht">-</span>件 ／ 営業 <span class="mono" id="hat">-</span>件</div>
+    <div>最終更新 <span id="hdt">-</span></div>
+  </div>
+</div>
+<div class="tabs">
+  <div class="tab on"  onclick="SW('t1',this)">🔍 条件検索</div>
+  <div class="tab"     onclick="SW('t2',this)">🏢 管理会社</div>
+  <div class="tab"     onclick="SW('t3',this)">🤝 仲介会社</div>
+  <div class="tab"     onclick="SW('t4',this)">🗾 地域マップ</div>
+  <div class="tab"     onclick="SW('t5',this)">❌ キャンセル</div>
+  <div class="tab"     onclick="SW('t6',this)">📊 マトリクス</div>
+  <div class="tab"     onclick="SW('t7',this)">⭐ お気に入り</div>
+</div>
+<div class="wrap">
+
+<!-- T1 -->
+<div id="t1" class="tc on">
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-l">保証件数</div><div class="kpi-v" id="k1t">-</div></div>
+    <div class="kpi"><div class="kpi-l">管理会社数</div><div class="kpi-v" id="k1c">-</div></div>
+    <div class="kpi"><div class="kpi-l">平均月額賃料</div><div class="kpi-v" id="k1r">-</div></div>
+    <div class="kpi"><div class="kpi-l">海外審査比率</div><div class="kpi-v" id="k1k">-</div></div>
+    <div class="kpi"><div class="kpi-l">最終承認日</div><div class="kpi-v" id="k1d" style="font-size:13px">-</div></div>
+  </div>
+  <div class="fbar">
+    <div class="fg"><label>在留資格</label><select id="f1v" onchange="A1()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>国籍</label><select id="f1n" onchange="A1()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>地域</label><select id="f1p" onchange="A1()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>審査区分</label><select id="f1s" onchange="A1()"><option value="">すべて</option><option>海外</option><option>国内</option></select></div>
+    <div class="fg"><label>賃料（万円）</label>
+      <div class="rrow"><input type="number" id="f1rn" placeholder="下限" min="0" step="0.5" oninput="A1()"><span class="rsep">〜</span><input type="number" id="f1rx" placeholder="上限" min="0" step="0.5" oninput="A1()"></div>
+      <span class="runit">万円単位で入力</span></div>
+    <div class="fg"><label>管理会社で絞込</label>
+      <div class="ac" id="AC1"><input type="text" id="AC1i" placeholder="会社名を入力..." oninput="ACF('AC1')" onfocus="ACF('AC1')" autocomplete="off"><div class="acd" id="AC1d"></div><div class="act" id="AC1t"></div></div></div>
+    <div class="fbar-r"><span class="cntb" id="f1c">―</span><button class="btn btn-d" onclick="R1()">↺ リセット</button></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ctitle">在留資格別 審査構成</div><canvas id="c1v"></canvas></div>
+    <div class="card"><div class="ctitle">国籍別 審査構成</div><canvas id="c1n"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">管理会社リスト <small>行クリックで詳細表示</small></div>
+    <div class="tw"><table id="tb1"><thead><tr>
+      <th>#</th><th onclick="SRT('t1','nm')">管理会社名↕</th><th onclick="SRT('t1','pref')">地域↕</th>
+      <th onclick="SRT('t1','total')">件数↕</th><th onclick="SRT('t1','kaigai')">海外↕</th><th onclick="SRT('t1','kr')">海外比率↕</th>
+      <th>主な在留資格</th><th>主な国籍</th><th onclick="SRT('t1','rent')">平均月額↕</th><th>難易度</th><th>⭐</th>
+    </tr></thead><tbody id="b1"></tbody></table></div>
+    <div class="pgn"><span id="p1i"></span><div class="pb"><button onclick="PG('t1',-1)">＜</button><button onclick="PG('t1',1)">＞</button></div></div>
+  </div>
+</div>
+
+<!-- T2 -->
+<div id="t2" class="tc">
+  <div class="fbar">
+    <div class="fg"><label>管理会社で絞込</label>
+      <div class="ac" id="AC2"><input type="text" id="AC2i" placeholder="会社名を入力..." oninput="ACF('AC2')" onfocus="ACF('AC2')" autocomplete="off"><div class="acd" id="AC2d"></div><div class="act" id="AC2t"></div></div></div>
+    <div class="fg"><label>地域</label><select id="f2p" onchange="A2()"><option value="">すべて</option></select></div>
+    <div class="fbar-r"><span class="cntb" id="f2c">―</span><button class="btn btn-d" onclick="R2()">↺ リセット</button></div>
+  </div>
+  <div class="g3">
+    <div class="card"><div class="ctitle">件数 Top10</div><canvas id="c2t"></canvas></div>
+    <div class="card"><div class="ctitle">在留資格 構成比</div><canvas id="c2v"></canvas></div>
+    <div class="card"><div class="ctitle">海外 vs 国内</div><canvas id="c2s"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">管理会社別 詳細</div>
+    <div class="tw"><table id="tb2"><thead><tr>
+      <th>#</th><th onclick="SRT('t2','nm')">管理会社名↕</th><th onclick="SRT('t2','total')">件数↕</th>
+      <th onclick="SRT('t2','kaigai')">海外↕</th><th onclick="SRT('t2','kr')">海外比率↕</th>
+      <th>国籍 Top2</th><th>在留資格 Top2</th><th onclick="SRT('t2','rent')">平均月額↕</th><th onclick="SRT('t2','date')">最終承認↕</th><th>⭐</th>
+    </tr></thead><tbody id="b2"></tbody></table></div>
+    <div class="pgn"><span id="p2i"></span><div class="pb"><button onclick="PG('t2',-1)">＜</button><button onclick="PG('t2',1)">＞</button></div></div>
+  </div>
+</div>
+
+<!-- T3 -->
+<div id="t3" class="tc">
+  <div class="fbar">
+    <div class="fg"><label>仲介会社で絞込</label>
+      <div class="ac" id="AC3"><input type="text" id="AC3i" placeholder="仲介会社名を入力..." oninput="ACF('AC3')" onfocus="ACF('AC3')" autocomplete="off"><div class="acd" id="AC3d"></div><div class="act" id="AC3t"></div></div></div>
+    <div class="fg"><label>地域</label><select id="f3p" onchange="A3()"><option value="">すべて</option></select></div>
+    <div class="fbar-r"><button class="btn btn-d" onclick="R3()">↺ リセット</button></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ctitle">連携管理会社 Top10</div><canvas id="c3m"></canvas></div>
+    <div class="card"><div class="ctitle">在留資格 構成</div><canvas id="c3v"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">仲介会社 × 管理会社</div>
+    <div class="tw"><table id="tb3"><thead><tr>
+      <th>#</th><th>仲介会社名</th><th>管理会社名</th><th>件数</th><th>主な国籍</th><th>主な在留資格</th><th>地域</th><th>平均月額</th>
+    </tr></thead><tbody id="b3"></tbody></table></div>
+    <div class="pgn"><span id="p3i"></span><div class="pb"><button onclick="PG('t3',-1)">＜</button><button onclick="PG('t3',1)">＞</button></div></div>
+  </div>
+</div>
+
+<!-- T4 -->
+<div id="t4" class="tc">
+  <div class="fbar">
+    <div class="fg"><label>国籍</label><select id="f4n" onchange="A4()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>在留資格</label><select id="f4v" onchange="A4()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>賃料（万円）</label>
+      <div class="rrow"><input type="number" id="f4rn" placeholder="下限" min="0" step="0.5" oninput="A4()"><span class="rsep">〜</span><input type="number" id="f4rx" placeholder="上限" min="0" step="0.5" oninput="A4()"></div></div>
+    <div class="fbar-r"><span class="cntb" id="f4c">―</span><button class="btn btn-d" onclick="R4()">↺ リセット</button></div>
+  </div>
+  <div class="card full" style="padding:0;overflow:hidden;margin-bottom:12px">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--bg);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div class="ctitle" style="border:none;padding:0;margin:0">都道府県別 件数マップ <small>クリックで詳細表示</small></div>
+      <div class="mleg-w">
+        <div class="mleg"><div class="mleg-c" style="background:#dbeafe"></div>少ない</div>
+        <div class="mleg"><div class="mleg-c" style="background:#60a5fa"></div>中程度</div>
+        <div class="mleg"><div class="mleg-c" style="background:#1d4ed8"></div>多い</div>
+      </div>
+    </div>
+    <div class="map-shell">
+      <div class="map-area" id="mapSvg"></div>
+      <div class="map-panel" id="mapPanel"><div class="mp-ph"><div class="ico">🗾</div><div>都道府県を<br>クリックしてください</div></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">地域別 管理会社ランキング</div>
+    <div class="tw"><table id="tb4"><thead><tr>
+      <th>#</th><th>管理会社名</th><th>地域</th><th onclick="SRT('t4','total')">件数↕</th>
+      <th onclick="SRT('t4','kr')">海外比率↕</th><th>主な国籍</th><th>主な在留資格</th><th onclick="SRT('t4','rent')">平均月額↕</th><th>難易度</th>
+    </tr></thead><tbody id="b4"></tbody></table></div>
+    <div class="pgn"><span id="p4i"></span><div class="pb"><button onclick="PG('t4',-1)">＜</button><button onclick="PG('t4',1)">＞</button></div></div>
+  </div>
+</div>
+
+<!-- T5 -->
+<div id="t5" class="tc">
+  <div class="fbar">
+    <div class="fg"><label>管理会社で絞込</label>
+      <div class="ac" id="AC5"><input type="text" id="AC5i" placeholder="管理会社名を入力..." oninput="ACF('AC5')" onfocus="ACF('AC5')" autocomplete="off"><div class="acd" id="AC5d"></div><div class="act" id="AC5t"></div></div></div>
+    <div class="fg"><label>都道府県</label><select id="f5p" onchange="A5()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>キャンセル理由</label><select id="f5cr" onchange="A5()"><option value="">すべて</option></select></div>
+    <div class="fbar-r"><button class="btn btn-d" onclick="R5()">↺ リセット</button></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ctitle">管理会社別 キャンセル件数 Top15 <small>件数ベース（比率ではない）</small></div><canvas id="c5cnt"></canvas></div>
+    <div class="card"><div class="ctitle">キャンセル理由 全体内訳</div><canvas id="c5r"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">管理会社別 成約 / キャンセル実績 <small>行クリックでキャンセル理由詳細</small></div>
+    <div class="tw"><table id="tb5"><thead><tr>
+      <th>#</th><th>管理会社名</th><th onclick="SRT('t5','total')">総案件↕</th>
+      <th onclick="SRT('t5','contract')">成約数↕</th><th onclick="SRT('t5','cancel')">キャンセル数↕</th>
+      <th onclick="SRT('t5','cr')">成約率↕</th><th onclick="SRT('t5','xr')">キャンセル率↕</th>
+      <th>主なキャンセル理由</th><th onclick="SRT('t5','rent')">平均賃料↕</th><th>総合評価</th>
+    </tr></thead><tbody id="b5"></tbody></table></div>
+    <div class="pgn"><span id="p5i"></span><div class="pb"><button onclick="PG('t5',-1)">＜</button><button onclick="PG('t5',1)">＞</button></div></div>
+  </div>
+</div>
+
+<!-- T6 -->
+<div id="t6" class="tc">
+  <div class="fbar">
+    <div class="fg"><label>表示モード</label><select id="mxmd" onchange="DMX()"><option value="vn">在留資格 × 国籍</option><option value="nv">国籍 × 在留資格</option></select></div>
+    <div class="fg"><label>地域</label><select id="mxp" onchange="DMX()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>審査区分</label><select id="mxs" onchange="DMX()"><option value="">すべて</option><option value="海外">海外のみ</option><option value="国内">国内のみ</option></select></div>
+    <div class="fg"><label>最小件数</label><select id="mxmn" onchange="DMX()"><option value="0">すべて</option><option value="5">5件以上</option><option value="10" selected>10件以上</option><option value="20">20件以上</option><option value="50">50件以上</option></select></div>
+    <div class="fbar-r"><button class="btn btn-d" onclick="RMX()">↺ リセット</button></div>
+  </div>
+  <div class="mx-sum" id="mxsum"></div>
+  <div class="card">
+    <div class="ctitle">ビザ × 国籍 マトリクス
+      <div class="mleg-w">
+        <div class="mleg"><div class="mleg-c" style="background:#d1fae5"></div>通りやすい（海外≤30%）</div>
+        <div class="mleg"><div class="mleg-c" style="background:#fef3c7"></div>普通（30-60%）</div>
+        <div class="mleg"><div class="mleg-c" style="background:#fee2e2"></div>要注意（60%超）</div>
+      </div>
+    </div>
+    <div class="mx-wrap" id="mxwrap"></div>
+  </div>
+</div>
+
+<!-- T7 -->
+<div id="t7" class="tc">
+  <div class="g2">
+    <div class="card"><div class="ctitle">⭐ お気に入り管理会社</div><div id="favL"><div style="color:var(--t3);font-size:12px;padding:8px">お気に入りはまだありません</div></div></div>
+    <div class="card"><div class="ctitle">🕐 検索履歴 <button onclick="CLRH()" style="padding:3px 10px;background:#f1f5f9;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:11px">クリア</button></div><div id="histL"><div style="color:var(--t3);font-size:12px;padding:8px">履歴はありません</div></div></div>
+  </div>
+</div>
+
+</div>
+<div class="mbg" id="MBG" onclick="CMOD(event)">
+  <div class="modal">
+    <button class="mx-btn" onclick="CMOD()">✕</button>
+    <h2 id="MTIT"></h2>
+    <div class="mg" id="MBOD"></div>
+  </div>
+</div>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbw0VEO7ztY2BPUq92HRvrEsKAo34FviWyCByCCZ4w0P1TJoAI63hx4qGRTTViqtFFr88Q/exec";
+let DB = null;
+</script>
+
+<script>
+// =================================================
+// API データ変換 → DB 形式に統一
+// =================================================
+function cleanNm(nm){ return nm ? nm.replace(/^【[^】]+】/,'').trim() : ''; }
+function cleanNat(nat){
+  if(!nat) return '';
+  nat = nat.replace(/\[.*?\]/g,'').trim();
+  const m={'大韓民国':'韓国','中華人民共和国':'中国','アメリカ合衆国':'アメリカ',
+    'ネパール連邦民主共和国':'ネパール','フィリピン共和国':'フィリピン',
+    'インドネシア共和国':'インドネシア','ベトナム社会主義共和国':'ベトナム',
+    'ミャンマー連邦共和国':'ミャンマー','バングラデシュ人民共和国':'バングラデシュ',
+    'スリランカ民主社会主義共和国':'スリランカ','モンゴル国':'モンゴル',
+    'オーストラリア連邦':'オーストラリア','ドイツ連邦共和国':'ドイツ',
+    'フランス共和国':'フランス','英国（グレートブリテン及び北アイルランド連合王国）':'英国'};
+  return m[nat]||nat;
+}
+function cleanVisa(v){
+  if(!v) return '';
+  return v.replace(/^\d+_/,'').replace(/\[.*?\]/g,'').trim()
+          .replace('特定活動（ワーキングホリデー等）','特定活動(ワーホリ)');
+}
+
+function buildDB(raw){
+  const hosho = raw.hosho || {};
+  const agent  = raw.agent  || {};
+
+  // ---- HOSHO 管理会社別 ----
+  const hMap = {};
+  (hosho.byCompany||[]).forEach(r=>{
+    const nm = cleanNm(r.nm||'');
+    if(!nm) return;
+    hMap[nm] = {
+      nm, total:r.total||0, kaigai:r.kaigai||0, kokunai:r.kokunai||0,
+      kr: r.total ? Math.round((r.kaigai||0)/r.total*100) : 0,
+      rent: r.avg_rent||0, date: (r.last_date||'').substring(0,7),
+      pref: r.pref||'', tv:{}, tn:{}, tv2:[], tn2l:[], tc:[], mo:{}
+    };
+  });
+
+  // ---- ビザ集計 → 各会社に付与 ----
+  (hosho.byVisa||[]).forEach(r=>{
+    const visa = cleanVisa(r.visa||'');
+    if(!visa) return;
+    Object.values(hMap).forEach(h=>{
+      // 全社合算のため会社別ビザはbyCompanyに含まれていない → 別途マトリクスから取得
+    });
+  });
+
+  // ---- matrix → 各会社のビザ・国籍・月別トレンド ----
+  (hosho.matrix||[]).forEach(r=>{
+    const nm = cleanNm(r.nm||'');
+    const visa = cleanVisa(r.visa||'');
+    const nat  = cleanNat(r.nat||'');
+    if(!hMap[nm]||!visa||!nat) return;
+    const h = hMap[nm];
+    h.tv[visa] = (h.tv[visa]||0) + (r.cnt||0);
+    h.tn[nat]  = (h.tn[nat]||0)  + (r.cnt||0);
+  });
+
+  // ---- 月別トレンド (全社) ----
+  const moAll = {};
+  (hosho.byMonth||[]).forEach(r=>{ if(r.month) moAll[r.month]=r.cnt||0; });
+
+  // ---- top2 visa/nat + 月別 各社 ----
+  Object.values(hMap).forEach(h=>{
+    h.tv2 = Object.entries(h.tv).sort((a,b)=>b[1]-a[1]).slice(0,2);
+    h.tn2l= Object.entries(h.tn).sort((a,b)=>b[1]-a[1]).slice(0,2);
+    h.tv  = Object.fromEntries(Object.entries(h.tv).sort((a,b)=>b[1]-a[1]).slice(0,6));
+    h.tn  = Object.fromEntries(Object.entries(h.tn).sort((a,b)=>b[1]-a[1]).slice(0,6));
+  });
+
+  // ---- 仲介会社 ----
+  const ck = (hosho.byChukai||[])
+    .filter(r=>r.chukai&&r.chukai!=='仲介会社利用無し'&&r.chukai!=='仲介会社　要確認')
+    .map(r=>({ck:r.chukai, mg:cleanNm(r.mgmt||''), t:r.cnt||0, r:r.avg_rent||0, p:r.pref||'', n:[], v:[]}));
+
+  // ---- 仲介会社 → 管理会社 top3 連携 ----
+  const ckByMg = {};
+  ck.forEach(r=>{ ckByMg[r.mg] = ckByMg[r.mg]||[]; ckByMg[r.mg].push([r.ck, r.t]); });
+  Object.values(hMap).forEach(h=>{
+    h.tc = (ckByMg[h.nm]||[]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    h.mo = moAll; // 月別は全社共通で代用
+  });
+
+  // ---- 都道府県別 ----
+  const prefMap = {};
+  (hosho.byPref||[]).forEach(r=>{
+    if(!r.pref) return;
+    if(!prefMap[r.pref]) prefMap[r.pref] = {t:0,k:0,r:0,n:[],v:[],c:[]};
+    prefMap[r.pref].t += r.cnt||0;
+    if(r.shinsa==='海外') prefMap[r.pref].k += r.cnt||0;
+    if(r.avg_rent) prefMap[r.pref].r = r.avg_rent;
+  });
+  // pref → 国籍/ビザ top5 (matrix から)
+  const prefNat={}, prefVisa={}, prefCo={};
+  (hosho.matrix||[]).forEach(r=>{
+    const p = (hMap[cleanNm(r.nm||'')]||{}).pref||'';
+    if(!p) return;
+    const nat=cleanNat(r.nat||''), visa=cleanVisa(r.visa||'');
+    prefNat[p]=prefNat[p]||{};  prefNat[p][nat]=(prefNat[p][nat]||0)+(r.cnt||0);
+    prefVisa[p]=prefVisa[p]||{}; prefVisa[p][visa]=(prefVisa[p][visa]||0)+(r.cnt||0);
+    prefCo[p]=prefCo[p]||{};    prefCo[p][cleanNm(r.nm||'')]=(prefCo[p][cleanNm(r.nm||'')]||0)+(r.cnt||0);
+  });
+  Object.keys(prefMap).forEach(p=>{
+    prefMap[p].n = Object.entries(prefNat[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    prefMap[p].v = Object.entries(prefVisa[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    prefMap[p].c = Object.entries(prefCo[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  });
+
+  // ---- マトリクス ----
+  const mxMap = {};
+  (hosho.matrix||[]).forEach(r=>{
+    const visa=cleanVisa(r.visa||''), nat=cleanNat(r.nat||'');
+    if(!visa||!nat) return;
+    const k = visa+'|||'+nat;
+    if(!mxMap[k]) mxMap[k]={v:visa,n:nat,t:0,k:0,c:{}};
+    mxMap[k].t += r.cnt||0;
+    if(r.shinsa==='海外') mxMap[k].k += r.cnt||0;
+    const nm=cleanNm(r.nm||'');
+    if(nm) mxMap[k].c[nm]=(mxMap[k].c[nm]||0)+(r.cnt||0);
+  });
+  const mx = Object.values(mxMap).map(m=>({
+    v:m.v, n:m.n, t:m.t, k:m.k,
+    c:Object.entries(m.c).sort((a,b)=>b[1]-a[1]).slice(0,3)
+  })).filter(m=>m.t>=3).sort((a,b)=>b.t-a.t);
+
+  // ---- AGENT ----
+  const agMap = {};
+  (agent.byCompany||[]).forEach(r=>{
+    const nm = r.nm||'';
+    if(!nm||nm==='その他') return;
+    if(!agMap[nm]) agMap[nm]={nm,total:0,contract:0,cancel:0,rent:0,pref:r.pref||'',crs:{},topCR:''};
+    agMap[nm].total    += r.total||0;
+    agMap[nm].contract += r.contract||0;
+    agMap[nm].cancel   += r.cancel||0;
+    agMap[nm].rent      = r.avg_rent||agMap[nm].rent;
+    agMap[nm].pref      = r.pref||agMap[nm].pref;
+  });
+  (agent.byCancelReason||[]).forEach(r=>{
+    const nm=r.nm||'', reason=r.reason||'';
+    if(!nm||!reason||reason.includes('該当なし')) return;
+    if(!agMap[nm]) return;
+    agMap[nm].crs[reason]=(agMap[nm].crs[reason]||0)+(r.cnt||0);
+  });
+  const al = Object.values(agMap).map(a=>{
+    const decided=a.contract+a.cancel;
+    const topCR=Object.entries(a.crs).sort((x,y)=>y[1]-x[1])[0]?.[0]||'';
+    return {...a,
+      cr:decided?Math.round(a.contract/decided*100):0,
+      xr:decided?Math.round(a.cancel/decided*100):0,
+      topCR
+    };
+  }).sort((a,b)=>b.total-a.total);
+
+  // ---- キャンセル理由全体 ----
+  const cr={};
+  (agent.cancelReasonTotal||[]).forEach(r=>{
+    if(r.reason&&!r.reason.includes('該当なし')) cr[r.reason]=r.cnt||0;
+  });
+
+  // ---- サマリー ----
+  const hl = Object.values(hMap).sort((a,b)=>b.total-a.total);
+  const totH = hl.reduce((s,r)=>s+r.total,0);
+  const totK = hl.reduce((s,r)=>s+r.kaigai,0);
+  const rents = hl.filter(r=>r.rent>0).map(r=>r.rent);
+
+  // フィルター用リスト
+  const fv=[...new Set(Object.values(mxMap).map(m=>m.v))].sort();
+  const fn=[...new Set(Object.values(mxMap).map(m=>m.n))].sort();
+  const fp=Object.keys(prefMap).sort();
+
+  return {
+    s:{
+      th: totH,
+      ta: al.reduce((s,r)=>s+r.total,0),
+      ar: rents.length ? Math.round(rents.reduce((a,b)=>a+b)/rents.length) : 0,
+      kp: totH ? Math.round(totK/totH*100) : 0,
+      ld: raw.updated ? raw.updated.substring(0,10) : ''
+    },
+    h: hl, a: al, p: prefMap, m: mx, k: ck, cr,
+    fv, fn, fp,
+    fa: [...new Set(al.map(r=>r.pref).filter(Boolean))].sort(),
+    fcr: Object.keys(cr).sort()
+  };
+}
+</script>
+<script>
+// =================================================
+// ALL GLOBALS — unique names, zero conflicts
+// =================================================
+const CLR=['#2563eb','#0891b2','#059669','#ea580c','#7c3aed','#dc2626','#d97706','#0284c7','#db2777','#16a34a','#c2410c','#0d9488'];
+const PS=50;
+const PAGE={t1:1,t2:1,t3:1,t4:1,t5:1};
+const SORT={t1:{k:'total',d:-1},t2:{k:'total',d:-1},t3:{k:'total',d:-1},t4:{k:'total',d:-1},t5:{k:'total',d:-1}};
+const ROWS={t1:[],t2:[],t3:[],t4:[],t5:[]};
+const CHTS={};
+// autocomplete state — object, never conflicts with function names
+const ACS={AC1:[],AC2:[],AC3:[],AC5:[]};
+const ACD={AC1:[],AC2:[],AC3:[],AC5:[]};
+let FAVS=JSON.parse(localStorage.getItem('mdb_f')||'[]');
+let HIST=JSON.parse(localStorage.getItem('mdb_h')||'[]');
+let SEL_PREF=null;
+let CUR_PD=null;
+
+// =================================================
+// INIT
+// =================================================
+function INIT(){
+  if(typeof DB==='undefined'){return;}
+  const s=DB.s;
+  document.getElementById('hht').textContent=s.th.toLocaleString();
+  document.getElementById('hat').textContent=s.ta.toLocaleString();
+  document.getElementById('hdt').textContent=s.ld||'-';
+  ACD.AC1=DB.h.map(r=>r.nm).sort();
+  ACD.AC2=ACD.AC1.slice();
+  ACD.AC3=[...new Set(DB.k.map(r=>r.ck))].sort();
+  ACD.AC5=DB.a.map(r=>r.nm).sort();
+  FILL('f1v',DB.fv||[]);FILL('f1n',DB.fn||[]);FILL('f1p',DB.fp||[]);
+  FILL('f2p',DB.fp||[]);FILL('f3p',DB.fp||[]);
+  FILL('f4n',DB.fn||[]);FILL('f4v',DB.fv||[]);
+  FILL('f5p',DB.fa||[]);FILL('f5cr',DB.fcr||[]);
+  FILL('mxp',DB.fp||[]);
+  CUR_PD=DB.p;
+  A1();A2();A3();A4();A5();DMX();
+  DRAW_MAP(DB.p);
+  RFav();RHIST();
+}
+
+function FILL(id,arr){const el=document.getElementById(id);if(!el)return;arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;el.appendChild(o);});}
+function GV(id){return document.getElementById(id)?.value||'';}
+function GN(id){return parseFloat(document.getElementById(id)?.value||'');}
+function ESC(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+
+// =================================================
+// FILTER FUNCTIONS
+// =================================================
+function A1(){
+  let rows=[...DB.h];
+  const visa=GV('f1v'),nat=GV('f1n'),pref=GV('f1p'),sh=GV('f1s');
+  const rn=GN('f1rn'),rx=GN('f1rx');
+  if(visa) rows=rows.filter(r=>r.tv&&r.tv[visa]||r.tv2&&r.tv2.some(e=>e[0]===visa));
+  if(nat)  rows=rows.filter(r=>r.tn&&r.tn[nat]||r.tn2l&&r.tn2l.some(e=>e[0]===nat));
+  if(pref) rows=rows.filter(r=>r.pref===pref);
+  if(sh==='海外') rows=rows.filter(r=>r.kaigai>0);
+  if(sh==='国内') rows=rows.filter(r=>(r.total-r.kaigai)>0);
+  if(!isNaN(rn)&&rn>0) rows=rows.filter(r=>r.rent>=rn*10000);
+  if(!isNaN(rx)&&rx>0) rows=rows.filter(r=>r.rent<=rx*10000);
+  if(ACS.AC1.length) rows=rows.filter(r=>ACS.AC1.includes(r.nm));
+  SARR(rows,SORT.t1);ROWS.t1=rows;PAGE.t1=1;RT1();
+  const cb=document.getElementById('f1c');
+  cb.textContent=rows.length+'社';cb.classList.toggle('z',rows.length===0);
+  const tot=rows.reduce((s,r)=>s+r.total,0);
+  const kai=rows.reduce((s,r)=>s+r.kaigai,0);
+  const rents=rows.filter(r=>r.rent>0).map(r=>r.rent);
+  document.getElementById('k1t').textContent=tot.toLocaleString();
+  document.getElementById('k1c').textContent=rows.length.toLocaleString();
+  document.getElementById('k1r').textContent=rents.length?'¥'+Math.round(rents.reduce((a,b)=>a+b)/rents.length).toLocaleString():'-';
+  document.getElementById('k1k').textContent=tot?Math.round(kai/tot*100)+'%':'-';
+  document.getElementById('k1d').textContent=rows.map(r=>r.date).filter(Boolean).sort().reverse()[0]||'-';
+  CH1(rows);SHIST();
+}
+function A2(){
+  let rows=[...DB.h];
+  if(GV('f2p')) rows=rows.filter(r=>r.pref===GV('f2p'));
+  if(ACS.AC2.length) rows=rows.filter(r=>ACS.AC2.includes(r.nm));
+  SARR(rows,SORT.t2);ROWS.t2=rows;PAGE.t2=1;RT2();
+  document.getElementById('f2c').textContent=rows.length+'社';
+  CH2(rows);
+}
+function A3(){
+  let rows=[...DB.k];
+  if(GV('f3p')) rows=rows.filter(r=>r.p===GV('f3p'));
+  if(ACS.AC3.length) rows=rows.filter(r=>ACS.AC3.includes(r.ck));
+  rows.sort((a,b)=>b.t-a.t);ROWS.t3=rows;PAGE.t3=1;RT3();CH3(rows);
+}
+function A4(){
+  const nat=GV('f4n'),visa=GV('f4v'),rn=GN('f4rn'),rx=GN('f4rx');
+  let rows=[...DB.h];
+  if(nat)  rows=rows.filter(r=>r.tn&&r.tn[nat]||r.tn2l&&r.tn2l.some(e=>e[0]===nat));
+  if(visa) rows=rows.filter(r=>r.tv&&r.tv[visa]||r.tv2&&r.tv2.some(e=>e[0]===visa));
+  if(!isNaN(rn)&&rn>0) rows=rows.filter(r=>r.rent>=rn*10000);
+  if(!isNaN(rx)&&rx>0) rows=rows.filter(r=>r.rent<=rx*10000);
+  if(nat||visa||(!isNaN(rn)&&rn>0)||(!isNaN(rx)&&rx>0)){
+    const pm={};
+    rows.forEach(r=>{if(!r.pref)return;if(!pm[r.pref]){const orig=DB.p[r.pref]||{};pm[r.pref]={...orig,t:0,k:0};}pm[r.pref].t+=r.total;pm[r.pref].k+=r.kaigai;});
+    CUR_PD=pm;DRAW_MAP(pm);
+  } else {CUR_PD=DB.p;DRAW_MAP(DB.p);}
+  SARR(rows,SORT.t4);ROWS.t4=rows;PAGE.t4=1;RT4();
+  document.getElementById('f4c').textContent=rows.length+'社';
+}
+function A5(){
+  let rows=[...DB.a];
+  if(GV('f5p'))  rows=rows.filter(r=>r.pref===GV('f5p'));
+  if(GV('f5cr')) rows=rows.filter(r=>r.crs&&r.crs[GV('f5cr')]);
+  if(ACS.AC5.length) rows=rows.filter(r=>ACS.AC5.includes(r.nm));
+  SARR(rows,SORT.t5);ROWS.t5=rows;PAGE.t5=1;RT5();CH5(rows);
+}
+
+// RESETS
+function R1(){['f1v','f1n','f1p','f1s'].forEach(id=>document.getElementById(id).value='');['f1rn','f1rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC1=[];RAC('AC1');A1();}
+function R2(){document.getElementById('f2p').value='';ACS.AC2=[];RAC('AC2');A2();}
+function R3(){document.getElementById('f3p').value='';ACS.AC3=[];RAC('AC3');A3();}
+function R4(){['f4n','f4v'].forEach(id=>document.getElementById(id).value='');['f4rn','f4rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});A4();}
+function R5(){['f5p','f5cr'].forEach(id=>document.getElementById(id).value='');ACS.AC5=[];RAC('AC5');A5();}
+function RMX(){['mxp','mxs'].forEach(id=>document.getElementById(id).value='');document.getElementById('mxmd').value='vn';document.getElementById('mxmn').value='10';DMX();}
+
+// =================================================
+// SORT / PAGE
+// =================================================
+function SARR(arr,s){arr.sort((a,b)=>{const av=a[s.k]??'',bv=b[s.k]??'';return(av>bv?1:av<bv?-1:0)*s.d;});}
+function SRT(tab,k){const s=SORT[tab];s.d=s.k===k?-s.d:-1;s.k=k;if(tab==='t1'){SARR(ROWS.t1,s);PAGE.t1=1;RT1();}else if(tab==='t2'){SARR(ROWS.t2,s);PAGE.t2=1;RT2();}else if(tab==='t4'){SARR(ROWS.t4,s);PAGE.t4=1;RT4();}else if(tab==='t5'){SARR(ROWS.t5,s);PAGE.t5=1;RT5();}}
+function PG(tab,d){const arr=ROWS[tab];const mx=Math.ceil((arr?arr.length:0)/PS);PAGE[tab]=Math.max(1,Math.min(PAGE[tab]+d,mx||1));const fn={t1:RT1,t2:RT2,t3:RT3,t4:RT4,t5:RT5};if(fn[tab])fn[tab]();}
+function SLC(tab){const arr=ROWS[tab]||[];const s=(PAGE[tab]-1)*PS;return{rows:arr.slice(s,s+PS),start:s,tot:arr.length};}
+
+// =================================================
+// HELPERS
+// =================================================
+function DBG(kr){if(kr<=30)return '<span class="badge bg">🟢 通りやすい</span>';if(kr<=60)return '<span class="badge by">🟡 普通</span>';return '<span class="badge br">🔴 要注意</span>';}
+function ABG(cr,xr){if(cr>=25&&xr<=25)return '<span class="badge bg">🟢 優良</span>';if(cr>=15)return '<span class="badge by">🟡 普通</span>';return '<span class="badge br">🔴 要改善</span>';}
+function BW(pct,col){return `<div class="bw"><div class="bbg"><div class="bf" style="width:${pct}%;background:${col}"></div></div><span>${pct}%</span></div>`;}
+function TOPN(obj,n){return Object.entries(obj||{}).sort((a,b)=>b[1]-a[1]).slice(0,n);}
+
+// =================================================
+// RENDER TABLES
+// =================================================
+function RT1(){
+  const{rows,start,tot}=SLC('t1');
+  document.getElementById('b1').innerHTML=rows.map((r,i)=>`<tr>
+    <td style="color:var(--t3)">${start+i+1}</td>
+    <td class="tl" onclick="OM('${ESC(r.nm)}')">${r.nm}</td>
+    <td>${r.pref||'-'}</td>
+    <td><strong class="mono">${r.total.toLocaleString()}</strong></td>
+    <td class="mono">${r.kaigai}</td>
+    <td>${BW(r.kr,r.kr>60?'#dc2626':'#059669')}</td>
+    <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:150px">${r.tv2?r.tv2.map(e=>e[0]).join(' / '):'-'}</td>
+    <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:130px">${r.tn2l?r.tn2l.map(e=>e[0]).join(' / '):'-'}</td>
+    <td class="mono">¥${r.rent.toLocaleString()}</td>
+    <td>${DBG(r.kr)}</td>
+    <td><button class="fav" onclick="TFav('${ESC(r.nm)}')">${FAVS.includes(r.nm)?'⭐':'☆'}</button></td>
+  </tr>`).join('');
+  document.getElementById('p1i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}社`;
+}
+function RT2(){
+  const{rows,start,tot}=SLC('t2');
+  document.getElementById('b2').innerHTML=rows.map((r,i)=>`<tr>
+    <td style="color:var(--t3)">${start+i+1}</td>
+    <td class="tl" onclick="OM('${ESC(r.nm)}')">${r.nm}</td>
+    <td><strong class="mono">${r.total.toLocaleString()}</strong></td>
+    <td class="mono">${r.kaigai}</td>
+    <td>${BW(r.kr,'#7c3aed')}</td>
+    <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:140px">${r.tn2l?r.tn2l.map(e=>e[0]).join(' / '):'-'}</td>
+    <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:140px">${r.tv2?r.tv2.map(e=>e[0]).join(' / '):'-'}</td>
+    <td class="mono">¥${r.rent.toLocaleString()}</td>
+    <td>${r.date||'-'}</td>
+    <td><button class="fav" onclick="TFav('${ESC(r.nm)}')">${FAVS.includes(r.nm)?'⭐':'☆'}</button></td>
+  </tr>`).join('');
+  document.getElementById('p2i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}社`;
+}
+function RT3(){
+  const{rows,start,tot}=SLC('t3');
+  document.getElementById('b3').innerHTML=rows.map((r,i)=>`<tr>
+    <td style="color:var(--t3)">${start+i+1}</td>
+    <td style="white-space:normal;max-width:185px">${r.ck}</td>
+    <td class="tl" onclick="OM('${ESC(r.mg)}')" style="white-space:normal;max-width:185px">${r.mg}</td>
+    <td><strong class="mono">${r.t}</strong></td>
+    <td style="font-size:11px;color:var(--t2)">${(r.n||[]).join(' / ')}</td>
+    <td style="font-size:11px;color:var(--t2)">${(r.v||[]).join(' / ')}</td>
+    <td>${r.p||'-'}</td>
+    <td class="mono">¥${r.r.toLocaleString()}</td>
+  </tr>`).join('');
+  document.getElementById('p3i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}件`;
+}
+function RT4(){
+  const{rows,start,tot}=SLC('t4');
+  document.getElementById('b4').innerHTML=rows.map((r,i)=>`<tr>
+    <td style="color:var(--t3)">${start+i+1}</td>
+    <td class="tl" onclick="OM('${ESC(r.nm)}')" style="white-space:normal;max-width:210px">${r.nm}</td>
+    <td>${r.pref||'-'}</td>
+    <td><strong class="mono">${r.total.toLocaleString()}</strong></td>
+    <td>${BW(r.kr,'#7c3aed')}</td>
+    <td style="font-size:11px;color:var(--t2)">${r.tn2l?r.tn2l.map(e=>e[0]).join(' / '):'-'}</td>
+    <td style="font-size:11px;color:var(--t2)">${r.tv2?r.tv2.map(e=>e[0]).join(' / '):'-'}</td>
+    <td class="mono">¥${r.rent.toLocaleString()}</td>
+    <td>${DBG(r.kr)}</td>
+  </tr>`).join('');
+  document.getElementById('p4i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}社`;
+}
+function RT5(){
+  const{rows,start,tot}=SLC('t5');
+  document.getElementById('b5').innerHTML=rows.map((r,i)=>`<tr>
+    <td style="color:var(--t3)">${start+i+1}</td>
+    <td class="tl" onclick="OM5('${ESC(r.nm)}')" style="white-space:normal;max-width:200px">${r.nm}</td>
+    <td class="mono">${r.total}</td>
+    <td class="mono" style="color:var(--g);font-weight:700">${r.contract}</td>
+    <td class="mono" style="color:var(--r);font-weight:700">${r.cancel}</td>
+    <td>${BW(r.cr,'#059669')}</td>
+    <td>${BW(r.xr,'#dc2626')}</td>
+    <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:150px">${r.topCR||'-'}</td>
+    <td class="mono">¥${r.rent.toLocaleString()}</td>
+    <td>${ABG(r.cr,r.xr)}</td>
+  </tr>`).join('');
+  document.getElementById('p5i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}社`;
+}
+
+// =================================================
+// CHARTS
+// =================================================
+function MCH(id,type,labels,datasets,opts){
+  if(CHTS[id])CHTS[id].destroy();
+  const ctx=document.getElementById(id);if(!ctx)return;
+  CHTS[id]=new Chart(ctx,{type,data:{labels,datasets},options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},animation:{duration:200},...(opts||{})}});
+}
+function CH1(rows){
+  const vm={},nm={};
+  rows.forEach(r=>{
+    const krf=r.total?r.kaigai/r.total:0;
+    Object.entries(r.tv||{}).forEach(([k,c])=>{if(!vm[k])vm[k]={ka:0,ko:0};vm[k].ka+=c*krf;vm[k].ko+=c*(1-krf);});
+    Object.entries(r.tn||{}).forEach(([k,c])=>{if(!nm[k])nm[k]={ka:0,ko:0};nm[k].ka+=c*krf;nm[k].ko+=c*(1-krf);});
+  });
+  const vl=TOPN(Object.fromEntries(Object.entries(vm).map(([k,v])=>[k,v.ka+v.ko])),8).map(e=>e[0]);
+  MCH('c1v','bar',vl,[
+    {label:'海外',data:vl.map(k=>Math.round(vm[k]?.ka||0)),backgroundColor:'rgba(234,88,12,.8)',borderRadius:4},
+    {label:'国内',data:vl.map(k=>Math.round(vm[k]?.ko||0)),backgroundColor:'rgba(37,99,235,.8)',borderRadius:4}
+  ],{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}});
+  const nl=TOPN(Object.fromEntries(Object.entries(nm).map(([k,v])=>[k,v.ka+v.ko])),8).map(e=>e[0]);
+  MCH('c1n','bar',nl,[
+    {label:'海外',data:nl.map(k=>Math.round(nm[k]?.ka||0)),backgroundColor:'rgba(5,150,105,.8)',borderRadius:4},
+    {label:'国内',data:nl.map(k=>Math.round(nm[k]?.ko||0)),backgroundColor:'rgba(124,58,237,.8)',borderRadius:4}
+  ],{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}});
+}
+function CH2(rows){
+  const cm={},vm={};let kai=0,kok=0;
+  rows.forEach(r=>{cm[r.nm]=(cm[r.nm]||0)+r.total;Object.entries(r.tv||{}).forEach(([k,c])=>{vm[k]=(vm[k]||0)+c;});kai+=r.kaigai;kok+=(r.total-r.kaigai);});
+  const top=TOPN(cm,10);
+  MCH('c2t','bar',top.map(e=>e[0].length>13?e[0].substring(0,13)+'…':e[0]),[{data:top.map(e=>e[1]),backgroundColor:CLR.map(c=>c+'cc'),borderRadius:4}],{indexAxis:'y',plugins:{legend:{display:false}}});
+  MCH('c2v','doughnut',TOPN(vm,7).map(e=>e[0]),[{data:TOPN(vm,7).map(e=>e[1]),backgroundColor:CLR}]);
+  MCH('c2s','doughnut',['海外審査','国内審査'],[{data:[kai,kok],backgroundColor:['#ea580c','#2563eb']}]);
+}
+function CH3(rows){
+  const cm={},vm={};
+  rows.forEach(r=>{cm[r.mg]=(cm[r.mg]||0)+r.t;(r.v||[]).forEach(k=>{vm[k]=(vm[k]||0)+1;});});
+  const top=TOPN(cm,10);
+  MCH('c3m','bar',top.map(e=>e[0].length>13?e[0].substring(0,13)+'…':e[0]),[{data:top.map(e=>e[1]),backgroundColor:CLR.map(c=>c+'cc'),borderRadius:4}],{indexAxis:'y',plugins:{legend:{display:false}}});
+  MCH('c3v','doughnut',TOPN(vm,7).map(e=>e[0]),[{data:TOPN(vm,7).map(e=>e[1]),backgroundColor:CLR}]);
+}
+function CH5(rows){
+  const sorted=[...rows].filter(r=>r.cancel>0).sort((a,b)=>b.cancel-a.cancel).slice(0,15);
+  MCH('c5cnt','bar',sorted.map(r=>r.nm.length>12?r.nm.substring(0,12)+'…':r.nm),[
+    {label:'キャンセル数',data:sorted.map(r=>r.cancel),backgroundColor:'rgba(220,38,38,.78)',borderRadius:4},
+    {label:'成約数',data:sorted.map(r=>r.contract),backgroundColor:'rgba(5,150,105,.78)',borderRadius:4}
+  ],{plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}});
+  const cr=Object.fromEntries(Object.entries(DB.cr||{}).filter(([k])=>k&&!k.includes('該当なし')));
+  const crt=TOPN(cr,8);
+  MCH('c5r','doughnut',crt.map(e=>e[0].replace(/^\d+_/,'')),[{data:crt.map(e=>e[1]),backgroundColor:CLR}]);
+}
+
+// =================================================
+// MAP — actual Japan polygon coordinates
+// =================================================
+const PMAP={
+  '北海道':'285,90 325,28 410,18 468,42 465,115 428,130 365,134 288,110',
+  '青森県':'358,122 402,114 414,138 400,160 368,164 350,142',
+  '岩手県':'384,157 412,142 425,165 418,202 392,210 376,192',
+  '宮城県':'364,206 394,200 406,220 396,239 369,244 352,228',
+  '秋田県':'337,146 363,136 378,160 368,198 340,202 323,180',
+  '山形県':'341,198 368,192 378,216 363,234 337,237 324,216',
+  '福島県':'323,234 368,228 382,250 370,270 320,272 298,252',
+  '茨城県':'386,236 415,226 424,254 408,270 382,265 374,248',
+  '栃木県':'360,230 388,222 396,247 380,260 352,254 345,239',
+  '群馬県':'337,228 364,220 370,246 353,256 325,251 318,236',
+  '埼玉県':'350,248 380,240 386,262 370,274 346,270 338,255',
+  '千葉県':'388,250 420,242 428,272 410,286 382,280 375,262',
+  '東京都':'348,260 378,252 384,272 368,282 345,278 338,264',
+  '神奈川県':'340,275 374,268 378,285 360,296 336,292 330,279',
+  '新潟県':'316,192 354,180 366,202 351,232 315,238 292,218',
+  '富山県':'288,222 320,212 328,240 311,252 285,249 275,233',
+  '石川県':'266,216 296,206 305,236 288,250 260,244 250,225',
+  '福井県':'254,239 287,228 295,256 278,268 249,263 241,246',
+  '山梨県':'332,255 360,248 366,272 350,283 321,280 314,266',
+  '長野県':'309,218 345,208 355,242 337,258 302,252 292,230',
+  '岐阜県':'277,249 317,238 325,270 305,285 268,279 261,261',
+  '静岡県':'322,268 359,260 365,285 345,299 314,293 308,278',
+  '愛知県':'279,260 319,250 325,275 307,290 272,284 264,268',
+  '三重県':'262,273 295,262 303,292 286,308 255,302 247,283',
+  '滋賀県':'251,260 282,252 289,278 271,291 244,286 237,269',
+  '京都府':'236,253 275,242 283,270 265,284 231,280 222,262',
+  '大阪府':'243,278 277,270 284,296 266,309 236,303 228,285',
+  '兵庫県':'205,262 251,250 259,279 243,297 202,290 194,272',
+  '奈良県':'251,283 281,274 289,300 271,316 241,309 233,293',
+  '和歌山県':'235,306 269,296 277,324 257,342 222,335 215,313',
+  '鳥取県':'206,248 245,238 255,268 236,281 202,276 194,255',
+  '島根県':'167,249 212,238 222,269 202,283 163,277 158,256',
+  '岡山県':'214,274 251,265 261,294 241,310 207,304 198,282',
+  '広島県':'178,278 219,268 229,300 207,318 168,310 162,285',
+  '山口県':'143,284 186,272 196,305 172,322 136,314 129,289',
+  '徳島県':'239,281 275,273 283,302 261,319 227,312 219,290',
+  '香川県':'221,271 259,262 267,285 249,298 214,294 207,278',
+  '愛媛県':'191,288 233,278 243,310 219,328 182,320 176,297',
+  '高知県':'203,318 251,306 260,339 236,358 197,349 190,324',
+  '福岡県':'139,297 178,284 188,315 168,332 131,324 124,305',
+  '佐賀県':'114,308 147,298 157,328 135,345 102,337 95,316',
+  '長崎県':'87,321 122,310 131,344 106,362 74,353 68,330',
+  '熊本県':'135,328 174,315 184,348 161,366 122,357 114,335',
+  '大分県':'172,302 211,290 220,322 198,342 160,333 153,309',
+  '宮崎県':'162,345 201,332 210,367 186,387 146,377 138,352',
+  '鹿児島県':'133,360 172,347 182,385 156,406 116,395 108,369',
+  '沖縄県':'100,470 144,462 152,484 128,500 90,492 86,474'
+};
+
+function PCOLOR(cnt,mx){
+  if(!cnt)return '#e8edf5';const r=Math.min(cnt/mx,1);
+  if(r<0.04)return '#dbeafe';if(r<0.12)return '#bfdbfe';if(r<0.25)return '#93c5fd';
+  if(r<0.45)return '#60a5fa';if(r<0.65)return '#3b82f6';if(r<0.82)return '#2563eb';
+  return '#1d4ed8';
+}
+function DRAW_MAP(pd){
+  const mx=Math.max(...Object.values(pd).map(p=>p.t||p.total||0),1);
+  let out='';
+  Object.entries(PMAP).forEach(([nm,pts])=>{
+    const p=pd[nm];const cnt=p?(p.t||p.total||0):0;
+    const col=PCOLOR(cnt,mx);const isSel=SEL_PREF===nm;
+    const coords=pts.split(' ').map(s=>s.split(',').map(Number));
+    const cx=Math.round(coords.reduce((s,c)=>s+c[0],0)/coords.length);
+    const cy=Math.round(coords.reduce((s,c)=>s+c[1],0)/coords.length);
+    const lbl=nm.replace(/[都道府県]/g,'').substring(0,3);
+    const fs=nm==='北海道'?9:nm.length>3?6.5:7.5;
+    out+=`<polygon class="pp${isSel?' sel':''}" points="${pts}" fill="${col}" data-pref="${nm}" onclick="SELP('${nm}')"><title>${nm}: ${cnt.toLocaleString()}件</title></polygon>`;
+    out+=`<text x="${cx}" y="${cy+3}" text-anchor="middle" font-size="${fs}" fill="${cnt>300?'#1e3a5f':'#64748b'}" pointer-events="none" font-weight="500" font-family="Noto Sans JP">${lbl}</text>`;
+  });
+  out+=`<line x1="120" y1="470" x2="175" y2="445" stroke="#94a3b8" stroke-width="0.8" stroke-dasharray="3"/>`;
+  document.getElementById('mapSvg').innerHTML=`<svg viewBox="60 12 430 500" xmlns="http://www.w3.org/2000/svg">${out}</svg>`;
+}
+function SELP(nm){
+  SEL_PREF=nm;
+  document.querySelectorAll('.pp').forEach(el=>el.classList.toggle('sel',el.dataset.pref===nm));
+  const pd=CUR_PD?.[nm];
+  if(!pd||(pd.t||pd.total||0)===0){document.getElementById('mapPanel').innerHTML=`<div class="mp-ph"><div class="ico">📭</div><div>${nm}<br>データなし</div></div>`;return;}
+  const tot=pd.t||pd.total||0,kai=pd.k||pd.kaigai||0;
+  const kr=tot?Math.round(kai/tot*100):0;
+  const rent=pd.r||pd.avgRent||0;
+  const nats=pd.n||pd.topNat||[];const cos=pd.c||pd.topCo||[];const visas=pd.v||pd.topVisa||[];
+  document.getElementById('mapPanel').innerHTML=`<div class="mp-in">
+    <div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">選択エリア</div>
+    <div class="pname">${nm}</div><div class="ptot">${tot.toLocaleString()}件</div>
+    <div class="mrow"><span class="ml">海外審査</span><span class="mr" style="color:#7dd3fc">${kai}件 (${kr}%)</span></div>
+    <div class="mrow"><span class="ml">国内審査</span><span class="mr">${tot-kai}件</span></div>
+    <div class="mrow"><span class="ml">平均月額</span><span class="mr">¥${rent.toLocaleString()}</span></div>
+    <div class="msec">国籍 TOP5</div>
+    ${nats.slice(0,5).map((e,i)=>`<div class="mrow"><span class="ml">${i+1}. ${Array.isArray(e)?e[0]:e}</span><span class="mr">${Array.isArray(e)?e[1]:'-'}件</span></div>`).join('')}
+    <div class="msec">主な管理会社</div>
+    ${cos.slice(0,5).map((e,i)=>`<div class="mco"><div class="mco-r">${i+1}位</div><div class="mco-n">${Array.isArray(e)?e[0]:e}</div><div class="mco-c">${Array.isArray(e)?e[1]:'-'}件</div></div>`).join('')}
+    <div class="msec">在留資格</div>
+    ${visas.slice(0,4).map((e,i)=>`<div class="mrow"><span class="ml">${Array.isArray(e)?e[0]:e}</span><span class="mr">${Array.isArray(e)?e[1]:'-'}件</span></div>`).join('')}
+    <button class="map-btn" onclick="FBP('${nm}')">「${nm}」で絞り込む →</button>
+  </div>`;
+}
+function FBP(pref){document.getElementById('f1p').value=pref;SW('t1',document.querySelectorAll('.tab')[0]);A1();}
+
+// =================================================
+// MATRIX
+// =================================================
+function DMX(){
+  const mode=GV('mxmd'),pref=GV('mxp'),sh=GV('mxs');
+  const minC=parseInt(GV('mxmn')||'0');
+  const rk=mode==='vn'?'v':'n', ck=mode==='vn'?'n':'v';
+  let data=DB.m;
+  if(pref) data=data.filter(m=>{const h=DB.h.find(r=>r.pref===pref&&((r.tv&&r.tv[m.v])||(r.tn&&r.tn[m.n])));return!!h;});
+  if(sh==='海外') data=data.map(m=>({...m,t:m.k}));
+  else if(sh==='国内') data=data.map(m=>({...m,t:m.t-m.k,k:0}));
+  const rcnt={},ccnt={};
+  data.forEach(m=>{rcnt[m[rk]]=(rcnt[m[rk]]||0)+m.t;ccnt[m[ck]]=(ccnt[m[ck]]||0)+m.t;});
+  const rows=Object.entries(rcnt).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
+  const cols=Object.entries(ccnt).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
+  const cells={};
+  data.forEach(m=>{
+    if(!rows.includes(m[rk])||!cols.includes(m[ck]))return;
+    const k=m[rk]+'|'+m[ck];
+    if(!cells[k])cells[k]={t:0,k:0,c:m.c||[]};
+    cells[k].t+=m.t;cells[k].k+=(m.k||0);
+  });
+  const maxC=Math.max(...Object.values(cells).map(c=>c.t),1);
+  const rtot={},ctot={};
+  rows.forEach(r=>{rtot[r]=cols.reduce((s,c)=>s+(cells[r+'|'+c]?.t||0),0);});
+  cols.forEach(c=>{ctot[c]=rows.reduce((s,r)=>s+(cells[r+'|'+c]?.t||0),0);});
+  const gtot=data.reduce((s,m)=>s+m.t,0),gkai=data.reduce((s,m)=>s+(m.k||0),0);
+  document.getElementById('mxsum').innerHTML=`
+    <div class="mxs"><div class="mxs-l">対象データ</div><div class="mxs-v">${gtot.toLocaleString()}</div></div>
+    <div class="mxs"><div class="mxs-l">有効セル</div><div class="mxs-v">${Object.values(cells).filter(c=>c.t>=minC).length}</div></div>
+    <div class="mxs"><div class="mxs-l">全体海外率</div><div class="mxs-v">${gtot?Math.round(gkai/gtot*100)+'%':'-'}</div></div>
+    <div class="mxs"><div class="mxs-l">${mode==='vn'?'最多在留資格':'最多国籍'}</div><div class="mxs-v" style="font-size:11px;font-family:'Noto Sans JP'">${rows[0]||'-'}</div></div>`;
+  let html=`<table class="mxt"><thead><tr>
+    <th class="rh">${mode==='vn'?'在留資格 \\ 国籍':'国籍 \\ 在留資格'}</th>
+    ${cols.map(c=>`<th style="text-align:center;white-space:normal;max-width:88px;padding:7px 8px;font-size:10px">${c}<br><span style="opacity:.5;font-weight:400">${ctot[c]}件</span></th>`).join('')}
+    <th style="background:#0b1c35">合計</th></tr></thead><tbody>`;
+  rows.forEach(row=>{
+    html+=`<tr><th class="rh">${row}<br><span style="font-size:9.5px;font-weight:400;opacity:.5">${rtot[row]}件</span></th>`;
+    cols.forEach(col=>{
+      const cell=cells[row+'|'+col];
+      if(!cell||cell.t<minC){html+=`<td class="h0"><div class="mc"><span style="font-size:11px">—</span></div></td>`;return;}
+      const kr=Math.round(cell.k/cell.t*100);
+      const cls=kr<=30?'h1':kr<=60?'h2':'h3';
+      const bw=Math.round(cell.t/maxC*100);
+      const topco=(cell.c||[])[0]?.[0]||'';
+      html+=`<td class="${cls}" onclick="OMX('${ESC(row)}','${ESC(col)}','${mode}')"><div class="mc"><div class="mc-n">${cell.t}</div><div class="mc-b"><div class="mc-bf" style="width:${bw}%"></div></div><div class="mc-c">${topco.length>14?topco.substring(0,14)+'…':topco}</div><div class="mc-r">海外${kr}%</div></div></td>`;
+    });
+    html+=`<td class="tc-cell">${rtot[row]}</td></tr>`;
+  });
+  html+=`<tr><th class="rh" style="background:#0b1c35">合計</th>`;
+  cols.forEach(c=>html+=`<td class="tc-cell">${ctot[c]}</td>`);
+  html+=`<td class="tc-cell" style="background:#dbeafe">${rows.reduce((s,r)=>s+rtot[r],0)}</td></tr></tbody></table>`;
+  document.getElementById('mxwrap').innerHTML=html;
+}
+function OMX(rv,cv,mode){
+  const rk=mode==='vn'?'v':'n',ck=mode==='vn'?'n':'v';
+  const sub=DB.m.filter(m=>m[rk]===rv&&m[ck]===cv);
+  const tot=sub.reduce((s,m)=>s+m.t,0),kai=sub.reduce((s,m)=>s+(m.k||0),0);
+  const cos={};sub.forEach(m=>(m.c||[]).forEach(([n,c])=>{cos[n]=(cos[n]||0)+c;}));
+  const topcos=TOPN(cos,10);
+  document.getElementById('MTIT').textContent=`📊 ${rv} × ${cv}`;
+  document.getElementById('MBOD').innerHTML=`
+    <div class="card full"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;font-size:12px">
+      <div><div class="mono" style="font-size:22px;font-weight:700;color:var(--acc)">${tot}</div><div style="color:var(--t2)">総件数</div></div>
+      <div><div class="mono" style="font-size:22px;font-weight:700;color:var(--o)">${kai}</div><div style="color:var(--t2)">海外審査</div></div>
+      <div><div class="mono" style="font-size:22px;font-weight:700;color:var(--g)">${tot-kai}</div><div style="color:var(--t2)">国内審査</div></div>
+    </div></div>
+    <div class="card full"><div class="ctitle">利用管理会社 ランキング</div>
+      <div class="tw"><table><thead><tr><th>#</th><th>管理会社名</th><th>件数</th><th>難易度</th></tr></thead>
+        <tbody>${topcos.map((e,i)=>`<tr><td>${i+1}</td><td class="tl" onclick="CMOD();OM('${ESC(e[0])}')" style="white-space:normal">${e[0]}</td><td class="mono">${e[1]}</td><td>${DBG(DB.h.find(h=>h.nm===e[0])?.kr||50)}</td></tr>`).join('')}</tbody>
+      </table></div></div>`;
+  document.getElementById('MBG').classList.add('on');
+}
+
+// =================================================
+// MODAL
+// =================================================
+function OM(nm){
+  const h=DB.h.find(r=>r.nm===nm);
+  const a=DB.a.find(r=>r.nm===nm);
+  document.getElementById('MTIT').textContent='🏢 '+nm;
+  const tv=Object.entries(h?.tv||{}).slice(0,7);
+  const tn=Object.entries(h?.tn||{}).slice(0,8);
+  const mo=Object.keys(h?.mo||{}).sort().slice(-10);
+  const crItems=TOPN(a?.crs||{},5);
+  const crMax=crItems[0]?.[1]||1;
+  document.getElementById('MBOD').innerHTML=`
+    <div class="card">
+      <div class="ctitle">保証データ概要</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+        <div>件数: <strong class="mono">${h?.total?.toLocaleString()||'0'}</strong></div>
+        <div>海外: <strong style="color:var(--o)">${h?.kaigai||0}件 (${h?.kr||0}%)</strong></div>
+        <div>国内: <strong style="color:var(--acc)">${h?(h.total-h.kaigai):0}件</strong></div>
+        <div>平均月額: <strong class="mono">¥${h?.rent?.toLocaleString()||'-'}</strong></div>
+        <div>主要地域: <strong>${h?.pref||'-'}</strong></div>
+        <div>最終承認: <strong>${h?.date||'-'}</strong></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">営業データ概要</div>
+      ${a?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+        <div>総案件: <strong class="mono">${a.total}</strong></div>
+        <div>成約: <strong style="color:var(--g)">${a.contract}件 (${a.cr}%)</strong></div>
+        <div>キャンセル: <strong style="color:var(--r)">${a.cancel}件 (${a.xr}%)</strong></div>
+        <div>主なキャンセル: <span style="font-size:11px">${a.topCR||'-'}</span></div>
+      </div>
+      ${crItems.length?`<div style="height:1px;background:var(--bg);margin:10px 0"></div>
+        <div style="font-size:11px;color:var(--t2);margin-bottom:6px;font-weight:700">キャンセル理由内訳</div>
+        <div class="cr-list">${crItems.map(([k,c])=>`<div class="cr-item"><span style="flex:1">${k.replace(/^\d+_/,'')}</span><div class="cr-bar"><div class="cr-bf" style="width:${Math.round(c/crMax*100)}%"></div></div><span class="mono" style="color:var(--r);min-width:30px;text-align:right">${c}</span></div>`).join('')}</div>`:''}`
+      :'<div style="color:var(--t3);font-size:12px">営業データなし</div>'}
+    </div>
+    <div class="card"><div class="ctitle">在留資格別 件数</div><canvas id="mcv" style="max-height:200px"></canvas></div>
+    <div class="card"><div class="ctitle">国籍別 件数</div><canvas id="mcn" style="max-height:200px"></canvas></div>
+    ${mo.length?`<div class="card full"><div class="ctitle">月別 件数トレンド</div><canvas id="mcm" style="max-height:155px"></canvas></div>`:''}
+    ${(h?.tc||[]).length?`<div class="card full"><div class="ctitle">連携仲介会社 Top3</div><div style="display:flex;flex-direction:column;gap:5px">${h.tc.map((e,i)=>`<div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f8fafc;border-radius:6px;font-size:12px"><span>${i+1}. ${e[0]}</span><span class="mono" style="color:var(--t2)">${e[1]}件</span></div>`).join('')}</div></div>`:''}
+  `;
+  document.getElementById('MBG').classList.add('on');
+  setTimeout(()=>{
+    if(tv.length)MCH('mcv','bar',tv.map(e=>e[0]),[{data:tv.map(e=>e[1]),backgroundColor:CLR.map(c=>c+'bb'),borderRadius:4}],{plugins:{legend:{display:false}}});
+    if(tn.length)MCH('mcn','bar',tn.map(e=>e[0]),[{data:tn.map(e=>e[1]),backgroundColor:'rgba(14,165,233,.72)',borderRadius:4}],{plugins:{legend:{display:false}}});
+    if(mo.length)MCH('mcm','line',mo,[{label:'件数',data:mo.map(m=>h.mo[m]||0),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.35,pointBackgroundColor:'#2563eb',pointRadius:4}],{plugins:{legend:{display:false}}});
+  },80);
+}
+function OM5(nm){OM(nm);}
+function CMOD(e){if(!e||e.target===document.getElementById('MBG'))document.getElementById('MBG').classList.remove('on');}
+
+// =================================================
+// AUTOCOMPLETE — using ACS/ACD objects only
+// =================================================
+function ACF(id){
+  const q=(document.getElementById(id+'i')?.value||'').toLowerCase();
+  const drop=document.getElementById(id+'d');
+  if(!drop)return;
+  const items=(ACD[id]||[]).filter(v=>v.toLowerCase().includes(q)&&!ACS[id].includes(v)).slice(0,30);
+  drop.innerHTML=items.map(v=>`<div class="aci" onclick="ACADD('${id}','${ESC(v)}')">${v}</div>`).join('');
+  drop.classList.toggle('op',items.length>0&&q.length>0);
+}
+function ACADD(id,val){
+  if(!ACS[id].includes(val))ACS[id].push(val);
+  const inp=document.getElementById(id+'i');if(inp)inp.value='';
+  const drop=document.getElementById(id+'d');if(drop)drop.classList.remove('op');
+  ACTAG(id);
+  if(id==='AC1')A1();else if(id==='AC2')A2();else if(id==='AC3')A3();else if(id==='AC5')A5();
+}
+function ACRM(id,val){
+  ACS[id]=ACS[id].filter(v=>v!==val);ACTAG(id);
+  if(id==='AC1')A1();else if(id==='AC2')A2();else if(id==='AC3')A3();else if(id==='AC5')A5();
+}
+function RAC(id){ACS[id]=[];ACTAG(id);}
+function ACTAG(id){
+  const el=document.getElementById(id+'t');if(!el)return;
+  el.innerHTML=(ACS[id]||[]).map(v=>`<span class="actag">${v}<button onclick="ACRM('${id}','${ESC(v)}')">×</button></span>`).join('');
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.ac'))document.querySelectorAll('.acd').forEach(d=>d.classList.remove('op'));});
+
+// =================================================
+// FAV / HIST
+// =================================================
+function TFav(nm){
+  if(FAVS.includes(nm))FAVS=FAVS.filter(v=>v!==nm);else FAVS.push(nm);
+  localStorage.setItem('mdb_f',JSON.stringify(FAVS));
+  RFav();RT1();RT2();
+}
+function RFav(){
+  const el=document.getElementById('favL');if(!el)return;
+  if(!FAVS.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">お気に入りはまだありません</div>';return;}
+  el.innerHTML=FAVS.map(nm=>`<div class="fav-item" onclick="OM('${ESC(nm)}')" style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid var(--bg);cursor:pointer;font-size:12px"><span>${nm}</span><button onclick="event.stopPropagation();TFav('${ESC(nm)}')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:13px">✕</button></div>`).join('');
+}
+function SHIST(){
+  const visa=GV('f1v'),nat=GV('f1n'),pref=GV('f1p');
+  if(!visa&&!nat&&!pref)return;
+  const label=[visa,nat,pref].filter(Boolean).join(' / ');
+  HIST=HIST.filter(h=>h.label!==label);
+  HIST.unshift({label,visa,nat,pref,time:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})});
+  HIST=HIST.slice(0,15);
+  localStorage.setItem('mdb_h',JSON.stringify(HIST));
+  RHIST();
+}
+function RHIST(){
+  const el=document.getElementById('histL');if(!el)return;
+  if(!HIST.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">履歴はありません</div>';return;}
+  el.innerHTML=HIST.map(h=>`<div style="display:flex;justify-content:space-between;padding:7px 6px;border-bottom:1px solid var(--bg);cursor:pointer;font-size:12px" onclick="LH(${JSON.stringify(h).replace(/"/g,'&quot;')})"><span>🔍 ${h.label}</span><span style="color:var(--t3);font-size:11px">${h.time}</span></div>`).join('');
+}
+function LH(h){document.getElementById('f1v').value=h.visa||'';document.getElementById('f1n').value=h.nat||'';document.getElementById('f1p').value=h.pref||'';A1();SW('t1',document.querySelectorAll('.tab')[0]);}
+function CLRH(){HIST=[];localStorage.setItem('mdb_h','[]');RHIST();}
+
+// =================================================
+// TABS
+// =================================================
+function SW(id,el){
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  el.classList.add('on');
+}
+
+window.addEventListener('DOMContentLoaded', async function(){
+  const prog = document.getElementById('lprog');
+  const msg  = document.getElementById('lmsg');
+  try {
+    prog.style.width='20%'; msg.textContent='APIに接続中...';
+    // Apps Script は /exec → /exec?... にリダイレクトするため redirect:'follow' が必要
+    const res = await fetch(API_URL + '?type=all', {
+      redirect: 'follow',
+      mode: 'cors'
+    });
+    prog.style.width='60%'; msg.textContent='データを変換中...';
+    const raw = await res.json();
+    if(raw.error) throw new Error(raw.error);
+    prog.style.width='85%'; msg.textContent='ダッシュボードを描画中...';
+    DB = buildDB(raw);
+    prog.style.width='100%';
+    await new Promise(r=>setTimeout(r,300));
+    document.getElementById('loading').style.display='none';
+    INIT();
+  } catch(e) {
+    document.getElementById('lmsg').textContent='エラー: ' + e.message;
+    document.getElementById('lprog').style.background='#dc2626';
+    prog.style.width='100%';
+    console.error(e);
+  }
+});
+</script>
+</body>
+</html>
