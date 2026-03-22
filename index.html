@@ -1250,7 +1250,7 @@ function FBP(pref){SSV.ss1p=pref;const e=document.getElementById('ss1pi');if(e)e
 function DMX(){
   const mode=GV('mxmd'),pref=SSV.ss6p,sh=GV('mxs');
   const minC=parseInt(GV('mxmn')||'0');
-  const rk=mode==='vn'?'v':'n',ck=mode==='vn'?'n':'v';
+  const rk=mode==='vn'?'visa':'nat',ck=mode==='vn'?'nat':'visa';
   // VN(ビザ×国籍×会社)を使用 - prefフィルタはCVから会社セット取得
   let data=DB.VN;
   if(pref){const pNms=new Set(DB.CV.filter(m=>m.pref===pref).map(m=>m.nm));data=data.filter(m=>pNms.has(m.nm));}
@@ -1310,7 +1310,7 @@ function DMX(){
 }
 
 function OMX(rv,cv,mode){
-  const rk=mode==='vn'?'v':'n',ck=mode==='vn'?'n':'v';
+  const rk=mode==='vn'?'visa':'nat',ck=mode==='vn'?'nat':'visa';
   const sub=DB.VN.filter(m=>m[rk]===rv&&m[ck]===cv);
   const tot=sub.reduce((s,m)=>s+m.cnt,0),kai=sub.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
   const cos={};sub.forEach(m=>{cos[m.nm]=(cos[m.nm]||0)+m.cnt;});
