@@ -564,8 +564,9 @@ function buildDB(raw){
 
   // ── KPI サマリー (byCompany基準 = 全データ正確)
   const coList=Object.values(coBase);
-  const totH=coList.reduce((s,r)=>s+r.total,0);
-  const totK=coList.reduce((s,r)=>s+r.kaigai,0);
+  // byVisa합산 = visa_null=0確認済み → 全件正確
+  const totH=(hosho.byVisa||[]).reduce((s,r)=>s+(r.cnt||0),0)||coList.reduce((s,r)=>s+r.total,0);
+  const totK=(hosho.byVisa||[]).filter(r=>r.shinsa==='海外').reduce((s,r)=>s+(r.cnt||0),0)||coList.reduce((s,r)=>s+r.kaigai,0);
   // 건수 가중평균 임대료 계산
   const totRent=coList.reduce((s,r)=>s+(r.rent||0)*(r.total||0),0);
   const totForRent=coList.filter(r=>r.rent>0).reduce((s,r)=>s+(r.total||0),0);
@@ -814,7 +815,10 @@ function A1(){
   SARR(rows,SORT.t1);ROWS.t1=rows;PAGE.t1=1;RT1();
   const cb=document.getElementById('f1c');
   cb.textContent=rows.length+'社';cb.classList.toggle('z',rows.length===0);
-  const tot=rows.reduce((s,r)=>s+r.total,0),kai=rows.reduce((s,r)=>s+r.kaigai,0);
+  // 필터 없을 때는 DB.s.th(byVisa기반 전체값), 있을 때는 rows 합산
+  const hasFilter=!!(GETF1().visa||GETF1().nat||GETF1().pref||GETF1().shinsa||GETF1().rentMin>0||GETF1().rentMax>0||(ACS.AC1&&ACS.AC1.length));
+  const tot=hasFilter?rows.reduce((s,r)=>s+r.total,0):DB.s.th;
+  const kai=hasFilter?rows.reduce((s,r)=>s+r.kaigai,0):DB.s.kp*DB.s.th/100|0;
   const rents=rows.filter(r=>r.rent>0).map(r=>r.rent);
   document.getElementById('k1t').textContent=tot.toLocaleString();
   document.getElementById('k1c').textContent=rows.length.toLocaleString();
