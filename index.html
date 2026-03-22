@@ -103,7 +103,7 @@ tr:hover td{background:#f8fafc}
 .map-shell{display:flex;border-radius:var(--rd);overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh);height:660px}
 .map-area{flex:1;background:linear-gradient(150deg,#dbeafe,#e0f2fe 50%,#ede9fe);position:relative;overflow:hidden}
 .map-area svg{width:100%;height:100%}
-.map-panel{width:320px;flex-shrink:0;background:var(--pri);color:#fff;overflow-y:auto;height:100%}
+.map-panel{width:400px;flex-shrink:0;background:var(--pri);color:#fff;overflow-y:auto;height:100%}
 .mp-in{padding:18px}
 .mp-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);gap:10px;text-align:center;padding:40px 20px}
 .mp-ph .ico{font-size:34px;opacity:.35}
@@ -119,7 +119,7 @@ tr:hover td{background:#f8fafc}
 .map-btn{margin-top:14px;width:100%;padding:8px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
 .map-btn:hover{background:rgba(255,255,255,.2)}
 .map-tip{position:absolute;background:rgba(13,31,60,.92);color:#fff;padding:6px 11px;border-radius:7px;font-size:11px;pointer-events:none;display:none;z-index:20;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)}
-.map-ctrl{position:absolute;bottom:14px;left:14px;display:flex;flex-direction:column;gap:4px;z-index:10}
+.map-ctrl{position:absolute;bottom:14px;right:14px;display:flex;flex-direction:column;gap:4px;z-index:10}
 .map-ctrl button{width:30px;height:30px;background:#fff;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh)}
 .map-ctrl button:hover{background:#eff6ff;color:var(--acc)}
 .pref-path{cursor:pointer;stroke:#fff;stroke-width:0.5;transition:opacity .12s}
@@ -168,6 +168,22 @@ tr:hover td{background:#f8fafc}
 #loading{position:fixed;inset:0;background:#0d1f3c;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;gap:18px}
 #lprog-wrap{width:240px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
 #lprog{height:100%;background:linear-gradient(90deg,#2563eb,#0ea5e9);border-radius:2px;width:0%;transition:width .4s ease}
+
+/* Filter active tags */
+.ftags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;min-height:0}
+.ftag{display:inline-flex;align-items:center;gap:5px;background:#eff6ff;border:1.5px solid #bfdbfe;color:var(--acc);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.ftag button{background:none;border:none;cursor:pointer;color:#93c5fd;font-size:13px;line-height:1;padding:0 0 0 2px}
+.ftag button:hover{color:var(--r)}
+/* Sales insight box */
+.insight{background:linear-gradient(135deg,#0d1f3c,#1e3a5f);border-radius:10px;padding:12px 16px;margin-bottom:10px;color:#fff}
+.insight-title{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-weight:700}
+.insight-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:12px}
+.insight-row:last-child{border:none}
+.insight-row .il{color:rgba(255,255,255,.65)}
+.insight-row .ir{font-weight:700;font-family:'DM Mono',monospace;color:#7dd3fc}
+.insight-tip{background:rgba(255,255,255,.07);border-radius:6px;padding:6px 10px;font-size:11px;color:rgba(255,255,255,.7);margin-top:8px;line-height:1.6}
+/* Cancel side panel */
+.cancel-detail{background:var(--card);border-radius:var(--rd);padding:14px;border:1px solid var(--bd);box-shadow:var(--sh)}
 @media(max-width:900px){.g2,.g3,.mg,.map-shell{display:block;flex-direction:column}.map-panel{width:100%;max-height:280px}}
 </style>
 </head>
@@ -202,6 +218,7 @@ tr:hover td{background:#f8fafc}
 <!-- T1 -->
 <div id="t1" class="tc on">
   <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
+  <div class="ftags" id="ftags1"></div>
   <div class="kpis">
     <div class="kpi"><div class="kpi-l">保証件数</div><div class="kpi-v" id="k1t">-</div></div>
     <div class="kpi"><div class="kpi-l">管理会社数</div><div class="kpi-v" id="k1c">-</div></div>
@@ -230,7 +247,7 @@ tr:hover td{background:#f8fafc}
     <div class="tw"><table><thead><tr>
       <th>#</th><th onclick="SRT('t1','nm')">管理会社名↕</th><th onclick="SRT('t1','pref')">地域↕</th>
       <th onclick="SRT('t1','total')">件数↕</th><th onclick="SRT('t1','kaigai')">海外↕</th><th onclick="SRT('t1','kr')">海外比率↕</th>
-      <th>主な在留資格</th><th>主な国籍</th><th onclick="SRT('t1','rent')">平均月額↕</th><th>海外審査比率</th><th>⭐</th>
+      <th>主な在留資格</th><th>主な国籍</th><th onclick="SRT('t1','rent')">平均月額↕</th><th>外国人受入タイプ</th><th>⭐</th>
     </tr></thead><tbody id="b1"></tbody></table></div>
     <div class="pgn"><span id="p1i"></span><div class="pb"><button onclick="PG('t1',-1)">＜</button><button onclick="PG('t1',1)">＞</button></div></div>
   </div>
@@ -329,7 +346,7 @@ tr:hover td{background:#f8fafc}
     <div class="ctitle">地域別 管理会社ランキング</div>
     <div class="tw"><table><thead><tr>
       <th>#</th><th>管理会社名</th><th>地域</th><th onclick="SRT('t4','total')">件数↕</th>
-      <th onclick="SRT('t4','kr')">海外比率↕</th><th>主な国籍</th><th>主な在留資格</th><th onclick="SRT('t4','rent')">平均月額↕</th><th>海外審査比率</th>
+      <th onclick="SRT('t4','kr')">海外比率↕</th><th>主な国籍</th><th>主な在留資格</th><th onclick="SRT('t4','rent')">平均月額↕</th><th>外国人受入タイプ</th>
     </tr></thead><tbody id="b4"></tbody></table></div>
     <div class="pgn"><span id="p4i"></span><div class="pb"><button onclick="PG('t4',-1)">＜</button><button onclick="PG('t4',1)">＞</button></div></div>
   </div>
@@ -350,7 +367,13 @@ tr:hover td{background:#f8fafc}
     <div class="card"><div class="ctitle">キャンセル理由 内訳 <small id="c5r-label">全体</small></div><canvas id="c5r"></canvas></div>
   </div>
   <div class="card">
-    <div class="ctitle">管理会社別 成約 / キャンセル実績 <small>行クリックで詳細</small></div>
+    <div class="ctitle">管理会社別 成約 / キャンセル実績 <small>行クリックで詳細モーダル</small></div>
+    <div style="display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge bg" style="font-size:10px">🟢 A優良</span>成約率30%以上</div>
+      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge by" style="font-size:10px">🟡 B普通</span>成約率15〜29%</div>
+      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge br" style="font-size:10px">🔴 C要注意</span>成約率15%未満</div>
+      <div style="font-size:11px;color:var(--t3)">※決着ベース（成約＋キャンセルが母数）</div>
+    </div>
     <div class="tw"><table><thead><tr>
       <th>#</th><th>管理会社名</th>
       <th onclick="SRT('t5','total')">総案件↕</th><th onclick="SRT('t5','contract')">成約↕</th><th onclick="SRT('t5','cancel')">キャンセル↕</th>
@@ -375,9 +398,9 @@ tr:hover td{background:#f8fafc}
   <div class="card">
     <div class="ctitle">ビザ × 国籍 マトリクス
       <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#d1fae5"></div>海外審査少ない（≤30%）</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#d1fae5"></div>国内審査多い（海外≤30%）</div>
         <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#fef3c7"></div>普通（30-60%）</div>
-        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#fee2e2"></div>海外審査多い（60%超）</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#fee2e2"></div>外国人顧客多い（海外60%超）</div>
       </div>
     </div>
     <div class="mx-wrap" id="mxwrap"></div>
@@ -606,9 +629,10 @@ function GN(id){return parseFloat(document.getElementById(id)?.value||'');}
 function ESC(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function TOPN(obj,n){return Object.entries(obj||{}).sort((a,b)=>b[1]-a[1]).slice(0,n);}
 function KRBADGE(kr){
-  if(kr<=30)return `<span class="badge br">🔴 ${kr}%</span>`;
-  if(kr<=60)return `<span class="badge by">🟡 ${kr}%</span>`;
-  return `<span class="badge bg">🟢 ${kr}%</span>`;
+  // 外国人顧客の受入度合い（海外審査比率）
+  if(kr<=30)return `<span class="badge br">🏠 国内特化 ${kr}%</span>`;
+  if(kr<=60)return `<span class="badge by">⚖️ バランス型 ${kr}%</span>`;
+  return `<span class="badge bg">🌏 外国人歓迎 ${kr}%</span>`;
 }
 function SCORE(cr){
   if(cr===null||cr===undefined||isNaN(cr))return '<span style="color:var(--t3);font-size:11px">—</span>';
@@ -687,7 +711,30 @@ function A1(){
   document.getElementById('k1r').textContent=rents.length?'¥'+Math.round(rents.reduce((a,b)=>a+b)/rents.length).toLocaleString():'-';
   document.getElementById('k1k').textContent=tot?Math.round(kai/tot*100)+'%':'-';
   document.getElementById('k1d').textContent=rows.map(r=>r.date).filter(Boolean).sort().reverse()[0]||'-';
-  CH1(rows,GETF1());SHIST();
+  CH1(rows,GETF1());SHIST();FTAGS1();
+}
+
+// フィルタ現況タグ表示
+function FTAGS1(){
+  const el=document.getElementById('ftags1');if(!el)return;
+  const tags=[];
+  if(SSV.ss1v)tags.push({label:'在留資格: '+SSV.ss1v,clr:'ss1v',inp:'ss1vi'});
+  if(SSV.ss1n)tags.push({label:'国籍: '+SSV.ss1n,clr:'ss1n',inp:'ss1ni'});
+  if(SSV.ss1p)tags.push({label:'地域: '+SSV.ss1p,clr:'ss1p',inp:'ss1pi'});
+  if(GV('f1s'))tags.push({label:'審査: '+GV('f1s'),clr:null,sel:'f1s'});
+  const rn=document.getElementById('f1rn')?.value,rx=document.getElementById('f1rx')?.value;
+  if(rn||rx)tags.push({label:'賃料: '+(rn||'')+'〜'+(rx||'')+'万円',clr:null});
+  ACS.AC1.forEach(nm=>tags.push({label:'会社: '+nm.substring(0,12)+(nm.length>12?'…':''),ac:'AC1',val:nm}));
+  if(!tags.length){el.innerHTML='';return;}
+  el.innerHTML=tags.map((t,i)=>`<span class="ftag">${t.label}<button onclick="RMFTAG(${i},[${JSON.stringify(tags).replace(/"/g,'&quot;')}])">×</button></span>`).join('');
+}
+
+function RMFTAG(idx,tags){
+  const t=tags[idx];
+  if(t.clr){SSV[t.clr]=null;const e=document.getElementById(t.inp);if(e)e.value='';}
+  if(t.sel){const e=document.getElementById(t.sel);if(e)e.value='';}
+  if(t.ac){ACRM(t.ac,t.val);}
+  A1();
 }
 function A2(){
   const f={pref:SSV.ss2p,companies:ACS.AC2.length?ACS.AC2:null};
@@ -941,7 +988,14 @@ function DRAW_MAP(){
   const geo=topojson.feature(MAP_GEO,MAP_GEO.objects.japan);
   const mainFeatures=geo.features.filter(d=>{
     const nm=d.properties.nam_ja||d.properties.name||'';
-    return (PREF_FULL[nm]||nm)!=='沖縄県';
+    const full=PREF_FULL[nm]||nm;
+    if(full==='沖縄県')return false;
+    // 東京都の離島（伊豆諸島・小笠原）を除外 — areaが小さいポリゴンを除く
+    if(full==='東京都'){
+      const area=d3.geoArea(d);
+      return area>0.001;// 本州の東京都エリアのみ残す
+    }
+    return true;
   });
   const okinawaFeatures=geo.features.filter(d=>{
     const nm=d.properties.nam_ja||d.properties.name||'';
@@ -1032,9 +1086,9 @@ function DRAW_MAP(){
 
   drawLayer(g,mainFeatures,proj,false);
 
-  // 沖縄インセット
+  // 沖縄インセット — 左下に配置
   if(okinawaFeatures.length){
-    const okW=110,okH=72,okX=W-okW-14,okY=H-okH-14;
+    const okW=110,okH=72,okX=14,okY=H-okH-14;
     svg.append('rect').attr('x',okX-4).attr('y',okY-20).attr('width',okW+8).attr('height',okH+24)
       .attr('fill','rgba(255,255,255,.88)').attr('stroke','#cbd5e1').attr('stroke-width',1).attr('rx',6);
     svg.append('text').attr('x',okX+okW/2).attr('y',okY-6).attr('text-anchor','middle')
@@ -1160,9 +1214,90 @@ function OMX(rv,cv,mode){
 }
 
 // ================================================================
-// MODAL
+// MODAL — 営業向けインサイト表示
 // ================================================================
 function OM(nm){
+  const base=DB.coBase[nm]||{};
+  const a=DB.AL.find(r=>r.nm===nm);
+  const mxCo=DB.MX.filter(m=>m.nm===nm);
+  const tot=mxCo.reduce((s,m)=>s+m.cnt,0);
+  const kai=mxCo.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
+  const kr=tot?Math.round(kai/tot*100):0;
+  const tvMap={},tnMap={};
+  mxCo.forEach(m=>{tvMap[m.visa]=(tvMap[m.visa]||0)+m.cnt;tnMap[m.nat]=(tnMap[m.nat]||0)+m.cnt;});
+  const tv=TOPN(tvMap,7),tn=TOPN(tnMap,8);
+  const mo=DB.coMonthMap[nm]||{};
+  const months=Object.keys(mo).sort().slice(-10);
+  const crItems=TOPN(a?.crs||{},5);const crMax=crItems[0]?.[1]||1;
+
+  // 通過しやすいビザTop3（海外比率が低い組み合わせ）
+  const visaPass=[];
+  Object.entries(tvMap).forEach(([visa,cnt])=>{
+    const kaigaiCnt=mxCo.filter(m=>m.visa===visa&&m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
+    const passPct=cnt?Math.round((cnt-kaigaiCnt)/cnt*100):0;
+    visaPass.push({visa,cnt,passPct});
+  });
+  visaPass.sort((a,b)=>b.cnt-a.cnt);
+
+  // 営業アドバイス生成
+  let advice='';
+  if(kr>=60)advice=`外国人顧客に積極的な管理会社です。${TOPN(tnMap,1)[0]?.[0]||''}系の顧客に特に実績があります。`;
+  else if(kr>=30)advice=`国内外バランスよく対応しています。${TOPN(tvMap,1)[0]?.[0]||''}ビザの顧客実績が豊富です。`;
+  else advice=`国内顧客中心の管理会社です。外国人顧客の場合は事前確認をお勧めします。`;
+
+  document.getElementById('MTIT').textContent='🏢 '+nm;
+  document.getElementById('MBOD').innerHTML=`
+    <!-- 営業インサイト -->
+    <div class="full" style="grid-column:1/-1">
+      <div class="insight">
+        <div class="insight-title">💡 営業インサイト</div>
+        <div class="insight-row"><span class="il">外国人顧客の受入タイプ</span><span class="ir">${KRBADGE(kr)}</span></div>
+        <div class="insight-row"><span class="il">保証件数</span><span class="ir">${tot.toLocaleString()}件（海外${kr}%）</span></div>
+        ${a?`<div class="insight-row"><span class="il">成約スコア（決着ベース）</span><span class="ir">${SCORE(a.cr)}</span></div>`:''}
+        ${visaPass.length?`<div class="insight-row"><span class="il">実績の多い在留資格</span><span class="ir">${visaPass.slice(0,2).map(v=>v.visa).join(' / ')}</span></div>`:''}
+        ${TOPN(tnMap,2).length?`<div class="insight-row"><span class="il">実績の多い国籍</span><span class="ir">${TOPN(tnMap,2).map(e=>e[0]).join(' / ')}</span></div>`:''}
+        <div class="insight-tip">📌 ${advice}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">保証データ <small>2025-01以降</small></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:12px">
+        <div>総件数: <strong class="mono">${tot.toLocaleString()}</strong></div>
+        <div>海外審査: <strong style="color:var(--o)">${kai}件 (${kr}%)</strong></div>
+        <div>国内審査: <strong style="color:var(--acc)">${tot-kai}件</strong></div>
+        <div>平均月額: <strong class="mono">¥${(base.rent||0).toLocaleString()}</strong></div>
+        <div>主要地域: <strong>${base.pref||'-'}</strong></div>
+        <div>最終承認: <strong>${base.date||'-'}</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">営業データ <small>決着ベース</small></div>
+      ${a?`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:12px;margin-bottom:8px">
+        <div>総案件: <strong class="mono">${a.total}</strong></div>
+        <div>決着件数: <strong class="mono">${a.decided}</strong></div>
+        <div>成約: <strong style="color:var(--g)">${a.contract}件 (${a.cr}%)</strong></div>
+        <div>キャンセル: <strong style="color:var(--r)">${a.cancel}件 (${a.xr}%)</strong></div>
+      </div>
+      ${crItems.length?`<div style="height:1px;background:var(--bg);margin:8px 0"></div>
+        <div style="font-size:11px;color:var(--t2);margin-bottom:5px;font-weight:700">主なキャンセル理由</div>
+        <div class="cr-list">${crItems.map(([k,c])=>`<div class="cr-item"><span style="flex:1">${k.replace(/^\d+_/,'')}</span><div class="cr-bar"><div class="cr-bf" style="width:${Math.round(c/crMax*100)}%"></div></div><span class="mono" style="color:var(--r);min-width:28px;text-align:right">${c}</span></div>`).join('')}</div>`:''}`
+      :'<div style="color:var(--t3);font-size:12px">営業データなし</div>'}
+    </div>
+
+    <div class="card"><div class="ctitle">在留資格別 件数</div><canvas id="mcv" style="max-height:200px"></canvas></div>
+    <div class="card"><div class="ctitle">国籍別 件数</div><canvas id="mcn" style="max-height:200px"></canvas></div>
+    ${months.length?`<div class="card full"><div class="ctitle">月別 件数トレンド（この会社のみ）</div><canvas id="mcm" style="max-height:155px"></canvas></div>`:''}
+  `;
+  document.getElementById('MBG').classList.add('on');
+  setTimeout(()=>{
+    if(tv.length)MCH('mcv','bar',tv.map(e=>e[0]),[{data:tv.map(e=>e[1]),backgroundColor:CLR.map(c=>c+'bb'),borderRadius:4}],{plugins:{legend:{display:false}}});
+    if(tn.length)MCH('mcn','bar',tn.map(e=>e[0]),[{data:tn.map(e=>e[1]),backgroundColor:'rgba(14,165,233,.72)',borderRadius:4}],{plugins:{legend:{display:false}}});
+    if(months.length)MCH('mcm','line',months,[{label:'件数',data:months.map(m=>mo[m]||0),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.35,pointBackgroundColor:'#2563eb',pointRadius:4}],{plugins:{legend:{display:false}}});
+  },80);
+}
   const base=DB.coBase[nm]||{};
   const a=DB.AL.find(r=>r.nm===nm);
   const mxCo=DB.MX.filter(m=>m.nm===nm);
