@@ -682,16 +682,33 @@ function AGG(filters){
       // pref/rentフィルタ用にCV/CNからデータ取得
       _src:'base'
     }));
-    // pref/shinsa/rentフィルタはCV全体から集計
-    let src=DB.CV;
-    if(pref)src=src.filter(m=>m.pref===pref);
-    if(shinsa==='海外')src=src.filter(m=>m.shinsa==='海外');
-    if(shinsa==='国内')src=src.filter(m=>m.shinsa==='国内');
-    if(rentMin>0)src=src.filter(m=>m.rent>=rentMin);
-    if(rentMax>0)src=src.filter(m=>m.rent<=rentMax);
-    if(companies&&companies.length)src=src.filter(m=>companies.includes(m.nm));
-    if(pref||shinsa||rentMin>0||rentMax>0||companies&&companies.length){
-      return aggregateRows(src,'cv',companies);
+    // pref/shinsa/rentフィルタ
+    if(DB.CV.length){
+      // 2段階完了: CV基準で正確に集計
+      let src=DB.CV;
+      if(pref){const pa=Array.isArray(pref)?pref:[pref];src=src.filter(m=>pa.includes(m.pref));}
+      if(shinsa==='海外')src=src.filter(m=>m.shinsa==='海外');
+      if(shinsa==='国内')src=src.filter(m=>m.shinsa==='国内');
+      if(rentMin>0)src=src.filter(m=>m.rent>=rentMin);
+      if(rentMax>0)src=src.filter(m=>m.rent<=rentMax);
+      if(companies&&companies.length)src=src.filter(m=>companies.includes(m.nm));
+      if(pref||shinsa||rentMin>0||rentMax>0||companies&&companies.length){
+        return aggregateRows(src,'cv',companies);
+      }
+    } else {
+      // 1段階: CVなし → byCompanyをpref/companies/rentでフィルタ
+      let base=Object.values(DB.coBase);
+      if(pref){const pa=Array.isArray(pref)?pref:[pref];base=base.filter(b=>pa.includes(b.pref));}
+      if(companies&&companies.length)base=base.filter(b=>companies.includes(b.nm));
+      if(base.length||pref||companies){
+        return base.map(b=>({nm:b.nm,total:b.total,kaigai:b.kaigai,
+          kr:b.total?Math.round(b.kaigai/b.total*100):0,
+          rent:b.rent,pref:b.pref,date:b.date,
+          tv2:getTopN_CV(b.nm,null,null,2),
+          tn2l:getTopN_CN(b.nm,null,null,2),
+          tv:getTopObj_CV(b.nm),tn:getTopObj_CN(b.nm),
+          mo:DB.coMonthMap[b.nm]||{}}));
+      }
     }
     // 全フィルタなし → byCompany直接返却
     let result=Object.values(DB.coBase).map(b=>{
@@ -711,7 +728,7 @@ function AGG(filters){
     // ビザフィルタのみ → byCoVisa使用 (2段階完了後のみ正確)
     if(!DB.CV.length)return [];// 1段階: フィルタ未対応
     let src=DB.CV.filter(m=>m.visa===visa);
-    if(pref)src=src.filter(m=>m.pref===pref);
+    if(pref){const pa=Array.isArray(pref)?pref:[pref];src=src.filter(m=>pa.includes(m.pref));}
     if(shinsa==='海外')src=src.filter(m=>m.shinsa==='海外');
     if(shinsa==='国内')src=src.filter(m=>m.shinsa==='国内');
     if(rentMin>0)src=src.filter(m=>m.rent>=rentMin);
@@ -724,7 +741,7 @@ function AGG(filters){
     // 国籍フィルタのみ → byCoNat使用 (2段階完了後のみ正確)
     if(!DB.CN.length)return [];// 1段階: フィルタ未対応
     let src=DB.CN.filter(m=>m.nat===nat);
-    if(pref)src=src.filter(m=>m.pref===pref);
+    if(pref){const pa=Array.isArray(pref)?pref:[pref];src=src.filter(m=>pa.includes(m.pref));}
     if(shinsa==='海外')src=src.filter(m=>m.shinsa==='海外');
     if(shinsa==='国内')src=src.filter(m=>m.shinsa==='国内');
     if(rentMin>0)src=src.filter(m=>m.rent>=rentMin);
@@ -774,17 +791,17 @@ function aggregateRows(rows,srcType,companies){
 
 // 会社のビザ別件数 (CV基準)
 function getTopN_CV(nm,visa,nat,n){
-  return TOPN(DB.CV_IDX[nm]||{},n);
+  return TOPN((DB.CV_IDX&&DB.CV_IDX[nm])||{},n);
 }
 // 会社の国籍別件数 (CN基準)
 function getTopN_CN(nm,visa,nat,n){
-  return TOPN(DB.CN_IDX[nm]||{},n);
+  return TOPN((DB.CN_IDX&&DB.CN_IDX[nm])||{},n);
 }
-function getTopObj_CV(nm,visa,nat){
-  return DB.CV_IDX[nm]||{};
+function getTopObj_CV(nm){
+  return (DB.CV_IDX&&DB.CV_IDX[nm])||{};
 }
-function getTopObj_CN(nm,visa,nat){
-  return DB.CN_IDX[nm]||{};
+function getTopObj_CN(nm){
+  return (DB.CN_IDX&&DB.CN_IDX[nm])||{};
 }
 
 
@@ -1108,6 +1125,11 @@ function RT3(){
 }
 function RT4(){
   const{rows,start,tot}=SLC('t4');
+  if(!tot){
+    document.getElementById('b4').innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--t2)">条件に一致する管理会社がありません</td></tr>';
+    document.getElementById('p4i').textContent='0件';
+    return;
+  }
   document.getElementById('b4').innerHTML=rows.map((r,i)=>`<tr>
     <td style="color:var(--t3)">${start+i+1}</td>
     <td class="tl" onclick="OM('${ESC(r.nm)}')" style="white-space:normal;max-width:210px">${r.nm}</td>
@@ -1273,14 +1295,10 @@ function UPDATE_MAP_COLORS(){
     const nm=d.properties.nam_ja||d.properties.name||'';
     const full=PREF_FULL[nm]||nm;
     const pref=pd[full];return PCOLOR(pref?pref.t||0:0,mx);
+  }).classed('sel',d=>{
+    const nm=d.properties.nam_ja||d.properties.name||'';
+    return SEL_PREFS.includes(PREF_FULL[nm]||nm);
   });
-  // 選択状態復元
-  if(SEL_PREFS.length){
-    MAP_G.selectAll('.pref-path').classed('sel',d=>{
-      const nm=d.properties.nam_ja||d.properties.name||'';
-      return SEL_PREFS.includes(PREF_FULL[nm]||nm);
-    });
-  }
 }
 
 function DRAW_MAP(){
@@ -1451,13 +1469,23 @@ function DRAW_MAP(){
   if(okAll.length){
     const okW=150,okH=95,okX=10,okY=H-okH-10;
     const okGrp=svg.append('g').attr('class','ok-inset');
+    // 全体クリックエリア (透明rect)
     okGrp.append('rect').attr('x',okX-4).attr('y',okY-20)
       .attr('width',okW+8).attr('height',okH+24)
       .attr('fill','#d4e4f2').attr('stroke','#8bacc8')
-      .attr('stroke-width',1).attr('rx',6);
+      .attr('stroke-width',1).attr('rx',6)
+      .style('cursor','pointer')
+      .on('click',function(){
+        SEL_PREFS=['沖縄県'];UPREF_TAGS();UPD_PREF_SEL_TAGS();A4();SELP('沖縄県');
+      });
     okGrp.append('text').attr('x',okX+okW/2).attr('y',okY-6)
       .attr('text-anchor','middle').attr('font-size',10)
-      .attr('fill','#64748b').text('沖縄県');
+      .attr('fill','#334155').attr('font-weight','600')
+      .style('cursor','pointer')
+      .text('沖縄県')
+      .on('click',function(){
+        SEL_PREFS=['沖縄県'];UPREF_TAGS();UPD_PREF_SEL_TAGS();A4();SELP('沖縄県');
+      });
     const okGeo={type:'FeatureCollection',features:okAll};
     const okProj=d3.geoMercator().fitExtent([[okX,okY],[okX+okW,okY+okH]],okGeo);
     const okPath=d3.geoPath().projection(okProj);
@@ -1586,7 +1614,7 @@ function DMX(){
   const rk=mode==='vn'?'visa':'nat',ck=mode==='vn'?'nat':'visa';
   // VN(ビザ×国籍×会社)を使用 - prefフィルタはCVから会社セット取得
   let data=DB.VN;
-  if(pref){const pNms=new Set(DB.CV.filter(m=>m.pref===pref).map(m=>m.nm));data=data.filter(m=>pNms.has(m.nm));}
+  if(pref){const pa=Array.isArray(pref)?pref:[pref];const pNms=new Set(DB.CV.filter(m=>pa.includes(m.pref)).map(m=>m.nm));data=data.filter(m=>pNms.has(m.nm));}
   if(sh==='海外')data=data.filter(m=>m.shinsa==='海外');
   else if(sh==='国内')data=data.filter(m=>m.shinsa==='国内');
 
@@ -1910,7 +1938,7 @@ function SW(id,el){
   document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById(id).classList.add('on');el.classList.add('on');
-  if(id==='t4'&&MAP_GEO)setTimeout(()=>{DRAW_MAP();},50);
+  if(id==='t4'&&MAP_GEO)setTimeout(()=>{if(MAP_G)UPDATE_MAP_COLORS();else DRAW_MAP();},50);
 }
 
 window.addEventListener('DOMContentLoaded',async function(){
