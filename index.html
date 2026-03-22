@@ -9,30 +9,19 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <style>
-:root{
-  --bg:#f1f4f9;--card:#fff;--pri:#0d1f3c;--acc:#2563eb;--acc2:#0ea5e9;
-  --g:#059669;--r:#dc2626;--o:#ea580c;--pu:#7c3aed;
-  --bd:#e2e8f0;--t1:#0f172a;--t2:#64748b;--t3:#94a3b8;
-  --sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);--rd:12px;
-}
+:root{--bg:#f1f4f9;--card:#fff;--pri:#0d1f3c;--acc:#2563eb;--acc2:#0ea5e9;--g:#059669;--r:#dc2626;--o:#ea580c;--pu:#7c3aed;--bd:#e2e8f0;--t1:#0f172a;--t2:#64748b;--t3:#94a3b8;--sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);--rd:12px}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--t1);font-size:13px}
-
-/* HEADER */
 .hdr{background:var(--pri);color:#fff;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:300;box-shadow:0 2px 14px rgba(0,0,0,.35)}
 .hdr-l{display:flex;align-items:center;gap:12px}
 .hdr-title{font-size:15px;font-weight:700}
 .hdr-pill{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:2px 10px;font-size:10px;font-family:'DM Mono',monospace}
 .hdr-r{text-align:right;font-size:11px;opacity:.55;font-family:'DM Mono',monospace;line-height:1.9}
-
-/* TABS */
 .tabs{background:#fff;border-bottom:2px solid var(--bd);padding:0 18px;display:flex;position:sticky;top:54px;z-index:299;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{padding:12px 15px;cursor:pointer;font-size:12px;font-weight:500;color:var(--t2);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .16s;display:flex;align-items:center;gap:5px}
 .tab.on{color:var(--acc);border-bottom-color:var(--acc)}
 .tab:hover:not(.on){color:var(--t1);background:#f8fafc}
-
-/* LAYOUT */
 .wrap{max-width:1600px;margin:0 auto;padding:16px 18px}
 .tc{display:none}.tc.on{display:block}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
@@ -43,22 +32,18 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--t1);
 .ctitle small{font-size:11px;color:var(--t3);font-weight:400}
 .dsrc{font-size:10px;color:var(--t3);background:#f8fafc;border:1px solid var(--bd);border-radius:6px;padding:3px 9px;display:inline-block;margin-bottom:10px}
 canvas{max-height:270px}
-
-/* KPI */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:14px}
 .kpi{background:var(--card);border-radius:var(--rd);padding:14px 16px;box-shadow:var(--sh);border:1px solid var(--bd);position:relative;overflow:hidden}
 .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
 .kpi-l{font-size:10px;color:var(--t2);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
 .kpi-v{font-size:22px;font-weight:700;color:var(--acc);font-family:'DM Mono',monospace}
-
-/* FILTER BAR */
 .fbar{background:var(--card);border-radius:var(--rd);padding:12px 16px;margin-bottom:12px;box-shadow:var(--sh);border:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
-.fg{display:flex;flex-direction:column;gap:3px;min-width:150px}
+.fg{display:flex;flex-direction:column;gap:3px;min-width:140px}
 .fg label{font-size:10px;color:var(--t2);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
 .fg select{padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif;color:var(--t1);min-width:130px}
 .fg select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
 .rrow{display:flex;align-items:center;gap:6px}
-.rrow input{min-width:66px;max-width:76px;text-align:center;padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc}
+.rrow input{min-width:64px;max-width:74px;text-align:center;padding:6px 8px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc}
 .rrow input:focus{outline:none;border-color:var(--acc)}
 .rsep{color:var(--t3);font-weight:600}
 .runit{font-size:10px;color:var(--t3)}
@@ -68,23 +53,20 @@ canvas{max-height:270px}
 .btn{padding:6px 14px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all .14s}
 .btn-d{background:var(--pri);color:#fff}
 .btn-d:hover{background:#1e3a5f;transform:translateY(-1px)}
-
-/* SEARCHABLE SELECT */
+/* Searchable select */
 .ss{position:relative;display:flex;flex-direction:column;gap:3px}
-.ss-inp{padding:6px 28px 6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif;width:100%;cursor:pointer}
+.ss-inp{padding:6px 28px 6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif;width:100%;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ss-inp:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-.ss-arrow{position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--t3);font-size:10px}
+.ss-arrow{position:absolute;right:9px;top:9px;pointer-events:none;color:var(--t3);font-size:10px}
 .ss-drop{position:absolute;top:calc(100% + 2px);left:0;width:100%;min-width:200px;max-width:380px;background:#fff;border:1.5px solid var(--bd);border-radius:10px;max-height:240px;overflow-y:auto;z-index:999;display:none;box-shadow:0 8px 28px rgba(0,0,0,.12)}
 .ss-drop.op{display:block}
 .ss-search{padding:7px 10px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:#fff;z-index:1}
 .ss-search input{width:100%;padding:5px 8px;border:1.5px solid var(--bd);border-radius:6px;font-size:12px;font-family:'Noto Sans JP',sans-serif}
 .ss-search input:focus{outline:none;border-color:var(--acc)}
-.ss-item{padding:7px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f8fafc;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-item{padding:7px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ss-item:hover,.ss-item.hi{background:#eff6ff;color:var(--acc)}
 .ss-item.sel{background:#dbeafe;color:var(--acc);font-weight:600}
-.ss-empty{padding:10px 12px;font-size:12px;color:var(--t3);text-align:center}
-
-/* AUTOCOMPLETE TAGS */
+/* Autocomplete tags */
 .ac{position:relative;display:flex;flex-direction:column;gap:3px}
 .ac input{min-width:260px;padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif}
 .ac input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
@@ -95,8 +77,7 @@ canvas{max-height:270px}
 .act{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;min-height:18px}
 .actag{display:inline-flex;align-items:center;gap:3px;background:#eff6ff;color:var(--acc);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
 .actag button{background:none;border:none;cursor:pointer;font-size:12px;color:#9ca3af}
-
-/* TABLE */
+/* Table */
 .tw{overflow-x:auto;max-height:500px;overflow-y:auto}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{background:var(--pri);color:#fff;padding:9px 11px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:1;cursor:pointer;user-select:none}
@@ -110,8 +91,6 @@ tr:hover td{background:#f8fafc}
 .pgn button{padding:5px 12px;border:1.5px solid var(--bd);border-radius:6px;cursor:pointer;background:#fff;font-size:12px;font-weight:600}
 .pgn button:hover:not(:disabled){background:var(--acc);color:#fff;border-color:var(--acc)}
 .pgn button:disabled{opacity:.3;cursor:not-allowed}
-
-/* MISC */
 .bw{display:flex;align-items:center;gap:5px;min-width:80px}
 .bbg{flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden}
 .bf{height:100%;border-radius:3px}
@@ -120,10 +99,8 @@ tr:hover td{background:#f8fafc}
 .mono{font-family:'DM Mono',monospace}
 .fav{background:none;border:none;cursor:pointer;font-size:15px;padding:2px 4px}
 .fav:hover{transform:scale(1.2)}
-.divider{height:1px;background:var(--bg);margin:10px 0}
-
-/* MAP */
-.map-shell{display:flex;border-radius:var(--rd);overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh);height:640px}
+/* Map */
+.map-shell{display:flex;border-radius:var(--rd);overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh);height:660px}
 .map-area{flex:1;background:linear-gradient(150deg,#dbeafe,#e0f2fe 50%,#ede9fe);position:relative;overflow:hidden}
 .map-area svg{width:100%;height:100%}
 .map-panel{width:320px;flex-shrink:0;background:var(--pri);color:#fff;overflow-y:auto;height:100%}
@@ -141,15 +118,20 @@ tr:hover td{background:#f8fafc}
 .mco-c{color:#7dd3fc;font-family:'DM Mono',monospace;font-size:11px}
 .map-btn{margin-top:14px;width:100%;padding:8px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
 .map-btn:hover{background:rgba(255,255,255,.2)}
-.map-tip{position:absolute;background:rgba(13,31,60,.9);color:#fff;padding:5px 10px;border-radius:6px;font-size:11px;pointer-events:none;display:none;z-index:10;white-space:nowrap}
-.map-zoom{position:absolute;bottom:12px;left:12px;display:flex;flex-direction:column;gap:4px;z-index:10}
-.map-zoom button{width:30px;height:30px;background:#fff;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh);transition:background .12s}
-.map-zoom button:hover{background:#eff6ff;color:var(--acc)}
-.mleg-w{display:flex;gap:10px;align-items:center}
-.mleg{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)}
-.mleg-c{width:11px;height:11px;border-radius:3px}
-
-/* MATRIX */
+.map-tip{position:absolute;background:rgba(13,31,60,.92);color:#fff;padding:6px 11px;border-radius:7px;font-size:11px;pointer-events:none;display:none;z-index:20;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.map-ctrl{position:absolute;bottom:14px;left:14px;display:flex;flex-direction:column;gap:4px;z-index:10}
+.map-ctrl button{width:30px;height:30px;background:#fff;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh)}
+.map-ctrl button:hover{background:#eff6ff;color:var(--acc)}
+.pref-path{cursor:pointer;stroke:#fff;stroke-width:0.5;transition:opacity .12s}
+.pref-path:hover{opacity:.78}
+.pref-path.sel{stroke:#2563eb;stroke-width:2.5;filter:drop-shadow(0 0 5px rgba(37,99,235,.6))}
+.pref-lbl{pointer-events:none;font-family:'Noto Sans JP',sans-serif;fill:#334155;font-weight:500}
+/* Map pref list */
+.pref-list{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.pref-tag{padding:3px 9px;border:1.5px solid var(--bd);border-radius:12px;font-size:11px;cursor:pointer;background:#fff;transition:all .12s}
+.pref-tag:hover{border-color:var(--acc);color:var(--acc)}
+.pref-tag.sel{background:var(--acc);color:#fff;border-color:var(--acc)}
+/* Matrix */
 .mx-wrap{overflow-x:auto}
 .mxt{border-collapse:collapse;font-size:11px}
 .mxt th{background:var(--pri);color:#fff;padding:7px 10px;font-size:10px;font-weight:600}
@@ -169,8 +151,7 @@ tr:hover td{background:#f8fafc}
 .mxs{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 13px;box-shadow:var(--sh)}
 .mxs-l{font-size:10px;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
 .mxs-v{font-size:17px;font-weight:700;color:var(--acc);font-family:'DM Mono',monospace;margin-top:3px}
-
-/* MODAL */
+/* Modal */
 .mbg{display:none;position:fixed;inset:0;background:rgba(10,20,40,.62);z-index:1000;justify-content:center;align-items:center;backdrop-filter:blur(4px)}
 .mbg.on{display:flex}
 .modal{background:#fff;border-radius:18px;width:93%;max-width:1000px;max-height:90vh;overflow-y:auto;padding:24px;position:relative;box-shadow:0 28px 70px rgba(0,0,0,.22)}
@@ -183,24 +164,20 @@ tr:hover td{background:#f8fafc}
 .cr-item{display:flex;align-items:center;gap:8px;padding:5px 8px;background:#fef2f2;border-radius:6px;border-left:3px solid var(--r);font-size:12px}
 .cr-bar{flex:1;height:4px;background:#fca5a5;border-radius:2px;overflow:hidden;max-width:80px}
 .cr-bf{height:100%;background:var(--r);border-radius:2px}
-
-/* LOADING */
+/* Loading */
 #loading{position:fixed;inset:0;background:#0d1f3c;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;gap:18px}
 #lprog-wrap{width:240px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
 #lprog{height:100%;background:linear-gradient(90deg,#2563eb,#0ea5e9);border-radius:2px;width:0%;transition:width .4s ease}
-
 @media(max-width:900px){.g2,.g3,.mg,.map-shell{display:block;flex-direction:column}.map-panel{width:100%;max-height:280px}}
 </style>
 </head>
 <body>
-
 <div id="loading">
   <div style="font-size:32px">🏢</div>
   <div style="font-size:16px;font-weight:700">管理会社ダッシュボード</div>
   <div id="lprog-wrap"><div id="lprog"></div></div>
   <div id="lmsg" style="font-size:12px;opacity:.55">BigQueryからデータを取得中...</div>
 </div>
-
 <div class="hdr">
   <div class="hdr-l">
     <span class="hdr-title">🏢 管理会社ダッシュボード</span>
@@ -211,7 +188,6 @@ tr:hover td{background:#f8fafc}
     <div>最終更新 <span id="hdt">-</span></div>
   </div>
 </div>
-
 <div class="tabs">
   <div class="tab on"  onclick="SW('t1',this)">🔍 条件検索</div>
   <div class="tab"     onclick="SW('t2',this)">🏢 管理会社</div>
@@ -221,12 +197,11 @@ tr:hover td{background:#f8fafc}
   <div class="tab"     onclick="SW('t6',this)">📊 マトリクス</div>
   <div class="tab"     onclick="SW('t7',this)">⭐ お気に入り</div>
 </div>
-
 <div class="wrap">
 
-<!-- T1 条件検索 -->
+<!-- T1 -->
 <div id="t1" class="tc on">
-  <div class="dsrc">📊 データソース: 保証審査データ (mgmt_hosho_data) ／ 対象期間: 2025-01-01以降</div>
+  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
   <div class="kpis">
     <div class="kpi"><div class="kpi-l">保証件数</div><div class="kpi-v" id="k1t">-</div></div>
     <div class="kpi"><div class="kpi-l">管理会社数</div><div class="kpi-v" id="k1c">-</div></div>
@@ -241,7 +216,7 @@ tr:hover td{background:#f8fafc}
     <div class="fg"><label>審査区分</label><select id="f1s" onchange="A1()"><option value="">すべて</option><option>海外</option><option>国内</option></select></div>
     <div class="fg"><label>賃料（万円）</label>
       <div class="rrow"><input type="number" id="f1rn" placeholder="下限" min="0" step="0.5" oninput="A1()"><span class="rsep">〜</span><input type="number" id="f1rx" placeholder="上限" min="0" step="0.5" oninput="A1()"></div>
-      <span class="runit">万円単位で入力</span></div>
+      <span class="runit">万円単位</span></div>
     <div class="fg"><label>管理会社で絞込</label>
       <div class="ac" id="AC1"><input type="text" id="AC1i" placeholder="会社名を入力..." oninput="ACF('AC1')" onfocus="ACF('AC1')" autocomplete="off"><div class="acd" id="AC1d"></div><div class="act" id="AC1t"></div></div></div>
     <div class="fbar-r"><span class="cntb" id="f1c">―</span><button class="btn btn-d" onclick="R1()">↺ リセット</button></div>
@@ -251,19 +226,19 @@ tr:hover td{background:#f8fafc}
     <div class="card"><div class="ctitle">国籍別 審査構成</div><canvas id="c1n"></canvas></div>
   </div>
   <div class="card">
-    <div class="ctitle">管理会社リスト <small>行クリックで詳細表示</small></div>
+    <div class="ctitle">管理会社リスト <small>行クリックで詳細</small></div>
     <div class="tw"><table><thead><tr>
       <th>#</th><th onclick="SRT('t1','nm')">管理会社名↕</th><th onclick="SRT('t1','pref')">地域↕</th>
-      <th onclick="SRT('t1','total')">件数↕</th><th onclick="SRT('t1','kaigai')">海外↕</th><th onclick="SRT('t1','kr')">海外審査比率↕</th>
+      <th onclick="SRT('t1','total')">件数↕</th><th onclick="SRT('t1','kaigai')">海外↕</th><th onclick="SRT('t1','kr')">海外比率↕</th>
       <th>主な在留資格</th><th>主な国籍</th><th onclick="SRT('t1','rent')">平均月額↕</th><th>海外審査比率</th><th>⭐</th>
     </tr></thead><tbody id="b1"></tbody></table></div>
     <div class="pgn"><span id="p1i"></span><div class="pb"><button onclick="PG('t1',-1)">＜</button><button onclick="PG('t1',1)">＞</button></div></div>
   </div>
 </div>
 
-<!-- T2 管理会社 -->
+<!-- T2 -->
 <div id="t2" class="tc">
-  <div class="dsrc">📊 データソース: 保証審査データ (mgmt_hosho_data) ／ 対象期間: 2025-01-01以降</div>
+  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
   <div class="fbar">
     <div class="fg"><label>管理会社で絞込</label>
       <div class="ac" id="AC2"><input type="text" id="AC2i" placeholder="会社名を入力..." oninput="ACF('AC2')" onfocus="ACF('AC2')" autocomplete="off"><div class="acd" id="AC2d"></div><div class="act" id="AC2t"></div></div></div>
@@ -279,7 +254,7 @@ tr:hover td{background:#f8fafc}
     <div class="ctitle">管理会社別 詳細</div>
     <div class="tw"><table><thead><tr>
       <th>#</th><th onclick="SRT('t2','nm')">管理会社名↕</th><th onclick="SRT('t2','total')">件数↕</th>
-      <th onclick="SRT('t2','kaigai')">海外↕</th><th onclick="SRT('t2','kr')">海外審査比率↕</th>
+      <th onclick="SRT('t2','kaigai')">海外↕</th><th onclick="SRT('t2','kr')">海外比率↕</th>
       <th>国籍 Top2</th><th>在留資格 Top2</th>
       <th onclick="SRT('t2','rent')">平均月額↕</th><th onclick="SRT('t2','date')">最終承認↕</th><th>⭐</th>
     </tr></thead><tbody id="b2"></tbody></table></div>
@@ -287,9 +262,9 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
-<!-- T3 仲介会社 -->
+<!-- T3 -->
 <div id="t3" class="tc">
-  <div class="dsrc">📊 データソース: 保証審査データ (mgmt_hosho_data) ／ 対象期間: 2025-01-01以降</div>
+  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
   <div class="fbar">
     <div class="fg"><label>仲介会社で絞込</label>
       <div class="ac" id="AC3"><input type="text" id="AC3i" placeholder="仲介会社名を入力..." oninput="ACF('AC3')" onfocus="ACF('AC3')" autocomplete="off"><div class="acd" id="AC3d"></div><div class="act" id="AC3t"></div></div></div>
@@ -312,9 +287,9 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
-<!-- T4 地域マップ -->
+<!-- T4 -->
 <div id="t4" class="tc">
-  <div class="dsrc">📊 データソース: 保証審査データ (mgmt_hosho_data) ／ 対象期間: 2025-01-01以降</div>
+  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
   <div class="fbar">
     <div class="fg"><label>国籍</label><div class="ss" id="ss4n"><input class="ss-inp" id="ss4ni" placeholder="すべて" readonly onclick="SST('ss4n')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss4nd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss4n',this.value)"></div><div class="ss-list" id="ss4nl"></div></div></div></div>
     <div class="fg"><label>在留資格</label><div class="ss" id="ss4v"><input class="ss-inp" id="ss4vi" placeholder="すべて" readonly onclick="SST('ss4v')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss4vd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss4v',this.value)"></div><div class="ss-list" id="ss4vl"></div></div></div></div>
@@ -322,22 +297,29 @@ tr:hover td{background:#f8fafc}
       <div class="rrow"><input type="number" id="f4rn" placeholder="下限" min="0" step="0.5" oninput="A4()"><span class="rsep">〜</span><input type="number" id="f4rx" placeholder="上限" min="0" step="0.5" oninput="A4()"></div></div>
     <div class="fbar-r"><span class="cntb" id="f4c">―</span><button class="btn btn-d" onclick="R4()">↺ リセット</button></div>
   </div>
+  <!-- 都道府県クイック選択 -->
+  <div class="card" style="margin-bottom:12px;padding:12px 16px">
+    <div style="font-size:11px;color:var(--t2);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">都道府県クイック選択 <span style="font-weight:400;color:var(--t3)">（複数選択可）</span></div>
+    <div class="pref-list" id="prefList"></div>
+  </div>
   <div class="card full" style="padding:0;overflow:hidden;margin-bottom:12px">
     <div style="padding:12px 16px;border-bottom:1px solid var(--bg);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <div class="ctitle" style="border:none;padding:0;margin:0">都道府県別 件数マップ <small>クリックで詳細表示</small></div>
-      <div class="mleg-w">
-        <div class="mleg"><div class="mleg-c" style="background:#dbeafe"></div>少ない</div>
-        <div class="mleg"><div class="mleg-c" style="background:#60a5fa"></div>中程度</div>
-        <div class="mleg"><div class="mleg-c" style="background:#1d4ed8"></div>多い</div>
+      <div class="ctitle" style="border:none;padding:0;margin:0">都道府県別 件数マップ <small>クリックで詳細 / ドラッグでスクロール / ホイールでズーム</small></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#dbeafe"></div>少ない</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#60a5fa"></div>中程度</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#1d4ed8"></div>多い</div>
+        </div>
       </div>
     </div>
     <div class="map-shell">
       <div class="map-area" id="mapArea">
         <div class="map-tip" id="mapTip"></div>
-        <div class="map-zoom">
-          <button onclick="MAP_ZOOM(1.3)" title="拡大">＋</button>
-          <button onclick="MAP_ZOOM(0.77)" title="縮小">－</button>
-          <button onclick="MAP_RESET()" title="リセット" style="font-size:11px">⟳</button>
+        <div class="map-ctrl">
+          <button onclick="MZOOM(1.4)" title="拡大">＋</button>
+          <button onclick="MZOOM(0.71)" title="縮小">－</button>
+          <button onclick="MRESET()" title="リセット" style="font-size:11px">⟳</button>
         </div>
       </div>
       <div class="map-panel" id="mapPanel"><div class="mp-ph"><div class="ico">🗾</div><div>都道府県を<br>クリックしてください</div></div></div>
@@ -347,15 +329,15 @@ tr:hover td{background:#f8fafc}
     <div class="ctitle">地域別 管理会社ランキング</div>
     <div class="tw"><table><thead><tr>
       <th>#</th><th>管理会社名</th><th>地域</th><th onclick="SRT('t4','total')">件数↕</th>
-      <th onclick="SRT('t4','kr')">海外審査比率↕</th><th>主な国籍</th><th>主な在留資格</th><th onclick="SRT('t4','rent')">平均月額↕</th><th>海外審査比率</th>
+      <th onclick="SRT('t4','kr')">海外比率↕</th><th>主な国籍</th><th>主な在留資格</th><th onclick="SRT('t4','rent')">平均月額↕</th><th>海外審査比率</th>
     </tr></thead><tbody id="b4"></tbody></table></div>
     <div class="pgn"><span id="p4i"></span><div class="pb"><button onclick="PG('t4',-1)">＜</button><button onclick="PG('t4',1)">＞</button></div></div>
   </div>
 </div>
 
-<!-- T5 キャンセル -->
+<!-- T5 -->
 <div id="t5" class="tc">
-  <div class="dsrc">📊 データソース: 営業案件データ (mgmt_agent_data) ／ 成約スコア基準: 決着ベース（成約÷(成約+キャンセル)）</div>
+  <div class="dsrc">📊 営業案件データ (mgmt_agent_data) ／ 成約スコア: 決着ベース（成約÷(成約+キャンセル)）</div>
   <div class="fbar">
     <div class="fg"><label>管理会社で絞込</label>
       <div class="ac" id="AC5"><input type="text" id="AC5i" placeholder="管理会社名を入力..." oninput="ACF('AC5')" onfocus="ACF('AC5')" autocomplete="off"><div class="acd" id="AC5d"></div><div class="act" id="AC5t"></div></div></div>
@@ -365,7 +347,7 @@ tr:hover td{background:#f8fafc}
   </div>
   <div class="g2">
     <div class="card"><div class="ctitle">管理会社別 キャンセル件数 Top15 <small>件数ベース</small></div><canvas id="c5cnt"></canvas></div>
-    <div class="card"><div class="ctitle">キャンセル理由 全体内訳</div><canvas id="c5r"></canvas></div>
+    <div class="card"><div class="ctitle">キャンセル理由 内訳 <small id="c5r-label">全体</small></div><canvas id="c5r"></canvas></div>
   </div>
   <div class="card">
     <div class="ctitle">管理会社別 成約 / キャンセル実績 <small>行クリックで詳細</small></div>
@@ -379,40 +361,38 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
-<!-- T6 マトリクス -->
+<!-- T6 -->
 <div id="t6" class="tc">
-  <div class="dsrc">📊 データソース: 保証審査データ (mgmt_hosho_data) ／ 対象期間: 2025-01-01以降</div>
+  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
   <div class="fbar">
     <div class="fg"><label>表示モード</label><select id="mxmd" onchange="DMX()"><option value="vn">在留資格 × 国籍</option><option value="nv">国籍 × 在留資格</option></select></div>
     <div class="fg"><label>地域</label><div class="ss" id="ss6p"><input class="ss-inp" id="ss6pi" placeholder="すべて" readonly onclick="SST('ss6p')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss6pd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss6p',this.value)"></div><div class="ss-list" id="ss6pl"></div></div></div></div>
     <div class="fg"><label>審査区分</label><select id="mxs" onchange="DMX()"><option value="">すべて</option><option value="海外">海外のみ</option><option value="国内">国内のみ</option></select></div>
-    <div class="fg"><label>最小件数</label><select id="mxmn" onchange="DMX()"><option value="0">すべて</option><option value="5">5件以上</option><option value="10">10件以上</option><option value="20">20件以上</option><option value="50" selected>50件以上</option><option value="100">100件以上</option></select></div>
+    <div class="fg"><label>最小件数</label><select id="mxmn" onchange="DMX()"><option value="0">すべて</option><option value="10">10件以上</option><option value="30">30件以上</option><option value="50" selected>50件以上</option><option value="100">100件以上</option></select></div>
     <div class="fbar-r"><button class="btn btn-d" onclick="RMX()">↺ リセット</button></div>
   </div>
   <div class="mx-sum" id="mxsum"></div>
   <div class="card">
     <div class="ctitle">ビザ × 国籍 マトリクス
-      <div class="mleg-w">
-        <div class="mleg"><div class="mleg-c" style="background:#d1fae5"></div>海外審査少ない（≤30%）</div>
-        <div class="mleg"><div class="mleg-c" style="background:#fef3c7"></div>普通（30-60%）</div>
-        <div class="mleg"><div class="mleg-c" style="background:#fee2e2"></div>海外審査多い（60%超）</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#d1fae5"></div>海外審査少ない（≤30%）</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#fef3c7"></div>普通（30-60%）</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)"><div style="width:11px;height:11px;border-radius:3px;background:#fee2e2"></div>海外審査多い（60%超）</div>
       </div>
     </div>
     <div class="mx-wrap" id="mxwrap"></div>
   </div>
 </div>
 
-<!-- T7 お気に入り -->
+<!-- T7 -->
 <div id="t7" class="tc">
   <div class="g2">
-    <div class="card"><div class="ctitle">⭐ お気に入り管理会社</div><div id="favL"></div></div>
-    <div class="card"><div class="ctitle">🕐 検索履歴 <button onclick="CLRH()" style="padding:3px 10px;background:#f1f5f9;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:11px">クリア</button></div><div id="histL"></div></div>
+    <div class="card"><div class="ctitle">⭐ お気に入り管理会社</div><div id="favL"><div style="color:var(--t3);font-size:12px;padding:8px">お気に入りはまだありません</div></div></div>
+    <div class="card"><div class="ctitle">🕐 検索履歴 <button onclick="CLRH()" style="padding:3px 10px;background:#f1f5f9;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:11px">クリア</button></div><div id="histL"><div style="color:var(--t3);font-size:12px;padding:8px">履歴はありません</div></div></div>
   </div>
 </div>
 
-</div><!-- /wrap -->
-
-<!-- MODAL -->
+</div>
 <div class="mbg" id="MBG" onclick="CMOD(event)">
   <div class="modal">
     <button class="mx-btn" onclick="CMOD()">✕</button>
@@ -420,142 +400,101 @@ tr:hover td{background:#f8fafc}
     <div class="mg" id="MBOD"></div>
   </div>
 </div>
-
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbwBre4e_wo3sIT5I-xFZplw8aVpVxzxV5f6PLiNIS15Sv0bAFF2pMtvlVWZ9Oah6g4DIw/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbx3TGZhZ_Soe9Su3lrz3iwQ70xxmUDePMgpIZ3RvMAnrP4h4N0RXdaFbL_GuIpfkbzB2Q/exec";
 let DB=null;
 </script>
 <script>
 // ================================================================
-// DATA TRANSFORM
+// DATA TRANSFORM — Matrix-based aggregation
 // ================================================================
-function cleanNm(nm){return nm?(nm+'').replace(/^【[^】]+】/,'').trim():'';}
+function cleanNm(s){return s?(s+'').replace(/^【[^】]+】/,'').trim():'';}
 function cleanNat(nat){
   if(!nat)return '';
   nat=(nat+'').replace(/\[.*?\]/g,'').trim();
-  const m={'大韓民国':'韓国','中華人民共和国':'中国','アメリカ合衆国':'アメリカ',
-    'ネパール連邦民主共和国':'ネパール','フィリピン共和国':'フィリピン',
-    'インドネシア共和国':'インドネシア','ベトナム社会主義共和国':'ベトナム',
-    'ミャンマー連邦共和国':'ミャンマー','バングラデシュ人民共和国':'バングラデシュ',
-    'スリランカ民主社会主義共和国':'スリランカ','モンゴル国':'モンゴル',
-    'オーストラリア連邦':'オーストラリア','ドイツ連邦共和国':'ドイツ',
-    'フランス共和国':'フランス','英国（グレートブリテン及び北アイルランド連合王国）':'英国'};
+  const m={'大韓民国':'韓国','中華人民共和国':'中国','アメリカ合衆国':'アメリカ','ネパール連邦民主共和国':'ネパール','フィリピン共和国':'フィリピン','インドネシア共和国':'インドネシア','ベトナム社会主義共和国':'ベトナム','ミャンマー連邦共和国':'ミャンマー','バングラデシュ人民共和国':'バングラデシュ','スリランカ民主社会主義共和国':'スリランカ','モンゴル国':'モンゴル','オーストラリア連邦':'オーストラリア','ドイツ連邦共和国':'ドイツ','フランス共和国':'フランス','英国（グレートブリテン及び北アイルランド連合王国）':'英国'};
   return m[nat]||nat;
 }
 function cleanVisa(v){
   if(!v)return '';
-  return (v+'').replace(/^\d+_/,'').replace(/\[.*?\]/g,'').trim()
-    .replace('特定活動（ワーキングホリデー等）','特定活動(ワーホリ)');
+  return (v+'').replace(/^\d+_/,'').replace(/\[.*?\]/g,'').trim().replace('特定活動（ワーキングホリデー等）','特定活動(ワーホリ)');
 }
 
 function buildDB(raw){
   const hosho=raw.hosho||{}, agent=raw.agent||{};
 
-  // hosho 管理会社別
-  const hMap={};
-  (hosho.byCompany||[]).forEach(r=>{
-    const nm=cleanNm(r.nm||'');if(!nm)return;
-    hMap[nm]={nm,total:r.total||0,kaigai:r.kaigai||0,kokunai:r.kokunai||0,
-      kr:r.total?Math.round((r.kaigai||0)/r.total*100):0,
-      rent:r.avg_rent||0,date:(r.last_date||'').substring(0,7),
-      pref:r.pref||'',tv:{},tn:{},tv2:[],tn2l:[],tc:[],mo:{}};
+  // Raw matrix records (nm, visa, nat, shinsa, pref, avg_rent, cnt)
+  const MX_RAW=[];
+  (hosho.matrix||[]).forEach(r=>{
+    const nm=cleanNm(r.nm||''), visa=cleanVisa(r.visa||''), nat=cleanNat(r.nat||'');
+    if(!nm||!visa||!nat)return;
+    MX_RAW.push({nm, visa, nat, shinsa:r.shinsa||'', pref:r.pref||'', rent:r.avg_rent||0, cnt:r.cnt||0});
   });
 
-  // matrix → visas/nats per company
-  const mxRaw=hosho.matrix||[];
-  mxRaw.forEach(r=>{
+  // byCompanyMonth map: nm -> {month -> cnt}
+  const coMonthMap={};
+  (hosho.byCompanyMonth||[]).forEach(r=>{
     const nm=cleanNm(r.nm||'');
-    const visa=cleanVisa(r.visa||''), nat=cleanNat(r.nat||'');
-    if(!hMap[nm]||!visa||!nat)return;
-    const h=hMap[nm];
-    h.tv[visa]=(h.tv[visa]||0)+(r.cnt||0);
-    h.tn[nat]=(h.tn[nat]||0)+(r.cnt||0);
+    if(!nm||!r.month)return;
+    if(!coMonthMap[nm])coMonthMap[nm]={};
+    coMonthMap[nm][r.month]=(coMonthMap[nm][r.month]||0)+(r.cnt||0);
   });
 
-  // chukai top3 per company
+  // Base company info (rent, date, pref) from byCompany
+  const coBase={};
+  (hosho.byCompany||[]).forEach(r=>{
+    const nm=cleanNm(r.nm||'');
+    if(!nm)return;
+    coBase[nm]={rent:r.avg_rent||0, date:(r.last_date||'').substring(0,7), pref:r.pref||''};
+  });
+
+  // Chukai list
+  const CK=(hosho.byChukai||[]).filter(r=>r.chukai&&r.chukai!=='仲介会社利用無し'&&r.chukai!=='仲介会社　要確認').map(r=>({
+    ck:r.chukai, mg:cleanNm(r.mgmt||''), t:r.cnt||0, r:r.avg_rent||0, p:r.pref||'',
+    n:[], v:[]
+  }));
+  // Add nat/visa to chukai from matrix
   const ckByMg={};
-  (hosho.byChukai||[]).forEach(r=>{
-    const mg=cleanNm(r.mgmt||'');
-    if(!mg)return;
-    ckByMg[mg]=ckByMg[mg]||[];
-    ckByMg[mg].push([r.chukai,r.cnt||0]);
+  MX_RAW.forEach(m=>{
+    if(!ckByMg[m.nm])ckByMg[m.nm]={v:{},n:{}};
+    ckByMg[m.nm].v[m.visa]=(ckByMg[m.nm].v[m.visa]||0)+m.cnt;
+    ckByMg[m.nm].n[m.nat]=(ckByMg[m.nm].n[m.nat]||0)+m.cnt;
+  });
+  CK.forEach(c=>{
+    const d=ckByMg[c.mg]||{v:{},n:{}};
+    c.v=TOPN(d.v,2).map(e=>e[0]);
+    c.n=TOPN(d.n,2).map(e=>e[0]);
   });
 
-  // monthly trend (all)
-  const moAll={};
-  (hosho.byMonth||[]).forEach(r=>{if(r.month)moAll[r.month]=r.cnt||0;});
-
-  Object.values(hMap).forEach(h=>{
-    h.tv2=Object.entries(h.tv).sort((a,b)=>b[1]-a[1]).slice(0,2);
-    h.tn2l=Object.entries(h.tn).sort((a,b)=>b[1]-a[1]).slice(0,2);
-    h.tv=Object.fromEntries(Object.entries(h.tv).sort((a,b)=>b[1]-a[1]).slice(0,8));
-    h.tn=Object.fromEntries(Object.entries(h.tn).sort((a,b)=>b[1]-a[1]).slice(0,8));
-    h.tc=(ckByMg[h.nm]||[]).sort((a,b)=>b[1]-a[1]).slice(0,3);
-    h.mo=moAll;
-  });
-
-  // chukai list (全件)
-  const ck=(hosho.byChukai||[]).filter(r=>r.chukai&&r.chukai!=='仲介会社利用無し'&&r.chukai!=='仲介会社　要確認').map(r=>{
-    const visas={},nats={};
-    mxRaw.filter(m=>cleanNm(m.nm||'')===(cleanNm(r.mgmt||''))).forEach(m=>{
-      const v=cleanVisa(m.visa||''),n=cleanNat(m.nat||'');
-      if(v)visas[v]=(visas[v]||0)+(m.cnt||0);
-      if(n)nats[n]=(nats[n]||0)+(m.cnt||0);
-    });
-    return{ck:r.chukai,mg:cleanNm(r.mgmt||''),t:r.cnt||0,r:r.avg_rent||0,p:r.pref||'',
-      n:Object.entries(nats).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]),
-      v:Object.entries(visas).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0])};
-  });
-
-  // pref data
+  // Pref data from byPref
   const prefMap={};
   (hosho.byPref||[]).forEach(r=>{
     if(!r.pref)return;
-    if(!prefMap[r.pref])prefMap[r.pref]={t:0,k:0,r:0,n:[],v:[],c:[]};
+    if(!prefMap[r.pref])prefMap[r.pref]={t:0,k:0,r:0,n:{},v:{},c:{}};
     prefMap[r.pref].t+=r.cnt||0;
     if(r.shinsa==='海外')prefMap[r.pref].k+=r.cnt||0;
     if(r.avg_rent)prefMap[r.pref].r=r.avg_rent;
   });
-  const pNat={},pVis={},pCo={};
-  mxRaw.forEach(r=>{
-    const p=(hMap[cleanNm(r.nm||'')]||{}).pref||'';
-    if(!p)return;
-    const nat=cleanNat(r.nat||''),visa=cleanVisa(r.visa||''),co=cleanNm(r.nm||'');
-    pNat[p]=pNat[p]||{};pNat[p][nat]=(pNat[p][nat]||0)+(r.cnt||0);
-    pVis[p]=pVis[p]||{};pVis[p][visa]=(pVis[p][visa]||0)+(r.cnt||0);
-    pCo[p]=pCo[p]||{};pCo[p][co]=(pCo[p][co]||0)+(r.cnt||0);
+  MX_RAW.forEach(m=>{
+    if(!m.pref)return;
+    if(!prefMap[m.pref])return;
+    prefMap[m.pref].n[m.nat]=(prefMap[m.pref].n[m.nat]||0)+m.cnt;
+    prefMap[m.pref].v[m.visa]=(prefMap[m.pref].v[m.visa]||0)+m.cnt;
+    prefMap[m.pref].c[m.nm]=(prefMap[m.pref].c[m.nm]||0)+m.cnt;
   });
-  Object.keys(prefMap).forEach(p=>{
-    prefMap[p].n=Object.entries(pNat[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    prefMap[p].v=Object.entries(pVis[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    prefMap[p].c=Object.entries(pCo[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const PD={};
+  Object.entries(prefMap).forEach(([p,d])=>{
+    PD[p]={t:d.t,k:d.k,r:d.r,
+      n:TOPN(d.n,5), v:TOPN(d.v,5), c:TOPN(d.c,6)};
   });
 
-  // matrix
-  const mxMap={};
-  mxRaw.forEach(r=>{
-    const visa=cleanVisa(r.visa||''),nat=cleanNat(r.nat||'');
-    if(!visa||!nat)return;
-    const k=visa+'|||'+nat;
-    if(!mxMap[k])mxMap[k]={v:visa,n:nat,t:0,k:0,c:{}};
-    mxMap[k].t+=r.cnt||0;
-    if(r.shinsa==='海外')mxMap[k].k+=r.cnt||0;
-    const co=cleanNm(r.nm||'');
-    if(co)mxMap[k].c[co]=(mxMap[k].c[co]||0)+(r.cnt||0);
-  });
-  const mx=Object.values(mxMap).map(m=>({v:m.v,n:m.n,t:m.t,k:m.k,
-    c:Object.entries(m.c).sort((a,b)=>b[1]-a[1]).slice(0,3)})).filter(m=>m.t>=3).sort((a,b)=>b.t-a.t);
-
-  // agent — 決着ベース成約率
+  // Agent data
   const agMap={};
   (agent.byCompany||[]).forEach(r=>{
     const nm=r.nm||'';if(!nm||nm==='その他')return;
     if(!agMap[nm])agMap[nm]={nm,total:0,contract:0,cancel:0,rent:0,pref:r.pref||'',crs:{}};
-    agMap[nm].total+=r.total||0;
-    agMap[nm].contract+=r.contract||0;
-    agMap[nm].cancel+=r.cancel||0;
-    agMap[nm].rent=r.avg_rent||agMap[nm].rent;
-    agMap[nm].pref=r.pref||agMap[nm].pref;
+    agMap[nm].total+=r.total||0;agMap[nm].contract+=r.contract||0;agMap[nm].cancel+=r.cancel||0;
+    agMap[nm].rent=r.avg_rent||agMap[nm].rent;agMap[nm].pref=r.pref||agMap[nm].pref;
   });
   (agent.byCancelReason||[]).forEach(r=>{
     const nm=r.nm||'',reason=r.reason||'';
@@ -563,41 +502,82 @@ function buildDB(raw){
     if(!agMap[nm])return;
     agMap[nm].crs[reason]=(agMap[nm].crs[reason]||0)+(r.cnt||0);
   });
-  const al=Object.values(agMap).map(a=>{
+  const AL=Object.values(agMap).map(a=>{
     const decided=a.contract+a.cancel;
-    // 決着ベース
-    const cr=decided?Math.round(a.contract/decided*100):0;
-    const xr=decided?Math.round(a.cancel/decided*100):0;
-    const topCR=Object.entries(a.crs).sort((x,y)=>y[1]-x[1])[0]?.[0]||'';
-    return{...a,cr,xr,topCR,decided};
+    return{...a,decided,cr:decided?Math.round(a.contract/decided*100):0,xr:decided?Math.round(a.cancel/decided*100):0,topCR:TOPN(a.crs,1)[0]?.[0]||''};
   }).sort((a,b)=>b.total-a.total);
 
-  const cr={};
-  (agent.cancelReasonTotal||[]).forEach(r=>{if(r.reason&&!r.reason.includes('該当なし'))cr[r.reason]=r.cnt||0;});
+  const CR={};
+  (agent.cancelReasonTotal||[]).forEach(r=>{if(r.reason&&!r.reason.includes('該当なし'))CR[r.reason]=r.cnt||0;});
 
-  const hl=Object.values(hMap).sort((a,b)=>b.total-a.total);
-  const totH=hl.reduce((s,r)=>s+r.total,0);
-  const totK=hl.reduce((s,r)=>s+r.kaigai,0);
-  const rents=hl.filter(r=>r.rent>0).map(r=>r.rent);
+  // Summary
+  const totMx=MX_RAW.reduce((s,m)=>s+m.cnt,0);
+  const totK=MX_RAW.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
 
-  // filter lists — 全件 sorted ascending
-  const allVisa=[...new Set(mxRaw.map(m=>cleanVisa(m.visa||'')).filter(Boolean))].sort();
-  const allNat=[...new Set(mxRaw.map(m=>cleanNat(m.nat||'')).filter(Boolean))].sort();
-  const allPref=Object.keys(prefMap).sort();
-  const allAgPref=[...new Set(al.map(r=>r.pref).filter(Boolean))].sort();
-  const allCR=Object.keys(cr).sort();
-  const allChukai=[...new Set(ck.map(r=>r.ck))].sort();
+  // Filter lists
+  const allVisa=[...new Set(MX_RAW.map(m=>m.visa).filter(Boolean))].sort();
+  const allNat=[...new Set(MX_RAW.map(m=>m.nat).filter(Boolean))].sort();
+  const allPref=Object.keys(PD).sort();
+  const allAgPref=[...new Set(AL.map(r=>r.pref).filter(Boolean))].sort();
 
   return{
-    s:{th:totH,ta:al.reduce((s,r)=>s+r.total,0),
-       ar:rents.length?Math.round(rents.reduce((a,b)=>a+b)/rents.length):0,
-       kp:totH?Math.round(totK/totH*100):0,ld:raw.updated?raw.updated.substring(0,10):''},
-    h:hl,a:al,p:prefMap,m:mx,k:ck,cr,
-    fv:allVisa,fn:allNat,fp:allPref,fa:allAgPref,fcr:allCR,fck:allChukai,
+    s:{th:totMx, ta:AL.reduce((s,r)=>s+r.total,0),
+       ar:MX_RAW.length?Math.round(MX_RAW.reduce((s,m)=>s+m.rent*m.cnt,0)/totMx):0,
+       kp:totMx?Math.round(totK/totMx*100):0,
+       ld:raw.updated?raw.updated.substring(0,10):''},
+    MX:MX_RAW, coBase, coMonthMap, CK, PD, AL, CR,
+    fv:allVisa, fn:allNat, fp:allPref, fa:allAgPref,
+    fcr:Object.keys(CR).sort(),
+    fck:[...new Set(CK.map(r=>r.ck))].sort(),
   };
 }
-</script>
 
+// ================================================================
+// AGG — Matrix-based aggregation (core of accurate filtering)
+// ================================================================
+function AGG(filters){
+  // filters: {visa, nat, pref, shinsa, rentMin, rentMax, companies}
+  const {visa,nat,pref,shinsa,rentMin,rentMax,companies}=filters;
+  let rows=DB.MX;
+  if(visa)rows=rows.filter(m=>m.visa===visa);
+  if(nat)rows=rows.filter(m=>m.nat===nat);
+  if(pref){
+    if(Array.isArray(pref)&&pref.length)rows=rows.filter(m=>pref.includes(m.pref));
+    else if(typeof pref==='string'&&pref)rows=rows.filter(m=>m.pref===pref);
+  }
+  if(shinsa==='海外')rows=rows.filter(m=>m.shinsa==='海外');
+  if(shinsa==='国内')rows=rows.filter(m=>m.shinsa==='国内');
+  if(rentMin>0)rows=rows.filter(m=>m.rent>=rentMin);
+  if(rentMax>0)rows=rows.filter(m=>m.rent<=rentMax);
+  if(companies&&companies.length)rows=rows.filter(m=>companies.includes(m.nm));
+
+  // Aggregate by company
+  const coMap={};
+  rows.forEach(m=>{
+    if(!coMap[m.nm])coMap[m.nm]={nm:m.nm,total:0,kaigai:0,tv:{},tn:{},rents:[],prefs:{}};
+    const c=coMap[m.nm];
+    c.total+=m.cnt;
+    if(m.shinsa==='海外')c.kaigai+=m.cnt;
+    c.tv[m.visa]=(c.tv[m.visa]||0)+m.cnt;
+    c.tn[m.nat]=(c.tn[m.nat]||0)+m.cnt;
+    if(m.rent>0)c.rents.push(m.rent);
+    if(m.pref)c.prefs[m.pref]=(c.prefs[m.pref]||0)+m.cnt;
+  });
+
+  return Object.values(coMap).map(c=>{
+    const base=DB.coBase[c.nm]||{};
+    const tv2=TOPN(c.tv,2);const tn2l=TOPN(c.tn,2);
+    const pref1=TOPN(c.prefs,1)[0]?.[0]||base.pref||'';
+    const rent=c.rents.length?Math.round(c.rents.reduce((a,b)=>a+b)/c.rents.length):base.rent||0;
+    return{nm:c.nm,total:c.total,kaigai:c.kaigai,
+      kr:c.total?Math.round(c.kaigai/c.total*100):0,
+      rent, pref:pref1, date:base.date||'',
+      tv:c.tv, tn:c.tn, tv2, tn2l,
+      tc:DB.coMonthMap[c.nm]?Object.entries(DB.coMonthMap[c.nm]).sort((a,b)=>b[1]-a[1]).slice(0,3):[],
+      mo:DB.coMonthMap[c.nm]||{}};
+  }).sort((a,b)=>b.total-a.total);
+}
+</script>
 <script>
 // ================================================================
 // GLOBALS
@@ -610,50 +590,51 @@ const ROWS={t1:[],t2:[],t3:[],t4:[],t5:[]};
 const CHTS={};
 const ACS={AC1:[],AC2:[],AC3:[],AC5:[]};
 const ACD={AC1:[],AC2:[],AC3:[],AC5:[]};
-// searchable select values
 const SSV={ss1v:null,ss1n:null,ss1p:null,ss2p:null,ss3p:null,ss3n:null,ss3v:null,ss4n:null,ss4v:null,ss5p:null,ss5cr:null,ss6p:null};
-const SSD={};// data lists
+const SSD={};
 let FAVS=JSON.parse(localStorage.getItem('mdb_f')||'[]');
 let HIST=JSON.parse(localStorage.getItem('mdb_h')||'[]');
-let SEL_PREF=null, CUR_PD=null;
-let MAP_GEO=null;// GeoJSON
+let SEL_PREFS=[];// 複数選択対応
+let CUR_PD=null;
+let MAP_GEO=null, MAP_SVG=null, MAP_G=null, MAP_ZOOM_OBJ=null;
+
+// ================================================================
+// HELPERS
+// ================================================================
+function GV(id){return document.getElementById(id)?.value||'';}
+function GN(id){return parseFloat(document.getElementById(id)?.value||'');}
+function ESC(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function TOPN(obj,n){return Object.entries(obj||{}).sort((a,b)=>b[1]-a[1]).slice(0,n);}
+function KRBADGE(kr){
+  if(kr<=30)return `<span class="badge br">🔴 ${kr}%</span>`;
+  if(kr<=60)return `<span class="badge by">🟡 ${kr}%</span>`;
+  return `<span class="badge bg">🟢 ${kr}%</span>`;
+}
+function SCORE(cr){
+  if(cr===null||cr===undefined||isNaN(cr))return '<span style="color:var(--t3);font-size:11px">—</span>';
+  if(cr>=30)return `<span class="badge bg">🟢 A優良 ${cr}%</span>`;
+  if(cr>=15)return `<span class="badge by">🟡 B普通 ${cr}%</span>`;
+  return `<span class="badge br">🔴 C要注意 ${cr}%</span>`;
+}
+function BW(pct,col){return `<div class="bw"><div class="bbg"><div class="bf" style="width:${pct}%;background:${col}"></div></div><span>${pct}%</span></div>`;}
 
 // ================================================================
 // SEARCHABLE SELECT
 // ================================================================
-function SSI(id,items){
-  SSD[id]=items;
-  SSR(id,items);
-}
+function SSI(id,items){SSD[id]=items;SSR(id,items);}
 function SSR(id,items){
   const list=document.getElementById(id+'l');if(!list)return;
   list.innerHTML='<div class="ss-item'+(SSV[id]===null?' sel':'')+'" onclick="SSC(\''+id+'\',null)">すべて</div>'+
-    items.map(v=>`<div class="ss-item${SSV[id]===v?' sel':''}" onclick="SSC('${id}','${v.replace(/'/g,"\\'")}');">${v}</div>`).join('');
+    items.map(v=>`<div class="ss-item${SSV[id]===v?' sel':''}" onclick="SSC('${id}','${ESC(v)}')">${v}</div>`).join('');
 }
-function SSF(id,q){
-  const items=(SSD[id]||[]).filter(v=>v.toLowerCase().includes(q.toLowerCase()));
-  SSR(id,items);
-}
-function SST(id){
-  // close others
-  Object.keys(SSV).forEach(k=>{if(k!==id){const d=document.getElementById(k+'d');if(d)d.classList.remove('op');}});
-  const drop=document.getElementById(id+'d');
-  if(drop)drop.classList.toggle('op');
-}
+function SSF(id,q){SSR(id,(SSD[id]||[]).filter(v=>v.toLowerCase().includes(q.toLowerCase())));}
+function SST(id){Object.keys(SSV).forEach(k=>{if(k!==id){const d=document.getElementById(k+'d');if(d)d.classList.remove('op');}});const drop=document.getElementById(id+'d');if(drop)drop.classList.toggle('op');}
 function SSC(id,val){
   SSV[id]=val;
-  const inp=document.getElementById(id+'i');
-  if(inp)inp.value=val===null?'':val;
-  const drop=document.getElementById(id+'d');
-  if(drop)drop.classList.remove('op');
+  const inp=document.getElementById(id+'i');if(inp)inp.value=val===null?'':val;
+  const drop=document.getElementById(id+'d');if(drop)drop.classList.remove('op');
   SSR(id,SSD[id]||[]);
-  // trigger filter
-  if(id.startsWith('ss1'))A1();
-  else if(id.startsWith('ss2'))A2();
-  else if(id.startsWith('ss3'))A3();
-  else if(id.startsWith('ss4'))A4();
-  else if(id.startsWith('ss5'))A5();
-  else if(id.startsWith('ss6'))DMX();
+  if(id.startsWith('ss1'))A1();else if(id.startsWith('ss2'))A2();else if(id.startsWith('ss3'))A3();else if(id.startsWith('ss4'))A4();else if(id.startsWith('ss5'))A5();else if(id.startsWith('ss6'))DMX();
 }
 document.addEventListener('click',e=>{
   if(!e.target.closest('.ss'))document.querySelectorAll('.ss-drop').forEach(d=>d.classList.remove('op'));
@@ -670,42 +651,32 @@ function INIT(){
   document.getElementById('hat').textContent=s.ta.toLocaleString();
   document.getElementById('hdt').textContent=s.ld||'-';
 
-  ACD.AC1=DB.h.map(r=>r.nm).sort();ACD.AC2=ACD.AC1.slice();
-  ACD.AC3=DB.fck.slice();ACD.AC5=DB.a.map(r=>r.nm).sort();
+  ACD.AC1=Object.keys(DB.coBase).sort();ACD.AC2=ACD.AC1.slice();
+  ACD.AC3=DB.fck.slice();ACD.AC5=DB.AL.map(r=>r.nm).sort();
 
-  // init searchable selects
   SSI('ss1v',DB.fv);SSI('ss1n',DB.fn);SSI('ss1p',DB.fp);
-  SSI('ss2p',DB.fp);
-  SSI('ss3p',DB.fp);SSI('ss3n',DB.fn);SSI('ss3v',DB.fv);
-  SSI('ss4n',DB.fn);SSI('ss4v',DB.fv);
-  SSI('ss5p',DB.fa);SSI('ss5cr',DB.fcr);
-  SSI('ss6p',DB.fp);
+  SSI('ss2p',DB.fp);SSI('ss3p',DB.fp);SSI('ss3n',DB.fn);SSI('ss3v',DB.fv);
+  SSI('ss4n',DB.fn);SSI('ss4v',DB.fv);SSI('ss5p',DB.fa);SSI('ss5cr',DB.fcr);SSI('ss6p',DB.fp);
 
-  CUR_PD=DB.p;
+  // 都道府県クイック選択ボタン生成
+  const pl=document.getElementById('prefList');
+  if(pl){pl.innerHTML=DB.fp.map(p=>`<button class="pref-tag" onclick="PTOG('${ESC(p)}')" id="ptag_${ESC(p)}">${p.replace(/[都道府県]/g,'')}</button>`).join('');}
+
+  CUR_PD=DB.PD;
   A1();A2();A3();A4();A5();DMX();
-  LOAD_MAP();
-  RFav();RHIST();
+  LOAD_MAP();RFav();RHIST();
 }
 
-function GV(id){return document.getElementById(id)?.value||'';}
-function GN(id){return parseFloat(document.getElementById(id)?.value||'');}
-function ESC(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
-
 // ================================================================
-// FILTERS
+// FILTER FUNCTIONS (matrix-based)
 // ================================================================
+function GETF1(){
+  return{visa:SSV.ss1v,nat:SSV.ss1n,pref:SSV.ss1p,shinsa:GV('f1s'),
+    rentMin:GN('f1rn')*10000||0,rentMax:GN('f1rx')*10000||0,
+    companies:ACS.AC1.length?ACS.AC1:null};
+}
 function A1(){
-  let rows=[...DB.h];
-  const visa=SSV.ss1v,nat=SSV.ss1n,pref=SSV.ss1p,sh=GV('f1s');
-  const rn=GN('f1rn'),rx=GN('f1rx');
-  if(visa)rows=rows.filter(r=>r.tv&&r.tv[visa]||r.tv2&&r.tv2.some(e=>e[0]===visa));
-  if(nat)rows=rows.filter(r=>r.tn&&r.tn[nat]||r.tn2l&&r.tn2l.some(e=>e[0]===nat));
-  if(pref)rows=rows.filter(r=>r.pref===pref);
-  if(sh==='海外')rows=rows.filter(r=>r.kaigai>0);
-  if(sh==='国内')rows=rows.filter(r=>(r.total-r.kaigai)>0);
-  if(!isNaN(rn)&&rn>0)rows=rows.filter(r=>r.rent>=rn*10000);
-  if(!isNaN(rx)&&rx>0)rows=rows.filter(r=>r.rent<=rx*10000);
-  if(ACS.AC1.length)rows=rows.filter(r=>ACS.AC1.includes(r.nm));
+  const rows=AGG(GETF1());
   SARR(rows,SORT.t1);ROWS.t1=rows;PAGE.t1=1;RT1();
   const cb=document.getElementById('f1c');
   cb.textContent=rows.length+'社';cb.classList.toggle('z',rows.length===0);
@@ -716,17 +687,16 @@ function A1(){
   document.getElementById('k1r').textContent=rents.length?'¥'+Math.round(rents.reduce((a,b)=>a+b)/rents.length).toLocaleString():'-';
   document.getElementById('k1k').textContent=tot?Math.round(kai/tot*100)+'%':'-';
   document.getElementById('k1d').textContent=rows.map(r=>r.date).filter(Boolean).sort().reverse()[0]||'-';
-  CH1(rows);SHIST();
+  CH1(rows,GETF1());SHIST();
 }
 function A2(){
-  let rows=[...DB.h];
-  if(SSV.ss2p)rows=rows.filter(r=>r.pref===SSV.ss2p);
-  if(ACS.AC2.length)rows=rows.filter(r=>ACS.AC2.includes(r.nm));
+  const f={pref:SSV.ss2p,companies:ACS.AC2.length?ACS.AC2:null};
+  const rows=AGG(f);
   SARR(rows,SORT.t2);ROWS.t2=rows;PAGE.t2=1;RT2();
   document.getElementById('f2c').textContent=rows.length+'社';CH2(rows);
 }
 function A3(){
-  let rows=[...DB.k];
+  let rows=[...DB.CK];
   if(SSV.ss3p)rows=rows.filter(r=>r.p===SSV.ss3p);
   if(SSV.ss3n)rows=rows.filter(r=>r.n&&r.n.includes(SSV.ss3n));
   if(SSV.ss3v)rows=rows.filter(r=>r.v&&r.v.includes(SSV.ss3v));
@@ -734,33 +704,57 @@ function A3(){
   rows.sort((a,b)=>b.t-a.t);ROWS.t3=rows;PAGE.t3=1;RT3();CH3(rows);
 }
 function A4(){
-  const nat=SSV.ss4n,visa=SSV.ss4v,rn=GN('f4rn'),rx=GN('f4rx');
-  let rows=[...DB.h];
-  if(nat)rows=rows.filter(r=>r.tn&&r.tn[nat]||r.tn2l&&r.tn2l.some(e=>e[0]===nat));
-  if(visa)rows=rows.filter(r=>r.tv&&r.tv[visa]||r.tv2&&r.tv2.some(e=>e[0]===visa));
-  if(!isNaN(rn)&&rn>0)rows=rows.filter(r=>r.rent>=rn*10000);
-  if(!isNaN(rx)&&rx>0)rows=rows.filter(r=>r.rent<=rx*10000);
-  if(nat||visa||(!isNaN(rn)&&rn>0)||(!isNaN(rx)&&rx>0)){
-    const pm={};rows.forEach(r=>{if(!r.pref)return;if(!pm[r.pref]){const o=DB.p[r.pref]||{};pm[r.pref]={...o,t:0,k:0};}pm[r.pref].t+=r.total;pm[r.pref].k+=r.kaigai;});
+  const pref=SEL_PREFS.length?SEL_PREFS:null;
+  const f={nat:SSV.ss4n,visa:SSV.ss4v,pref,rentMin:GN('f4rn')*10000||0,rentMax:GN('f4rx')*10000||0};
+  const rows=AGG(f);
+  // 都道府県別集計更新
+  if(f.nat||f.visa||f.rentMin||f.rentMax){
+    const pm={};
+    rows.forEach(r=>{
+      if(!r.pref)return;
+      if(!pm[r.pref]){const o=DB.PD[r.pref]||{};pm[r.pref]={...o,t:0,k:0};}
+      pm[r.pref].t+=r.total;pm[r.pref].k+=r.kaigai;
+    });
     CUR_PD=pm;
-  }else{CUR_PD=DB.p;}
+  } else {CUR_PD=DB.PD;}
   if(MAP_GEO)DRAW_MAP();
   SARR(rows,SORT.t4);ROWS.t4=rows;PAGE.t4=1;RT4();
   document.getElementById('f4c').textContent=rows.length+'社';
 }
 function A5(){
-  let rows=[...DB.a];
+  let rows=[...DB.AL];
   if(SSV.ss5p)rows=rows.filter(r=>r.pref===SSV.ss5p);
   if(SSV.ss5cr)rows=rows.filter(r=>r.crs&&r.crs[SSV.ss5cr]);
   if(ACS.AC5.length)rows=rows.filter(r=>ACS.AC5.includes(r.nm));
   SARR(rows,SORT.t5);ROWS.t5=rows;PAGE.t5=1;RT5();CH5(rows);
 }
+
+// RESETS
 function R1(){SSV.ss1v=null;SSV.ss1n=null;SSV.ss1p=null;['ss1vi','ss1ni','ss1pi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('f1s').value='';['f1rn','f1rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC1=[];RAC('AC1');A1();}
 function R2(){SSV.ss2p=null;const e=document.getElementById('ss2pi');if(e)e.value='';ACS.AC2=[];RAC('AC2');A2();}
 function R3(){SSV.ss3p=null;SSV.ss3n=null;SSV.ss3v=null;['ss3pi','ss3ni','ss3vi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC3=[];RAC('AC3');A3();}
-function R4(){SSV.ss4n=null;SSV.ss4v=null;['ss4ni','ss4vi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});['f4rn','f4rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});A4();}
+function R4(){SSV.ss4n=null;SSV.ss4v=null;['ss4ni','ss4vi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});['f4rn','f4rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});SEL_PREFS=[];UPREF_TAGS();A4();}
 function R5(){SSV.ss5p=null;SSV.ss5cr=null;['ss5pi','ss5cri'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC5=[];RAC('AC5');A5();}
-function RMX(){SSV.ss6p=null;const e=document.getElementById('ss6pi');if(e)e.value='';document.getElementById('mxmd').value='vn';document.getElementById('mxs').value='';document.getElementById('mxmn').value='10';DMX();}
+function RMX(){SSV.ss6p=null;const e=document.getElementById('ss6pi');if(e)e.value='';document.getElementById('mxmd').value='vn';document.getElementById('mxs').value='';document.getElementById('mxmn').value='50';DMX();}
+
+// 都道府県複数選択
+function PTOG(p){
+  const idx=SEL_PREFS.indexOf(p);
+  if(idx>=0)SEL_PREFS.splice(idx,1);else SEL_PREFS.push(p);
+  UPREF_TAGS();A4();
+  // 地図も更新
+  if(MAP_G)MAP_G.selectAll('.pref-path').classed('sel',d=>{
+    const nm=d.properties.nam_ja||d.properties.name||'';
+    const full=PREF_FULL[nm]||nm;return SEL_PREFS.includes(full);
+  });
+}
+function UPREF_TAGS(){
+  document.querySelectorAll('.pref-tag').forEach(btn=>{
+    const p=btn.textContent;
+    const full=DB.fp.find(f=>f.replace(/[都道府県]/g,'')||f===p||f.startsWith(p));
+    btn.classList.toggle('sel',SEL_PREFS.some(s=>s.includes(btn.textContent)||btn.textContent===s.replace(/[都道府県]/g,'')));
+  });
+}
 
 // ================================================================
 // SORT / PAGE
@@ -771,25 +765,6 @@ function PG(tab,d){const arr=ROWS[tab]||[];const mx=Math.ceil((arr.length||1)/PS
 function SLC(tab){const arr=ROWS[tab]||[];const s=(PAGE[tab]-1)*PS;return{rows:arr.slice(s,s+PS),start:s,tot:arr.length};}
 
 // ================================================================
-// BADGES
-// ================================================================
-function KRBADGE(kr){
-  // 海外審査比率: 高い = 審査が通りにくい → 🔴
-  if(kr<=30)return `<span class="badge br">🔴 ${kr}%</span>`;
-  if(kr<=60)return `<span class="badge by">🟡 ${kr}%</span>`;
-  return `<span class="badge bg">🟢 ${kr}%</span>`;
-}
-// 成約スコア — 決着ベース
-function SCORE(cr){
-  if(cr===null||cr===undefined||isNaN(cr))return '<span style="color:var(--t3);font-size:11px">—</span>';
-  if(cr>=30)return `<span class="badge bg">🟢 A優良 ${cr}%</span>`;
-  if(cr>=15)return `<span class="badge by">🟡 B普通 ${cr}%</span>`;
-  return `<span class="badge br">🔴 C要注意 ${cr}%</span>`;
-}
-function BW(pct,col){return `<div class="bw"><div class="bbg"><div class="bf" style="width:${pct}%;background:${col}"></div></div><span>${pct}%</span></div>`;}
-function TOPN(obj,n){return Object.entries(obj||{}).sort((a,b)=>b[1]-a[1]).slice(0,n);}
-
-// ================================================================
 // RENDER TABLES
 // ================================================================
 function RT1(){
@@ -797,8 +772,7 @@ function RT1(){
   document.getElementById('b1').innerHTML=rows.map((r,i)=>`<tr>
     <td style="color:var(--t3)">${start+i+1}</td>
     <td class="tl" onclick="OM('${ESC(r.nm)}')">${r.nm}</td>
-    <td>${r.pref||'-'}</td>
-    <td><strong class="mono">${r.total.toLocaleString()}</strong></td>
+    <td>${r.pref||'-'}</td><td><strong class="mono">${r.total.toLocaleString()}</strong></td>
     <td class="mono">${r.kaigai}</td>
     <td>${BW(r.kr,r.kr<=30?'#dc2626':r.kr<=60?'#d97706':'#059669')}</td>
     <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:150px">${r.tv2?r.tv2.map(e=>e[0]).join(' / '):'-'}</td>
@@ -819,8 +793,7 @@ function RT2(){
     <td>${BW(r.kr,'#7c3aed')}</td>
     <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:140px">${r.tn2l?r.tn2l.map(e=>e[0]).join(' / '):'-'}</td>
     <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:140px">${r.tv2?r.tv2.map(e=>e[0]).join(' / '):'-'}</td>
-    <td class="mono">¥${r.rent.toLocaleString()}</td>
-    <td>${r.date||'-'}</td>
+    <td class="mono">¥${r.rent.toLocaleString()}</td><td>${r.date||'-'}</td>
     <td><button class="fav" onclick="TFav('${ESC(r.nm)}')">${FAVS.includes(r.nm)?'⭐':'☆'}</button></td>
   </tr>`).join('');
   document.getElementById('p2i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}社`;
@@ -834,8 +807,7 @@ function RT3(){
     <td><strong class="mono">${r.t}</strong></td>
     <td style="font-size:11px;color:var(--t2)">${(r.n||[]).join(' / ')}</td>
     <td style="font-size:11px;color:var(--t2)">${(r.v||[]).join(' / ')}</td>
-    <td>${r.p||'-'}</td>
-    <td class="mono">¥${r.r.toLocaleString()}</td>
+    <td>${r.p||'-'}</td><td class="mono">¥${r.r.toLocaleString()}</td>
   </tr>`).join('');
   document.getElementById('p3i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}件`;
 }
@@ -844,13 +816,11 @@ function RT4(){
   document.getElementById('b4').innerHTML=rows.map((r,i)=>`<tr>
     <td style="color:var(--t3)">${start+i+1}</td>
     <td class="tl" onclick="OM('${ESC(r.nm)}')" style="white-space:normal;max-width:210px">${r.nm}</td>
-    <td>${r.pref||'-'}</td>
-    <td><strong class="mono">${r.total.toLocaleString()}</strong></td>
+    <td>${r.pref||'-'}</td><td><strong class="mono">${r.total.toLocaleString()}</strong></td>
     <td>${BW(r.kr,'#7c3aed')}</td>
     <td style="font-size:11px;color:var(--t2)">${r.tn2l?r.tn2l.map(e=>e[0]).join(' / '):'-'}</td>
     <td style="font-size:11px;color:var(--t2)">${r.tv2?r.tv2.map(e=>e[0]).join(' / '):'-'}</td>
-    <td class="mono">¥${r.rent.toLocaleString()}</td>
-    <td>${KRBADGE(r.kr)}</td>
+    <td class="mono">¥${r.rent.toLocaleString()}</td><td>${KRBADGE(r.kr)}</td>
   </tr>`).join('');
   document.getElementById('p4i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}社`;
 }
@@ -858,7 +828,7 @@ function RT5(){
   const{rows,start,tot}=SLC('t5');
   document.getElementById('b5').innerHTML=rows.map((r,i)=>`<tr>
     <td style="color:var(--t3)">${start+i+1}</td>
-    <td class="tl" onclick="OM('${ESC(r.nm)}')" style="white-space:normal;max-width:200px">${r.nm}</td>
+    <td class="tl" onclick="OM5('${ESC(r.nm)}')" style="white-space:normal;max-width:200px">${r.nm}</td>
     <td class="mono">${r.total}</td>
     <td class="mono" style="color:var(--g);font-weight:700">${r.contract}</td>
     <td class="mono" style="color:var(--r);font-weight:700">${r.cancel}</td>
@@ -879,17 +849,25 @@ function MCH(id,type,labels,datasets,opts){
   const ctx=document.getElementById(id);if(!ctx)return;
   CHTS[id]=new Chart(ctx,{type,data:{labels,datasets},options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},animation:{duration:200},...(opts||{})}});
 }
-function CH1(rows){
-  const activeVisa=SSV.ss1v, activeNat=SSV.ss1n;
+function CH1(rows,filters){
+  // フィルタに応じて集計
   const vm={},nm={};
-  rows.forEach(r=>{
-    const krf=r.total?r.kaigai/r.total:0;
-    // ビザフィルタ中は該当ビザのみ表示
-    const tvEntries=activeVisa?Object.entries(r.tv||{}).filter(([k])=>k===activeVisa):Object.entries(r.tv||{});
-    tvEntries.forEach(([k,c])=>{if(!vm[k])vm[k]={ka:0,ko:0};vm[k].ka+=c*krf;vm[k].ko+=c*(1-krf);});
-    // 国籍フィルタ中は該当国籍のみ表示
-    const tnEntries=activeNat?Object.entries(r.tn||{}).filter(([k])=>k===activeNat):Object.entries(r.tn||{});
-    tnEntries.forEach(([k,c])=>{if(!nm[k])nm[k]={ka:0,ko:0};nm[k].ka+=c*krf;nm[k].ko+=c*(1-krf);});
+  const mxRows=DB.MX.filter(m=>{
+    if(filters.visa&&m.visa!==filters.visa)return false;
+    if(filters.nat&&m.nat!==filters.nat)return false;
+    if(filters.pref&&m.pref!==filters.pref)return false;
+    if(filters.shinsa==='海外'&&m.shinsa!=='海外')return false;
+    if(filters.shinsa==='国内'&&m.shinsa!=='国内')return false;
+    if(filters.rentMin>0&&m.rent<filters.rentMin)return false;
+    if(filters.rentMax>0&&m.rent>filters.rentMax)return false;
+    if(filters.companies&&!filters.companies.includes(m.nm))return false;
+    return true;
+  });
+  mxRows.forEach(m=>{
+    if(!vm[m.visa])vm[m.visa]={ka:0,ko:0};
+    if(m.shinsa==='海外')vm[m.visa].ka+=m.cnt;else vm[m.visa].ko+=m.cnt;
+    if(!nm[m.nat])nm[m.nat]={ka:0,ko:0};
+    if(m.shinsa==='海外')nm[m.nat].ka+=m.cnt;else nm[m.nat].ko+=m.cnt;
   });
   const vl=TOPN(Object.fromEntries(Object.entries(vm).map(([k,v])=>[k,v.ka+v.ko])),8).map(e=>e[0]);
   MCH('c1v','bar',vl,[{label:'海外',data:vl.map(k=>Math.round(vm[k]?.ka||0)),backgroundColor:'rgba(234,88,12,.8)',borderRadius:4},{label:'国内',data:vl.map(k=>Math.round(vm[k]?.ko||0)),backgroundColor:'rgba(37,99,235,.8)',borderRadius:4}],{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}});
@@ -918,17 +896,25 @@ function CH5(rows){
     {label:'キャンセル数',data:sorted.map(r=>r.cancel),backgroundColor:'rgba(220,38,38,.78)',borderRadius:4},
     {label:'成約数',data:sorted.map(r=>r.contract),backgroundColor:'rgba(5,150,105,.78)',borderRadius:4}
   ],{plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}});
-  const crt=TOPN(DB.cr,8);
+  // キャンセル理由 — フィルタ反映
+  let cr=DB.CR;
+  if(SSV.ss5p||ACS.AC5.length){
+    cr={};
+    rows.forEach(r=>Object.entries(r.crs||{}).forEach(([k,v])=>{cr[k]=(cr[k]||0)+v;}));
+  }
+  const crt=TOPN(Object.fromEntries(Object.entries(cr).filter(([k])=>k&&!k.includes('該当なし'))),8);
+  const lbl=document.getElementById('c5r-label');
+  if(lbl)lbl.textContent=(SSV.ss5p||ACS.AC5.length)?'絞込結果':'全体';
   MCH('c5r','doughnut',crt.map(e=>e[0].replace(/^\d+_/,'')),[{data:crt.map(e=>e[1]),backgroundColor:CLR}]);
 }
-
+</script>
+<script>
 // ================================================================
-// MAP — GeoJSON (d3)
+// MAP — GeoJSON + D3 zoom/pan + labels + multi-select
 // ================================================================
 const GEO_URL='https://raw.githubusercontent.com/dataofjapan/land/master/japan.topojson';
 const PREF_NAME_MAP={'北海道':'北海道','青森県':'青森','岩手県':'岩手','宮城県':'宮城','秋田県':'秋田','山形県':'山形','福島県':'福島','茨城県':'茨城','栃木県':'栃木','群馬県':'群馬','埼玉県':'埼玉','千葉県':'千葉','東京都':'東京','神奈川県':'神奈川','新潟県':'新潟','富山県':'富山','石川県':'石川','福井県':'福井','山梨県':'山梨','長野県':'長野','岐阜県':'岐阜','静岡県':'静岡','愛知県':'愛知','三重県':'三重','滋賀県':'滋賀','京都府':'京都','大阪府':'大阪','兵庫県':'兵庫','奈良県':'奈良','和歌山県':'和歌山','鳥取県':'鳥取','島根県':'島根','岡山県':'岡山','広島県':'広島','山口県':'山口','徳島県':'徳島','香川県':'香川','愛媛県':'愛媛','高知県':'高知','福岡県':'福岡','佐賀県':'佐賀','長崎県':'長崎','熊本県':'熊本','大分県':'大分','宮崎県':'宮崎','鹿児島県':'鹿児島','沖縄県':'沖縄'};
-// reverse map: short name → full name
-const PREF_FULL={};Object.entries(PREF_NAME_MAP).forEach(([f,s])=>PREF_FULL[s]=f);
+const PREF_FULL={};Object.entries(PREF_NAME_MAP).forEach(([f,s])=>{PREF_FULL[s]=f;PREF_FULL[f]=f;});
 
 function PCOLOR(cnt,mx){
   if(!cnt)return '#e8edf5';const r=Math.min(cnt/mx,1);
@@ -940,132 +926,132 @@ async function LOAD_MAP(){
   try{
     const res=await fetch(GEO_URL);
     const topo=await res.json();
-    MAP_GEO=topo;
-    DRAW_MAP();
-  }catch(e){
-    document.getElementById('mapArea').innerHTML='<div style="padding:40px;text-align:center;color:var(--t2)">地図の読み込みに失敗しました</div>';
-  }
-}
-
-let MAP_ZOOM_STATE={k:1,x:0,y:0};
-let MAP_SVG_EL=null, MAP_G=null, MAP_PROJ=null;
-
-function MAP_ZOOM(factor){
-  if(!MAP_G)return;
-  MAP_ZOOM_STATE.k=Math.max(0.5,Math.min(8,MAP_ZOOM_STATE.k*factor));
-  MAP_G.attr('transform',`translate(${MAP_ZOOM_STATE.x},${MAP_ZOOM_STATE.y})scale(${MAP_ZOOM_STATE.k})`);
-}
-function MAP_RESET(){
-  if(!MAP_G)return;
-  MAP_ZOOM_STATE={k:1,x:0,y:0};
-  MAP_G.attr('transform','');
+    MAP_GEO=topo;DRAW_MAP();
+  }catch(e){document.getElementById('mapArea').innerHTML='<div style="padding:40px;text-align:center;color:var(--t2)">地図の読み込みに失敗しました</div>';}
 }
 
 function DRAW_MAP(){
   if(!MAP_GEO)return;
-  const pd=CUR_PD||DB.p;
-  const mx=Math.max(...Object.values(pd).map(p=>p.t||p.total||0),1);
+  const pd=CUR_PD||DB.PD;
+  const mx=Math.max(...Object.values(pd).map(p=>p.t||0),1);
   const area=document.getElementById('mapArea');
-  const W=area.clientWidth||900, H=area.clientHeight||640;
+  const W=area.clientWidth||900,H=area.clientHeight||660;
   d3.select('#mapArea').selectAll('svg').remove();
 
-  const svg=d3.select('#mapArea').append('svg')
-    .attr('width',W).attr('height',H)
-    .style('cursor','grab');
-  MAP_SVG_EL=svg;
-
-  // ── メイン地図 (本州・四国・九州・北海道) 沖縄を除く ──
   const geo=topojson.feature(MAP_GEO,MAP_GEO.objects.japan);
-  // 沖縄を除いた feature
   const mainFeatures=geo.features.filter(d=>{
     const nm=d.properties.nam_ja||d.properties.name||'';
-    const full=PREF_FULL[nm]||nm;
-    return full!=='沖縄県';
+    return (PREF_FULL[nm]||nm)!=='沖縄県';
   });
-  const mainGeo={type:'FeatureCollection',features:mainFeatures};
+  const okinawaFeatures=geo.features.filter(d=>{
+    const nm=d.properties.nam_ja||d.properties.name||'';
+    return (PREF_FULL[nm]||nm)==='沖縄県';
+  });
 
-  // 本州に合わせて projection
+  const mainGeo={type:'FeatureCollection',features:mainFeatures};
   const proj=d3.geoMercator().fitExtent([[20,20],[W-140,H-20]],mainGeo);
-  MAP_PROJ=proj;
   const path=d3.geoPath().projection(proj);
 
-  // zoom/pan グループ
+  const svg=d3.select('#mapArea').append('svg').attr('width',W).attr('height',H);
+  MAP_SVG=svg;
   const g=svg.append('g');
   MAP_G=g;
-  MAP_ZOOM_STATE={k:1,x:0,y:0};
 
-  // D3 zoom
-  const zoom=d3.zoom().scaleExtent([0.5,8]).on('zoom',(event)=>{
-    MAP_ZOOM_STATE.k=event.transform.k;
-    MAP_ZOOM_STATE.x=event.transform.x;
-    MAP_ZOOM_STATE.y=event.transform.y;
+  // D3 zoom — drag/scroll
+  MAP_ZOOM_OBJ=d3.zoom().scaleExtent([0.5,10]).on('zoom',event=>{
     g.attr('transform',event.transform);
+    // ラベル表示切替 (zoom level 2以上で表示)
+    g.selectAll('.pref-lbl').style('display',event.transform.k>=1.8?'block':'none');
   });
-  svg.call(zoom);
+  svg.call(MAP_ZOOM_OBJ).on('dblclick.zoom',null);
 
   const tip=document.getElementById('mapTip');
 
-  function drawFeatures(container,features,projection){
+  function drawLayer(container,features,projection,isInset){
     const p=d3.geoPath().projection(projection);
-    container.selectAll('path').data(features).enter().append('path')
-      .attr('d',p)
+    // 都道府県パス
+    container.selectAll('.pref-path').data(features).enter().append('path')
+      .attr('d',p).attr('class','pref-path')
       .attr('fill',d=>{
         const nm=d.properties.nam_ja||d.properties.name||'';
         const full=PREF_FULL[nm]||nm;
-        const pref=pd[full];
-        return PCOLOR(pref?pref.t||pref.total||0:0,mx);
+        const pref=pd[full];return PCOLOR(pref?pref.t||0:0,mx);
       })
-      .attr('stroke','#fff').attr('stroke-width',0.5)
-      .attr('class','pref-geo')
-      .style('cursor','pointer')
+      .classed('sel',d=>{
+        const nm=d.properties.nam_ja||d.properties.name||'';
+        return SEL_PREFS.includes(PREF_FULL[nm]||nm);
+      })
       .on('mousemove',function(event,d){
         const nm=d.properties.nam_ja||d.properties.name||'';
         const full=PREF_FULL[nm]||nm;
         const pref=pd[full];
         const rect=area.getBoundingClientRect();
         tip.style.display='block';
-        tip.style.left=(event.clientX-rect.left+12)+'px';
-        tip.style.top=(event.clientY-rect.top-28)+'px';
-        tip.textContent=full+': '+(pref?((pref.t||pref.total||0).toLocaleString())+'件':'データなし');
+        tip.style.left=(event.clientX-rect.left+14)+'px';
+        tip.style.top=(event.clientY-rect.top-32)+'px';
+        tip.textContent=full+': '+(pref?(pref.t||0).toLocaleString()+'件':'データなし');
       })
       .on('mouseleave',()=>{tip.style.display='none';})
       .on('click',function(event,d){
         event.stopPropagation();
         const nm=d.properties.nam_ja||d.properties.name||'';
         const full=PREF_FULL[nm]||nm;
-        svg.selectAll('.pref-geo').attr('stroke','#fff').attr('stroke-width',0.5);
-        d3.select(this).attr('stroke','#2563eb').attr('stroke-width',2);
-        SEL_PREF=full;SELP(full);
+        if(!isInset){
+          // Ctrl/Shiftで複数選択
+          if(event.ctrlKey||event.shiftKey||event.metaKey){
+            const idx=SEL_PREFS.indexOf(full);
+            if(idx>=0)SEL_PREFS.splice(idx,1);else SEL_PREFS.push(full);
+          } else {
+            SEL_PREFS=[full];
+          }
+          UPREF_TAGS();A4();
+          g.selectAll('.pref-path').classed('sel',dd=>{
+            const n2=dd.properties.nam_ja||dd.properties.name||'';
+            return SEL_PREFS.includes(PREF_FULL[n2]||n2);
+          });
+        }
+        SELP(full);
       });
+
+    // 都道府県名ラベル (zoom>=1.8で表示)
+    features.forEach(d=>{
+      const nm=d.properties.nam_ja||d.properties.name||'';
+      const full=PREF_FULL[nm]||nm;
+      const short=PREF_NAME_MAP[full]||full.replace(/[都道府県]/g,'');
+      const centroid=p.centroid(d);
+      if(!centroid||isNaN(centroid[0]))return;
+      container.append('text')
+        .attr('class','pref-lbl')
+        .attr('x',centroid[0]).attr('y',centroid[1]+3.5)
+        .attr('text-anchor','middle')
+        .attr('font-size',full==='北海道'?9:7)
+        .style('display','none')// zoom>=1.8で表示
+        .text(short);
+    });
   }
 
-  // メイン地図を描画
-  drawFeatures(g,mainFeatures,proj);
+  drawLayer(g,mainFeatures,proj,false);
 
-  // ── 沖縄 インセット ──
-  const okinawa=geo.features.filter(d=>{
-    const nm=d.properties.nam_ja||d.properties.name||'';
-    const full=PREF_FULL[nm]||nm;
-    return full==='沖縄県';
-  });
-  if(okinawa.length){
-    const okW=110,okH=70,okX=W-okW-10,okY=H-okH-10;
-    // インセット枠
-    svg.append('rect').attr('x',okX-4).attr('y',okY-18).attr('width',okW+8).attr('height',okH+22)
-      .attr('fill','rgba(255,255,255,.85)').attr('stroke','#cbd5e1').attr('stroke-width',1).attr('rx',6);
-    svg.append('text').attr('x',okX+okW/2).attr('y',okY-5).attr('text-anchor','middle')
+  // 沖縄インセット
+  if(okinawaFeatures.length){
+    const okW=110,okH=72,okX=W-okW-14,okY=H-okH-14;
+    svg.append('rect').attr('x',okX-4).attr('y',okY-20).attr('width',okW+8).attr('height',okH+24)
+      .attr('fill','rgba(255,255,255,.88)').attr('stroke','#cbd5e1').attr('stroke-width',1).attr('rx',6);
+    svg.append('text').attr('x',okX+okW/2).attr('y',okY-6).attr('text-anchor','middle')
       .attr('font-size',10).attr('fill','#64748b').text('沖縄県');
-    const okGeo={type:'FeatureCollection',features:okinawa};
+    const okGeo={type:'FeatureCollection',features:okinawaFeatures};
     const okProj=d3.geoMercator().fitExtent([[okX,okY],[okX+okW,okY+okH]],okGeo);
-    drawFeatures(svg,okinawa,okProj);
+    drawLayer(svg,okinawaFeatures,okProj,true);
   }
 }
 
+function MZOOM(f){if(!MAP_SVG||!MAP_ZOOM_OBJ)return;MAP_SVG.transition().duration(300).call(MAP_ZOOM_OBJ.scaleBy,f);}
+function MRESET(){if(!MAP_SVG||!MAP_ZOOM_OBJ)return;MAP_SVG.transition().duration(400).call(MAP_ZOOM_OBJ.transform,d3.zoomIdentity);}
+
 function SELP(nm){
-  const pd=CUR_PD?.[nm]||DB.p[nm];
-  if(!pd||(pd.t||pd.total||0)===0){document.getElementById('mapPanel').innerHTML=`<div class="mp-ph"><div class="ico">📭</div><div>${nm}<br>データなし</div></div>`;return;}
-  const tot=pd.t||pd.total||0,kai=pd.k||pd.kaigai||0;
-  const kr=tot?Math.round(kai/tot*100):0,rent=pd.r||pd.avgRent||0;
+  const pd=(CUR_PD||DB.PD)[nm];
+  if(!pd||pd.t===0){document.getElementById('mapPanel').innerHTML=`<div class="mp-ph"><div class="ico">📭</div><div>${nm}<br>データなし</div></div>`;return;}
+  const tot=pd.t||0,kai=pd.k||0,kr=tot?Math.round(kai/tot*100):0,rent=pd.r||0;
   document.getElementById('mapPanel').innerHTML=`<div class="mp-in">
     <div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">選択エリア</div>
     <div class="pname">${nm}</div><div class="ptot">${tot.toLocaleString()}件</div>
@@ -1073,47 +1059,55 @@ function SELP(nm){
     <div class="mrow"><span class="ml">国内審査</span><span class="mr">${tot-kai}件</span></div>
     <div class="mrow"><span class="ml">平均月額</span><span class="mr">¥${rent.toLocaleString()}</span></div>
     <div class="msec">国籍 TOP5</div>
-    ${(pd.n||[]).slice(0,5).map((e,i)=>`<div class="mrow"><span class="ml">${i+1}. ${Array.isArray(e)?e[0]:e}</span><span class="mr">${Array.isArray(e)?e[1]:'-'}件</span></div>`).join('')}
+    ${(pd.n||[]).slice(0,5).map((e,i)=>`<div class="mrow"><span class="ml">${i+1}. ${e[0]}</span><span class="mr">${e[1]}件</span></div>`).join('')}
     <div class="msec">主な管理会社</div>
-    ${(pd.c||[]).slice(0,5).map((e,i)=>`<div class="mco"><div class="mco-r">${i+1}位</div><div class="mco-n">${Array.isArray(e)?e[0]:e}</div><div class="mco-c">${Array.isArray(e)?e[1]:'-'}件</div></div>`).join('')}
+    ${(pd.c||[]).slice(0,5).map((e,i)=>`<div class="mco"><div class="mco-r">${i+1}位</div><div class="mco-n">${e[0]}</div><div class="mco-c">${e[1]}件</div></div>`).join('')}
     <div class="msec">在留資格</div>
-    ${(pd.v||[]).slice(0,4).map((e,i)=>`<div class="mrow"><span class="ml">${Array.isArray(e)?e[0]:e}</span><span class="mr">${Array.isArray(e)?e[1]:'-'}件</span></div>`).join('')}
+    ${(pd.v||[]).slice(0,4).map(e=>`<div class="mrow"><span class="ml">${e[0]}</span><span class="mr">${e[1]}件</span></div>`).join('')}
     <button class="map-btn" onclick="FBP('${nm}')">「${nm}」で絞り込む →</button>
   </div>`;
 }
 function FBP(pref){SSV.ss1p=pref;const e=document.getElementById('ss1pi');if(e)e.value=pref;SSR('ss1p',SSD.ss1p||[]);SW('t1',document.querySelectorAll('.tab')[0]);A1();}
 
 // ================================================================
-// MATRIX
+// MATRIX — pref-filterable
 // ================================================================
 function DMX(){
   const mode=GV('mxmd'),pref=SSV.ss6p,sh=GV('mxs');
   const minC=parseInt(GV('mxmn')||'0');
   const rk=mode==='vn'?'v':'n',ck=mode==='vn'?'n':'v';
-  let data=DB.m;
-  if(sh==='海外')data=data.map(m=>({...m,t:m.k}));
-  else if(sh==='国内')data=data.map(m=>({...m,t:m.t-m.k,k:0}));
-  const rcnt={},ccnt={};
-  data.forEach(m=>{rcnt[m[rk]]=(rcnt[m[rk]]||0)+m.t;ccnt[m[ck]]=(ccnt[m[ck]]||0)+m.t;});
-  const rows=Object.entries(rcnt).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
-  const cols=Object.entries(ccnt).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
+  let data=DB.MX;
+  if(pref)data=data.filter(m=>m.pref===pref);
+  if(sh==='海外')data=data.filter(m=>m.shinsa==='海外');
+  else if(sh==='国内')data=data.filter(m=>m.shinsa==='国内');
+
   const cells={};
   data.forEach(m=>{
-    if(!rows.includes(m[rk])||!cols.includes(m[ck]))return;
-    const k=m[rk]+'|'+m[ck];
-    if(!cells[k])cells[k]={t:0,k:0,c:m.c||[]};
-    cells[k].t+=m.t;cells[k].k+=m.k||0;
+    const rv=m[rk],cv=m[ck];if(!rv||!cv)return;
+    const k=rv+'|||'+cv;
+    if(!cells[k])cells[k]={rk:rv,ck:cv,t:0,k:0,cos:{}};
+    cells[k].t+=m.cnt;
+    if(m.shinsa==='海外')cells[k].k+=m.cnt;
+    cells[k].cos[m.nm]=(cells[k].cos[m.nm]||0)+m.cnt;
   });
-  const maxC=Math.max(...Object.values(cells).map(c=>c.t),1);
+
+  const rcnt={},ccnt={};
+  Object.values(cells).forEach(c=>{rcnt[c.rk]=(rcnt[c.rk]||0)+c.t;ccnt[c.ck]=(ccnt[c.ck]||0)+c.t;});
+  const rows=Object.entries(rcnt).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
+  const cols=Object.entries(ccnt).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
+
   const rtot={},ctot={};
-  rows.forEach(r=>{rtot[r]=cols.reduce((s,c)=>s+(cells[r+'|'+c]?.t||0),0);});
-  cols.forEach(c=>{ctot[c]=rows.reduce((s,r)=>s+(cells[r+'|'+c]?.t||0),0);});
-  const gtot=data.reduce((s,m)=>s+m.t,0),gkai=data.reduce((s,m)=>s+(m.k||0),0);
+  rows.forEach(r=>{rtot[r]=cols.reduce((s,c)=>s+(cells[r+'|||'+c]?.t||0),0);});
+  cols.forEach(c=>{ctot[c]=rows.reduce((s,r)=>s+(cells[r+'|||'+c]?.t||0),0);});
+  const gtot=data.reduce((s,m)=>s+m.cnt,0),gkai=data.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
+  const maxC=Math.max(...Object.values(cells).map(c=>c.t),1);
+
   document.getElementById('mxsum').innerHTML=`
     <div class="mxs"><div class="mxs-l">対象データ</div><div class="mxs-v">${gtot.toLocaleString()}</div></div>
-    <div class="mxs"><div class="mxs-l">有効セル</div><div class="mxs-v">${Object.values(cells).filter(c=>c.t>=minC).length}</div></div>
+    <div class="mxs"><div class="mxs-l">有効セル(${minC}件以上)</div><div class="mxs-v">${Object.values(cells).filter(c=>c.t>=minC).length}</div></div>
     <div class="mxs"><div class="mxs-l">全体海外率</div><div class="mxs-v">${gtot?Math.round(gkai/gtot*100)+'%':'-'}</div></div>
     <div class="mxs"><div class="mxs-l">${mode==='vn'?'最多在留資格':'最多国籍'}</div><div class="mxs-v" style="font-size:11px;font-family:'Noto Sans JP'">${rows[0]||'-'}</div></div>`;
+
   let html=`<table class="mxt"><thead><tr>
     <th class="rh">${mode==='vn'?'在留資格 \\ 国籍':'国籍 \\ 在留資格'}</th>
     ${cols.map(c=>`<th style="text-align:center;white-space:normal;max-width:88px;padding:7px 8px;font-size:10px">${c}<br><span style="opacity:.5;font-weight:400">${ctot[c]}件</span></th>`).join('')}
@@ -1121,24 +1115,29 @@ function DMX(){
   rows.forEach(row=>{
     html+=`<tr><th class="rh">${row}<br><span style="font-size:9.5px;font-weight:400;opacity:.5">${rtot[row]}件</span></th>`;
     cols.forEach(col=>{
-      const cell=cells[row+'|'+col];
+      const cell=cells[row+'|||'+col];
       if(!cell||cell.t<minC){html+=`<td class="h0"><div class="mc"><span style="font-size:11px">—</span></div></td>`;return;}
       const kr=Math.round(cell.k/cell.t*100);
       const cls=kr<=30?'h1':kr<=60?'h2':'h3';
       const bw=Math.round(cell.t/maxC*100);
-      const topco=(cell.c||[])[0]?.[0]||'';
-      html+=`<td class="${cls}" onclick="OMX('${ESC(row)}','${ESC(col)}','${mode}')"><div class="mc"><div class="mc-n">${cell.t}</div><div class="mc-b"><div class="mc-bf" style="width:${bw}%"></div></div><div class="mc-c">${topco.length>14?topco.substring(0,14)+'…':topco}</div><div class="mc-r">海外${kr}%</div></div></td>`;
+      const topco=TOPN(cell.cos,1)[0]?.[0]||'';
+      html+=`<td class="${cls}" onclick="OMX('${ESC(row)}','${ESC(col)}','${mode}')"><div class="mc">
+        <div class="mc-n">${cell.t}</div>
+        <div class="mc-b"><div class="mc-bf" style="width:${bw}%"></div></div>
+        <div class="mc-c">${topco.length>14?topco.substring(0,14)+'…':topco}</div>
+        <div class="mc-r">海外${kr}%</div></div></td>`;
     });
     html+=`<td class="tc-cell">${rtot[row]}</td></tr>`;
   });
   html+=`<tr><th class="rh" style="background:#0b1c35">合計</th>${cols.map(c=>`<td class="tc-cell">${ctot[c]}</td>`).join('')}<td class="tc-cell" style="background:#dbeafe">${rows.reduce((s,r)=>s+rtot[r],0)}</td></tr></tbody></table>`;
   document.getElementById('mxwrap').innerHTML=html;
 }
+
 function OMX(rv,cv,mode){
   const rk=mode==='vn'?'v':'n',ck=mode==='vn'?'n':'v';
-  const sub=DB.m.filter(m=>m[rk]===rv&&m[ck]===cv);
-  const tot=sub.reduce((s,m)=>s+m.t,0),kai=sub.reduce((s,m)=>s+(m.k||0),0);
-  const cos={};sub.forEach(m=>(m.c||[]).forEach(([n,c])=>{cos[n]=(cos[n]||0)+c;}));
+  const sub=DB.MX.filter(m=>m[rk]===rv&&m[ck]===cv);
+  const tot=sub.reduce((s,m)=>s+m.cnt,0),kai=sub.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
+  const cos={};sub.forEach(m=>{cos[m.nm]=(cos[m.nm]||0)+m.cnt;});
   const topcos=TOPN(cos,10);
   document.getElementById('MTIT').textContent=`📊 ${rv} × ${cv}`;
   document.getElementById('MBOD').innerHTML=`
@@ -1149,7 +1148,13 @@ function OMX(rv,cv,mode){
     </div></div>
     <div class="card full"><div class="ctitle">利用管理会社 ランキング</div>
       <div class="tw"><table><thead><tr><th>#</th><th>管理会社名</th><th>件数</th><th>海外審査比率</th></tr></thead>
-        <tbody>${topcos.map((e,i)=>`<tr><td>${i+1}</td><td class="tl" onclick="CMOD();OM('${ESC(e[0])}')" style="white-space:normal">${e[0]}</td><td class="mono">${e[1]}</td><td>${KRBADGE(DB.h.find(h=>h.nm===e[0])?.kr||50)}</td></tr>`).join('')}</tbody>
+        <tbody>${topcos.map((e,i)=>{
+          const base=DB.coBase[e[0]]||{};
+          const kr=DB.MX.filter(m=>m.nm===e[0]).reduce((s,m,_,a)=>{return m.shinsa==='海外'?s+m.cnt:s;},0);
+          const tot2=DB.MX.filter(m=>m.nm===e[0]).reduce((s,m)=>s+m.cnt,0);
+          const krPct=tot2?Math.round(kr/tot2*100):0;
+          return `<tr><td>${i+1}</td><td class="tl" onclick="CMOD();OM('${ESC(e[0])}')" style="white-space:normal">${e[0]}</td><td class="mono">${e[1]}</td><td>${KRBADGE(krPct)}</td></tr>`;
+        }).join('')}</tbody>
       </table></div></div>`;
   document.getElementById('MBG').classList.add('on');
 }
@@ -1158,24 +1163,29 @@ function OMX(rv,cv,mode){
 // MODAL
 // ================================================================
 function OM(nm){
-  const h=DB.h.find(r=>r.nm===nm);
-  const a=DB.a.find(r=>r.nm===nm);
+  const base=DB.coBase[nm]||{};
+  const a=DB.AL.find(r=>r.nm===nm);
+  const mxCo=DB.MX.filter(m=>m.nm===nm);
+  const tot=mxCo.reduce((s,m)=>s+m.cnt,0);
+  const kai=mxCo.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
+  const kr=tot?Math.round(kai/tot*100):0;
+  const tvMap={},tnMap={};
+  mxCo.forEach(m=>{tvMap[m.visa]=(tvMap[m.visa]||0)+m.cnt;tnMap[m.nat]=(tnMap[m.nat]||0)+m.cnt;});
+  const tv=TOPN(tvMap,7),tn=TOPN(tnMap,8);
+  const mo=DB.coMonthMap[nm]||{};
+  const months=Object.keys(mo).sort().slice(-10);
+  const crItems=TOPN(a?.crs||{},5);const crMax=crItems[0]?.[1]||1;
   document.getElementById('MTIT').textContent='🏢 '+nm;
-  const tv=Object.entries(h?.tv||{}).slice(0,7);
-  const tn=Object.entries(h?.tn||{}).slice(0,8);
-  const mo=Object.keys(h?.mo||{}).sort().slice(-10);
-  const crItems=TOPN(a?.crs||{},5);
-  const crMax=crItems[0]?.[1]||1;
   document.getElementById('MBOD').innerHTML=`
     <div class="card">
       <div class="ctitle">保証データ <small>mgmt_hosho_data / 2025-01以降</small></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
-        <div>件数: <strong class="mono">${h?.total?.toLocaleString()||'0'}</strong></div>
-        <div>海外: <strong style="color:var(--o)">${h?.kaigai||0}件 (${h?.kr||0}%)</strong></div>
-        <div>国内: <strong style="color:var(--acc)">${h?(h.total-h.kaigai):0}件</strong></div>
-        <div>平均月額: <strong class="mono">¥${h?.rent?.toLocaleString()||'-'}</strong></div>
-        <div>主要地域: <strong>${h?.pref||'-'}</strong></div>
-        <div>最終承認: <strong>${h?.date||'-'}</strong></div>
+        <div>件数: <strong class="mono">${tot.toLocaleString()}</strong></div>
+        <div>海外: <strong style="color:var(--o)">${kai}件 (${kr}%)</strong></div>
+        <div>国内: <strong style="color:var(--acc)">${tot-kai}件</strong></div>
+        <div>平均月額: <strong class="mono">¥${(base.rent||0).toLocaleString()}</strong></div>
+        <div>主要地域: <strong>${base.pref||'-'}</strong></div>
+        <div>最終承認: <strong>${base.date||'-'}</strong></div>
       </div>
     </div>
     <div class="card">
@@ -1188,23 +1198,23 @@ function OM(nm){
         <div>キャンセル: <strong style="color:var(--r)">${a.cancel}件</strong></div>
         <div>主なキャンセル: <span style="font-size:11px">${a.topCR||'-'}</span></div>
       </div>
-      ${crItems.length?`<div class="divider"></div>
+      ${crItems.length?`<div style="height:1px;background:var(--bg);margin:10px 0"></div>
         <div style="font-size:11px;color:var(--t2);margin-bottom:6px;font-weight:700">キャンセル理由内訳</div>
         <div class="cr-list">${crItems.map(([k,c])=>`<div class="cr-item"><span style="flex:1">${k.replace(/^\d+_/,'')}</span><div class="cr-bar"><div class="cr-bf" style="width:${Math.round(c/crMax*100)}%"></div></div><span class="mono" style="color:var(--r);min-width:30px;text-align:right">${c}</span></div>`).join('')}</div>`:''}`
       :'<div style="color:var(--t3);font-size:12px">営業データなし</div>'}
     </div>
     <div class="card"><div class="ctitle">在留資格別 件数</div><canvas id="mcv" style="max-height:200px"></canvas></div>
     <div class="card"><div class="ctitle">国籍別 件数</div><canvas id="mcn" style="max-height:200px"></canvas></div>
-    ${mo.length?`<div class="card full"><div class="ctitle">月別 件数トレンド</div><canvas id="mcm" style="max-height:155px"></canvas></div>`:''}
-    ${(h?.tc||[]).length?`<div class="card full"><div class="ctitle">連携仲介会社 Top3</div><div style="display:flex;flex-direction:column;gap:5px">${h.tc.map((e,i)=>`<div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f8fafc;border-radius:6px;font-size:12px"><span>${i+1}. ${e[0]}</span><span class="mono" style="color:var(--t2)">${e[1]}件</span></div>`).join('')}</div></div>`:''}
+    ${months.length?`<div class="card full"><div class="ctitle">月別 件数トレンド（会社別）</div><canvas id="mcm" style="max-height:155px"></canvas></div>`:''}
   `;
   document.getElementById('MBG').classList.add('on');
   setTimeout(()=>{
     if(tv.length)MCH('mcv','bar',tv.map(e=>e[0]),[{data:tv.map(e=>e[1]),backgroundColor:CLR.map(c=>c+'bb'),borderRadius:4}],{plugins:{legend:{display:false}}});
     if(tn.length)MCH('mcn','bar',tn.map(e=>e[0]),[{data:tn.map(e=>e[1]),backgroundColor:'rgba(14,165,233,.72)',borderRadius:4}],{plugins:{legend:{display:false}}});
-    if(mo.length)MCH('mcm','line',mo,[{label:'件数',data:mo.map(m=>h.mo[m]||0),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.35,pointBackgroundColor:'#2563eb',pointRadius:4}],{plugins:{legend:{display:false}}});
+    if(months.length)MCH('mcm','line',months,[{label:'件数',data:months.map(m=>mo[m]||0),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.35,pointBackgroundColor:'#2563eb',pointRadius:4}],{plugins:{legend:{display:false}}});
   },80);
 }
+function OM5(nm){OM(nm);}
 function CMOD(e){if(!e||e.target===document.getElementById('MBG'))document.getElementById('MBG').classList.remove('on');}
 
 // ================================================================
@@ -1239,16 +1249,17 @@ function LH(h){SSV.ss1v=h.visa||null;SSV.ss1n=h.nat||null;SSV.ss1p=h.pref||null;
 function CLRH(){HIST=[];localStorage.setItem('mdb_h','[]');RHIST();}
 
 // ================================================================
-// TABS
+// TABS + LOAD
 // ================================================================
-function SW(id,el){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById(id).classList.add('on');el.classList.add('on');if(id==='t4'&&MAP_GEO)setTimeout(DRAW_MAP,50);}
+function SW(id,el){
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');el.classList.add('on');
+  if(id==='t4'&&MAP_GEO)setTimeout(()=>{DRAW_MAP();},50);
+}
 
-// ================================================================
-// LOAD
-// ================================================================
 window.addEventListener('DOMContentLoaded',async function(){
-  const prog=document.getElementById('lprog');
-  const msg=document.getElementById('lmsg');
+  const prog=document.getElementById('lprog'),msg=document.getElementById('lmsg');
   try{
     prog.style.width='20%';msg.textContent='APIに接続中...';
     const res=await fetch(API_URL+'?type=all',{redirect:'follow',mode:'cors'});
