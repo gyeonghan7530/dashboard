@@ -6,41 +6,60 @@
 <title>管理会社ダッシュボード</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <style>
-:root{--bg:#f1f4f9;--card:#fff;--pri:#0d1f3c;--acc:#2563eb;--acc2:#0ea5e9;--g:#059669;--r:#dc2626;--o:#ea580c;--pu:#7c3aed;--bd:#e2e8f0;--t1:#0f172a;--t2:#64748b;--t3:#94a3b8;--sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);--rd:12px}
+:root{
+  --bg:#f1f4f9;--card:#fff;--pri:#0d1f3c;--acc:#2563eb;--acc2:#0ea5e9;
+  --g:#059669;--r:#dc2626;--o:#ea580c;--pu:#7c3aed;
+  --bd:#e2e8f0;--t1:#0f172a;--t2:#64748b;--t3:#94a3b8;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);--rd:12px;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--t1);font-size:13px}
+
+/* HEADER */
 .hdr{background:var(--pri);color:#fff;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:300;box-shadow:0 2px 14px rgba(0,0,0,.35)}
 .hdr-l{display:flex;align-items:center;gap:12px}
 .hdr-title{font-size:15px;font-weight:700}
 .hdr-pill{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:2px 10px;font-size:10px;font-family:'DM Mono',monospace}
 .hdr-r{text-align:right;font-size:11px;opacity:.55;font-family:'DM Mono',monospace;line-height:1.9}
+
+/* TABS */
 .tabs{background:#fff;border-bottom:2px solid var(--bd);padding:0 18px;display:flex;position:sticky;top:54px;z-index:299;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{padding:12px 15px;cursor:pointer;font-size:12px;font-weight:500;color:var(--t2);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .16s;display:flex;align-items:center;gap:5px}
 .tab.on{color:var(--acc);border-bottom-color:var(--acc)}
 .tab:hover:not(.on){color:var(--t1);background:#f8fafc}
+
+/* LAYOUT */
 .wrap{max-width:1600px;margin:0 auto;padding:16px 18px}
 .tc{display:none}.tc.on{display:block}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
 .full{grid-column:1/-1}
 .card{background:var(--card);border-radius:var(--rd);padding:16px;box-shadow:var(--sh);border:1px solid var(--bd)}
-.ctitle{font-size:13px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--bg);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.ctitle{font-size:13px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--bg);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
 .ctitle small{font-size:11px;color:var(--t3);font-weight:400}
+.dsrc{font-size:10px;color:var(--t3);background:#f8fafc;border:1px solid var(--bd);border-radius:6px;padding:3px 9px;display:inline-block;margin-bottom:10px}
 canvas{max-height:270px}
+
+/* KPI */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:14px}
 .kpi{background:var(--card);border-radius:var(--rd);padding:14px 16px;box-shadow:var(--sh);border:1px solid var(--bd);position:relative;overflow:hidden}
 .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
 .kpi-l{font-size:10px;color:var(--t2);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
 .kpi-v{font-size:22px;font-weight:700;color:var(--acc);font-family:'DM Mono',monospace}
+
+/* FILTER BAR */
 .fbar{background:var(--card);border-radius:var(--rd);padding:12px 16px;margin-bottom:12px;box-shadow:var(--sh);border:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
-.fg{display:flex;flex-direction:column;gap:3px}
+.fg{display:flex;flex-direction:column;gap:3px;min-width:150px}
 .fg label{font-size:10px;color:var(--t2);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
-.fg select,.fg input[type=number]{padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif;color:var(--t1);min-width:130px}
-.fg select:focus,.fg input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.fg select{padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif;color:var(--t1);min-width:130px}
+.fg select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
 .rrow{display:flex;align-items:center;gap:6px}
-.rrow input{min-width:66px!important;max-width:76px;text-align:center}
+.rrow input{min-width:66px;max-width:76px;text-align:center;padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc}
+.rrow input:focus{outline:none;border-color:var(--acc)}
 .rsep{color:var(--t3);font-weight:600}
 .runit{font-size:10px;color:var(--t3)}
 .fbar-r{margin-left:auto;display:flex;align-items:flex-end;gap:8px}
@@ -49,16 +68,35 @@ canvas{max-height:270px}
 .btn{padding:6px 14px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all .14s}
 .btn-d{background:var(--pri);color:#fff}
 .btn-d:hover{background:#1e3a5f;transform:translateY(-1px)}
+
+/* SEARCHABLE SELECT */
+.ss{position:relative;display:flex;flex-direction:column;gap:3px}
+.ss-inp{padding:6px 28px 6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif;width:100%;cursor:pointer}
+.ss-inp:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.ss-arrow{position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--t3);font-size:10px}
+.ss-drop{position:absolute;top:calc(100% + 2px);left:0;width:100%;min-width:200px;max-width:380px;background:#fff;border:1.5px solid var(--bd);border-radius:10px;max-height:240px;overflow-y:auto;z-index:999;display:none;box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.ss-drop.op{display:block}
+.ss-search{padding:7px 10px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:#fff;z-index:1}
+.ss-search input{width:100%;padding:5px 8px;border:1.5px solid var(--bd);border-radius:6px;font-size:12px;font-family:'Noto Sans JP',sans-serif}
+.ss-search input:focus{outline:none;border-color:var(--acc)}
+.ss-item{padding:7px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f8fafc;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-item:hover,.ss-item.hi{background:#eff6ff;color:var(--acc)}
+.ss-item.sel{background:#dbeafe;color:var(--acc);font-weight:600}
+.ss-empty{padding:10px 12px;font-size:12px;color:var(--t3);text-align:center}
+
+/* AUTOCOMPLETE TAGS */
 .ac{position:relative;display:flex;flex-direction:column;gap:3px}
-.ac input{min-width:270px;padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif}
+.ac input{min-width:260px;padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;background:#fafbfc;font-family:'Noto Sans JP',sans-serif}
 .ac input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-.acd{position:absolute;top:calc(100% - 2px);left:0;min-width:100%;width:max-content;max-width:490px;background:#fff;border:1.5px solid var(--bd);border-top:none;border-radius:0 0 10px 10px;max-height:210px;overflow-y:auto;z-index:999;display:none;box-shadow:0 8px 28px rgba(0,0,0,.1)}
+.acd{position:absolute;top:calc(100% + 2px);left:0;width:max-content;min-width:100%;max-width:480px;background:#fff;border:1.5px solid var(--bd);border-radius:10px;max-height:210px;overflow-y:auto;z-index:999;display:none;box-shadow:0 8px 28px rgba(0,0,0,.1)}
 .acd.op{display:block}
-.aci{padding:7px 13px;cursor:pointer;font-size:12px;border-bottom:1px solid #f8fafc}
+.aci{padding:7px 13px;cursor:pointer;font-size:12px;border-bottom:1px solid #f8fafc;white-space:nowrap}
 .aci:hover{background:#eff6ff;color:var(--acc)}
 .act{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;min-height:18px}
 .actag{display:inline-flex;align-items:center;gap:3px;background:#eff6ff;color:var(--acc);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
 .actag button{background:none;border:none;cursor:pointer;font-size:12px;color:#9ca3af}
+
+/* TABLE */
 .tw{overflow-x:auto;max-height:500px;overflow-y:auto}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{background:var(--pri);color:#fff;padding:9px 11px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:1;cursor:pointer;user-select:none}
@@ -72,6 +110,8 @@ tr:hover td{background:#f8fafc}
 .pgn button{padding:5px 12px;border:1.5px solid var(--bd);border-radius:6px;cursor:pointer;background:#fff;font-size:12px;font-weight:600}
 .pgn button:hover:not(:disabled){background:var(--acc);color:#fff;border-color:var(--acc)}
 .pgn button:disabled{opacity:.3;cursor:not-allowed}
+
+/* MISC */
 .bw{display:flex;align-items:center;gap:5px;min-width:80px}
 .bbg{flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden}
 .bf{height:100%;border-radius:3px}
@@ -80,8 +120,11 @@ tr:hover td{background:#f8fafc}
 .mono{font-family:'DM Mono',monospace}
 .fav{background:none;border:none;cursor:pointer;font-size:15px;padding:2px 4px}
 .fav:hover{transform:scale(1.2)}
+.divider{height:1px;background:var(--bg);margin:10px 0}
+
+/* MAP */
 .map-shell{display:flex;border-radius:var(--rd);overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh)}
-.map-area{flex:1;background:linear-gradient(150deg,#dbeafe,#e0f2fe 50%,#ede9fe);min-height:540px}
+.map-area{flex:1;background:linear-gradient(150deg,#dbeafe,#e0f2fe 50%,#ede9fe);min-height:540px;position:relative}
 .map-area svg{width:100%;height:100%;min-height:540px}
 .map-panel{width:290px;flex-shrink:0;background:var(--pri);color:#fff;overflow-y:auto;max-height:580px}
 .mp-in{padding:18px}
@@ -98,12 +141,12 @@ tr:hover td{background:#f8fafc}
 .mco-c{color:#7dd3fc;font-family:'DM Mono',monospace;font-size:11px}
 .map-btn{margin-top:14px;width:100%;padding:8px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
 .map-btn:hover{background:rgba(255,255,255,.2)}
-.pp{cursor:pointer;stroke:#fff;stroke-width:0.5;transition:opacity .15s}
-.pp:hover{opacity:.72}
-.pp.sel{stroke:#fff;stroke-width:2;filter:drop-shadow(0 0 6px rgba(37,99,235,.7))}
+.map-tooltip{position:absolute;background:rgba(13,31,60,.9);color:#fff;padding:5px 10px;border-radius:6px;font-size:11px;pointer-events:none;display:none;z-index:10;white-space:nowrap}
 .mleg-w{display:flex;gap:10px;align-items:center}
 .mleg{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)}
 .mleg-c{width:11px;height:11px;border-radius:3px}
+
+/* MATRIX */
 .mx-wrap{overflow-x:auto}
 .mxt{border-collapse:collapse;font-size:11px}
 .mxt th{background:var(--pri);color:#fff;padding:7px 10px;font-size:10px;font-weight:600}
@@ -123,6 +166,8 @@ tr:hover td{background:#f8fafc}
 .mxs{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 13px;box-shadow:var(--sh)}
 .mxs-l{font-size:10px;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
 .mxs-v{font-size:17px;font-weight:700;color:var(--acc);font-family:'DM Mono',monospace;margin-top:3px}
+
+/* MODAL */
 .mbg{display:none;position:fixed;inset:0;background:rgba(10,20,40,.62);z-index:1000;justify-content:center;align-items:center;backdrop-filter:blur(4px)}
 .mbg.on{display:flex}
 .modal{background:#fff;border-radius:18px;width:93%;max-width:1000px;max-height:90vh;overflow-y:auto;padding:24px;position:relative;box-shadow:0 28px 70px rgba(0,0,0,.22)}
@@ -135,18 +180,21 @@ tr:hover td{background:#f8fafc}
 .cr-item{display:flex;align-items:center;gap:8px;padding:5px 8px;background:#fef2f2;border-radius:6px;border-left:3px solid var(--r);font-size:12px}
 .cr-bar{flex:1;height:4px;background:#fca5a5;border-radius:2px;overflow:hidden;max-width:80px}
 .cr-bf{height:100%;background:var(--r);border-radius:2px}
-.divider{height:1px;background:var(--bg);margin:10px 0}
-@media(max-width:900px){.g2,.g3,.mg,.map-shell{display:block}.map-panel{width:100%;max-height:280px}}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:#0d1f3c;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;gap:18px}
+#lprog-wrap{width:240px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
+#lprog{height:100%;background:linear-gradient(90deg,#2563eb,#0ea5e9);border-radius:2px;width:0%;transition:width .4s ease}
+
+@media(max-width:900px){.g2,.g3,.mg,.map-shell{display:block;flex-direction:column}.map-panel{width:100%;max-height:280px}}
 </style>
 </head>
 <body>
 
-<div id="loading" style="position:fixed;inset:0;background:#0d1f3c;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;gap:18px">
+<div id="loading">
   <div style="font-size:32px">🏢</div>
-  <div style="font-size:16px;font-weight:700;letter-spacing:-.2px">管理会社ダッシュボード</div>
-  <div style="width:240px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden">
-    <div id="lprog" style="height:100%;background:linear-gradient(90deg,#2563eb,#0ea5e9);border-radius:2px;width:0%;transition:width .4s ease"></div>
-  </div>
+  <div style="font-size:16px;font-weight:700">管理会社ダッシュボード</div>
+  <div id="lprog-wrap"><div id="lprog"></div></div>
   <div id="lmsg" style="font-size:12px;opacity:.55">BigQueryからデータを取得中...</div>
 </div>
 
@@ -160,6 +208,7 @@ tr:hover td{background:#f8fafc}
     <div>最終更新 <span id="hdt">-</span></div>
   </div>
 </div>
+
 <div class="tabs">
   <div class="tab on"  onclick="SW('t1',this)">🔍 条件検索</div>
   <div class="tab"     onclick="SW('t2',this)">🏢 管理会社</div>
@@ -169,10 +218,12 @@ tr:hover td{background:#f8fafc}
   <div class="tab"     onclick="SW('t6',this)">📊 マトリクス</div>
   <div class="tab"     onclick="SW('t7',this)">⭐ お気に入り</div>
 </div>
+
 <div class="wrap">
 
-<!-- T1 -->
+<!-- T1 条件検索 -->
 <div id="t1" class="tc on">
+  <div class="dsrc">📊 データソース: 保証審査データ (mgmt_hosho_data) ／ 対象期間: 2025-01-01以降</div>
   <div class="kpis">
     <div class="kpi"><div class="kpi-l">保証件数</div><div class="kpi-v" id="k1t">-</div></div>
     <div class="kpi"><div class="kpi-l">管理会社数</div><div class="kpi-v" id="k1c">-</div></div>
@@ -181,9 +232,9 @@ tr:hover td{background:#f8fafc}
     <div class="kpi"><div class="kpi-l">最終承認日</div><div class="kpi-v" id="k1d" style="font-size:13px">-</div></div>
   </div>
   <div class="fbar">
-    <div class="fg"><label>在留資格</label><select id="f1v" onchange="A1()"><option value="">すべて</option></select></div>
-    <div class="fg"><label>国籍</label><select id="f1n" onchange="A1()"><option value="">すべて</option></select></div>
-    <div class="fg"><label>地域</label><select id="f1p" onchange="A1()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>在留資格</label><div class="ss" id="ss1v"><input class="ss-inp" id="ss1vi" placeholder="すべて" readonly onclick="SST('ss1v')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss1vd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss1v',this.value)"></div><div class="ss-list" id="ss1vl"></div></div></div></div>
+    <div class="fg"><label>国籍</label><div class="ss" id="ss1n"><input class="ss-inp" id="ss1ni" placeholder="すべて" readonly onclick="SST('ss1n')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss1nd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss1n',this.value)"></div><div class="ss-list" id="ss1nl"></div></div></div></div>
+    <div class="fg"><label>地域</label><div class="ss" id="ss1p"><input class="ss-inp" id="ss1pi" placeholder="すべて" readonly onclick="SST('ss1p')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss1pd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss1p',this.value)"></div><div class="ss-list" id="ss1pl"></div></div></div></div>
     <div class="fg"><label>審査区分</label><select id="f1s" onchange="A1()"><option value="">すべて</option><option>海外</option><option>国内</option></select></div>
     <div class="fg"><label>賃料（万円）</label>
       <div class="rrow"><input type="number" id="f1rn" placeholder="下限" min="0" step="0.5" oninput="A1()"><span class="rsep">〜</span><input type="number" id="f1rx" placeholder="上限" min="0" step="0.5" oninput="A1()"></div>
@@ -198,21 +249,22 @@ tr:hover td{background:#f8fafc}
   </div>
   <div class="card">
     <div class="ctitle">管理会社リスト <small>行クリックで詳細表示</small></div>
-    <div class="tw"><table id="tb1"><thead><tr>
+    <div class="tw"><table><thead><tr>
       <th>#</th><th onclick="SRT('t1','nm')">管理会社名↕</th><th onclick="SRT('t1','pref')">地域↕</th>
-      <th onclick="SRT('t1','total')">件数↕</th><th onclick="SRT('t1','kaigai')">海外↕</th><th onclick="SRT('t1','kr')">海外比率↕</th>
-      <th>主な在留資格</th><th>主な国籍</th><th onclick="SRT('t1','rent')">平均月額↕</th><th>難易度</th><th>⭐</th>
+      <th onclick="SRT('t1','total')">件数↕</th><th onclick="SRT('t1','kaigai')">海外↕</th><th onclick="SRT('t1','kr')">海外審査比率↕</th>
+      <th>主な在留資格</th><th>主な国籍</th><th onclick="SRT('t1','rent')">平均月額↕</th><th>海外審査比率</th><th>⭐</th>
     </tr></thead><tbody id="b1"></tbody></table></div>
     <div class="pgn"><span id="p1i"></span><div class="pb"><button onclick="PG('t1',-1)">＜</button><button onclick="PG('t1',1)">＞</button></div></div>
   </div>
 </div>
 
-<!-- T2 -->
+<!-- T2 管理会社 -->
 <div id="t2" class="tc">
+  <div class="dsrc">📊 データソース: 保証審査データ (mgmt_hosho_data) ／ 対象期間: 2025-01-01以降</div>
   <div class="fbar">
     <div class="fg"><label>管理会社で絞込</label>
       <div class="ac" id="AC2"><input type="text" id="AC2i" placeholder="会社名を入力..." oninput="ACF('AC2')" onfocus="ACF('AC2')" autocomplete="off"><div class="acd" id="AC2d"></div><div class="act" id="AC2t"></div></div></div>
-    <div class="fg"><label>地域</label><select id="f2p" onchange="A2()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>地域</label><div class="ss" id="ss2p"><input class="ss-inp" id="ss2pi" placeholder="すべて" readonly onclick="SST('ss2p')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss2pd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss2p',this.value)"></div><div class="ss-list" id="ss2pl"></div></div></div></div>
     <div class="fbar-r"><span class="cntb" id="f2c">―</span><button class="btn btn-d" onclick="R2()">↺ リセット</button></div>
   </div>
   <div class="g3">
@@ -222,41 +274,47 @@ tr:hover td{background:#f8fafc}
   </div>
   <div class="card">
     <div class="ctitle">管理会社別 詳細</div>
-    <div class="tw"><table id="tb2"><thead><tr>
+    <div class="tw"><table><thead><tr>
       <th>#</th><th onclick="SRT('t2','nm')">管理会社名↕</th><th onclick="SRT('t2','total')">件数↕</th>
-      <th onclick="SRT('t2','kaigai')">海外↕</th><th onclick="SRT('t2','kr')">海外比率↕</th>
-      <th>国籍 Top2</th><th>在留資格 Top2</th><th onclick="SRT('t2','rent')">平均月額↕</th><th onclick="SRT('t2','date')">最終承認↕</th><th>⭐</th>
+      <th onclick="SRT('t2','kaigai')">海外↕</th><th onclick="SRT('t2','kr')">海外審査比率↕</th>
+      <th>国籍 Top2</th><th>在留資格 Top2</th>
+      <th onclick="SRT('t2','rent')">平均月額↕</th><th onclick="SRT('t2','date')">最終承認↕</th><th>⭐</th>
     </tr></thead><tbody id="b2"></tbody></table></div>
     <div class="pgn"><span id="p2i"></span><div class="pb"><button onclick="PG('t2',-1)">＜</button><button onclick="PG('t2',1)">＞</button></div></div>
   </div>
 </div>
 
-<!-- T3 -->
+<!-- T3 仲介会社 -->
 <div id="t3" class="tc">
+  <div class="dsrc">📊 データソース: 保証審査データ (mgmt_hosho_data) ／ 対象期間: 2025-01-01以降</div>
   <div class="fbar">
     <div class="fg"><label>仲介会社で絞込</label>
       <div class="ac" id="AC3"><input type="text" id="AC3i" placeholder="仲介会社名を入力..." oninput="ACF('AC3')" onfocus="ACF('AC3')" autocomplete="off"><div class="acd" id="AC3d"></div><div class="act" id="AC3t"></div></div></div>
-    <div class="fg"><label>地域</label><select id="f3p" onchange="A3()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>地域</label><div class="ss" id="ss3p"><input class="ss-inp" id="ss3pi" placeholder="すべて" readonly onclick="SST('ss3p')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss3pd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss3p',this.value)"></div><div class="ss-list" id="ss3pl"></div></div></div></div>
+    <div class="fg"><label>国籍</label><div class="ss" id="ss3n"><input class="ss-inp" id="ss3ni" placeholder="すべて" readonly onclick="SST('ss3n')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss3nd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss3n',this.value)"></div><div class="ss-list" id="ss3nl"></div></div></div></div>
+    <div class="fg"><label>在留資格</label><div class="ss" id="ss3v"><input class="ss-inp" id="ss3vi" placeholder="すべて" readonly onclick="SST('ss3v')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss3vd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss3v',this.value)"></div><div class="ss-list" id="ss3vl"></div></div></div></div>
     <div class="fbar-r"><button class="btn btn-d" onclick="R3()">↺ リセット</button></div>
   </div>
-  <div class="g2">
+  <div class="g3">
     <div class="card"><div class="ctitle">連携管理会社 Top10</div><canvas id="c3m"></canvas></div>
     <div class="card"><div class="ctitle">在留資格 構成</div><canvas id="c3v"></canvas></div>
+    <div class="card"><div class="ctitle">国籍 構成</div><canvas id="c3n"></canvas></div>
   </div>
   <div class="card">
     <div class="ctitle">仲介会社 × 管理会社</div>
-    <div class="tw"><table id="tb3"><thead><tr>
+    <div class="tw"><table><thead><tr>
       <th>#</th><th>仲介会社名</th><th>管理会社名</th><th>件数</th><th>主な国籍</th><th>主な在留資格</th><th>地域</th><th>平均月額</th>
     </tr></thead><tbody id="b3"></tbody></table></div>
     <div class="pgn"><span id="p3i"></span><div class="pb"><button onclick="PG('t3',-1)">＜</button><button onclick="PG('t3',1)">＞</button></div></div>
   </div>
 </div>
 
-<!-- T4 -->
+<!-- T4 地域マップ -->
 <div id="t4" class="tc">
+  <div class="dsrc">📊 データソース: 保証審査データ (mgmt_hosho_data) ／ 対象期間: 2025-01-01以降</div>
   <div class="fbar">
-    <div class="fg"><label>国籍</label><select id="f4n" onchange="A4()"><option value="">すべて</option></select></div>
-    <div class="fg"><label>在留資格</label><select id="f4v" onchange="A4()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>国籍</label><div class="ss" id="ss4n"><input class="ss-inp" id="ss4ni" placeholder="すべて" readonly onclick="SST('ss4n')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss4nd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss4n',this.value)"></div><div class="ss-list" id="ss4nl"></div></div></div></div>
+    <div class="fg"><label>在留資格</label><div class="ss" id="ss4v"><input class="ss-inp" id="ss4vi" placeholder="すべて" readonly onclick="SST('ss4v')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss4vd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss4v',this.value)"></div><div class="ss-list" id="ss4vl"></div></div></div></div>
     <div class="fg"><label>賃料（万円）</label>
       <div class="rrow"><input type="number" id="f4rn" placeholder="下限" min="0" step="0.5" oninput="A4()"><span class="rsep">〜</span><input type="number" id="f4rx" placeholder="上限" min="0" step="0.5" oninput="A4()"></div></div>
     <div class="fbar-r"><span class="cntb" id="f4c">―</span><button class="btn btn-d" onclick="R4()">↺ リセット</button></div>
@@ -271,50 +329,52 @@ tr:hover td{background:#f8fafc}
       </div>
     </div>
     <div class="map-shell">
-      <div class="map-area" id="mapSvg"></div>
+      <div class="map-area" id="mapArea"><div class="map-tooltip" id="mapTip"></div></div>
       <div class="map-panel" id="mapPanel"><div class="mp-ph"><div class="ico">🗾</div><div>都道府県を<br>クリックしてください</div></div></div>
     </div>
   </div>
   <div class="card">
     <div class="ctitle">地域別 管理会社ランキング</div>
-    <div class="tw"><table id="tb4"><thead><tr>
+    <div class="tw"><table><thead><tr>
       <th>#</th><th>管理会社名</th><th>地域</th><th onclick="SRT('t4','total')">件数↕</th>
-      <th onclick="SRT('t4','kr')">海外比率↕</th><th>主な国籍</th><th>主な在留資格</th><th onclick="SRT('t4','rent')">平均月額↕</th><th>難易度</th>
+      <th onclick="SRT('t4','kr')">海外審査比率↕</th><th>主な国籍</th><th>主な在留資格</th><th onclick="SRT('t4','rent')">平均月額↕</th><th>海外審査比率</th>
     </tr></thead><tbody id="b4"></tbody></table></div>
     <div class="pgn"><span id="p4i"></span><div class="pb"><button onclick="PG('t4',-1)">＜</button><button onclick="PG('t4',1)">＞</button></div></div>
   </div>
 </div>
 
-<!-- T5 -->
+<!-- T5 キャンセル -->
 <div id="t5" class="tc">
+  <div class="dsrc">📊 データソース: 営業案件データ (mgmt_agent_data) ／ 成約スコア基準: 決着ベース（成約÷(成約+キャンセル)）</div>
   <div class="fbar">
     <div class="fg"><label>管理会社で絞込</label>
       <div class="ac" id="AC5"><input type="text" id="AC5i" placeholder="管理会社名を入力..." oninput="ACF('AC5')" onfocus="ACF('AC5')" autocomplete="off"><div class="acd" id="AC5d"></div><div class="act" id="AC5t"></div></div></div>
-    <div class="fg"><label>都道府県</label><select id="f5p" onchange="A5()"><option value="">すべて</option></select></div>
-    <div class="fg"><label>キャンセル理由</label><select id="f5cr" onchange="A5()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>都道府県</label><div class="ss" id="ss5p"><input class="ss-inp" id="ss5pi" placeholder="すべて" readonly onclick="SST('ss5p')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss5pd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss5p',this.value)"></div><div class="ss-list" id="ss5pl"></div></div></div></div>
+    <div class="fg"><label>キャンセル理由</label><div class="ss" id="ss5cr"><input class="ss-inp" id="ss5cri" placeholder="すべて" readonly onclick="SST('ss5cr')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss5crd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss5cr',this.value)"></div><div class="ss-list" id="ss5crl"></div></div></div></div>
     <div class="fbar-r"><button class="btn btn-d" onclick="R5()">↺ リセット</button></div>
   </div>
   <div class="g2">
-    <div class="card"><div class="ctitle">管理会社別 キャンセル件数 Top15 <small>件数ベース（比率ではない）</small></div><canvas id="c5cnt"></canvas></div>
+    <div class="card"><div class="ctitle">管理会社別 キャンセル件数 Top15 <small>件数ベース</small></div><canvas id="c5cnt"></canvas></div>
     <div class="card"><div class="ctitle">キャンセル理由 全体内訳</div><canvas id="c5r"></canvas></div>
   </div>
   <div class="card">
-    <div class="ctitle">管理会社別 成約 / キャンセル実績 <small>行クリックでキャンセル理由詳細</small></div>
-    <div class="tw"><table id="tb5"><thead><tr>
-      <th>#</th><th>管理会社名</th><th onclick="SRT('t5','total')">総案件↕</th>
-      <th onclick="SRT('t5','contract')">成約数↕</th><th onclick="SRT('t5','cancel')">キャンセル数↕</th>
+    <div class="ctitle">管理会社別 成約 / キャンセル実績 <small>行クリックで詳細</small></div>
+    <div class="tw"><table><thead><tr>
+      <th>#</th><th>管理会社名</th>
+      <th onclick="SRT('t5','total')">総案件↕</th><th onclick="SRT('t5','contract')">成約↕</th><th onclick="SRT('t5','cancel')">キャンセル↕</th>
       <th onclick="SRT('t5','cr')">成約率↕</th><th onclick="SRT('t5','xr')">キャンセル率↕</th>
-      <th>主なキャンセル理由</th><th onclick="SRT('t5','rent')">平均賃料↕</th><th>総合評価</th>
+      <th>主なキャンセル理由</th><th onclick="SRT('t5','rent')">平均賃料↕</th><th>成約スコア</th>
     </tr></thead><tbody id="b5"></tbody></table></div>
     <div class="pgn"><span id="p5i"></span><div class="pb"><button onclick="PG('t5',-1)">＜</button><button onclick="PG('t5',1)">＞</button></div></div>
   </div>
 </div>
 
-<!-- T6 -->
+<!-- T6 マトリクス -->
 <div id="t6" class="tc">
+  <div class="dsrc">📊 データソース: 保証審査データ (mgmt_hosho_data) ／ 対象期間: 2025-01-01以降</div>
   <div class="fbar">
     <div class="fg"><label>表示モード</label><select id="mxmd" onchange="DMX()"><option value="vn">在留資格 × 国籍</option><option value="nv">国籍 × 在留資格</option></select></div>
-    <div class="fg"><label>地域</label><select id="mxp" onchange="DMX()"><option value="">すべて</option></select></div>
+    <div class="fg"><label>地域</label><div class="ss" id="ss6p"><input class="ss-inp" id="ss6pi" placeholder="すべて" readonly onclick="SST('ss6p')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss6pd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss6p',this.value)"></div><div class="ss-list" id="ss6pl"></div></div></div></div>
     <div class="fg"><label>審査区分</label><select id="mxs" onchange="DMX()"><option value="">すべて</option><option value="海外">海外のみ</option><option value="国内">国内のみ</option></select></div>
     <div class="fg"><label>最小件数</label><select id="mxmn" onchange="DMX()"><option value="0">すべて</option><option value="5">5件以上</option><option value="10" selected>10件以上</option><option value="20">20件以上</option><option value="50">50件以上</option></select></div>
     <div class="fbar-r"><button class="btn btn-d" onclick="RMX()">↺ リセット</button></div>
@@ -332,15 +392,17 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
-<!-- T7 -->
+<!-- T7 お気に入り -->
 <div id="t7" class="tc">
   <div class="g2">
-    <div class="card"><div class="ctitle">⭐ お気に入り管理会社</div><div id="favL"><div style="color:var(--t3);font-size:12px;padding:8px">お気に入りはまだありません</div></div></div>
-    <div class="card"><div class="ctitle">🕐 検索履歴 <button onclick="CLRH()" style="padding:3px 10px;background:#f1f5f9;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:11px">クリア</button></div><div id="histL"><div style="color:var(--t3);font-size:12px;padding:8px">履歴はありません</div></div></div>
+    <div class="card"><div class="ctitle">⭐ お気に入り管理会社</div><div id="favL"></div></div>
+    <div class="card"><div class="ctitle">🕐 検索履歴 <button onclick="CLRH()" style="padding:3px 10px;background:#f1f5f9;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:11px">クリア</button></div><div id="histL"></div></div>
   </div>
 </div>
 
-</div>
+</div><!-- /wrap -->
+
+<!-- MODAL -->
 <div class="mbg" id="MBG" onclick="CMOD(event)">
   <div class="modal">
     <button class="mx-btn" onclick="CMOD()">✕</button>
@@ -348,19 +410,19 @@ tr:hover td{background:#f8fafc}
     <div class="mg" id="MBOD"></div>
   </div>
 </div>
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwBre4e_wo3sIT5I-xFZplw8aVpVxzxV5f6PLiNIS15Sv0bAFF2pMtvlVWZ9Oah6g4DIw/exec";
-let DB = null;
-</script>
 
 <script>
-// =================================================
-// API データ変換 → DB 形式に統一
-// =================================================
-function cleanNm(nm){ return nm ? nm.replace(/^【[^】]+】/,'').trim() : ''; }
+const API_URL="https://script.google.com/macros/s/AKfycbwBre4e_wo3sIT5I-xFZplw8aVpVxzxV5f6PLiNIS15Sv0bAFF2pMtvlVWZ9Oah6g4DIw/exec";
+let DB=null;
+</script>
+<script>
+// ================================================================
+// DATA TRANSFORM
+// ================================================================
+function cleanNm(nm){return nm?(nm+'').replace(/^【[^】]+】/,'').trim():'';}
 function cleanNat(nat){
-  if(!nat) return '';
-  nat = nat.replace(/\[.*?\]/g,'').trim();
+  if(!nat)return '';
+  nat=(nat+'').replace(/\[.*?\]/g,'').trim();
   const m={'大韓民国':'韓国','中華人民共和国':'中国','アメリカ合衆国':'アメリカ',
     'ネパール連邦民主共和国':'ネパール','フィリピン共和国':'フィリピン',
     'インドネシア共和国':'インドネシア','ベトナム社会主義共和国':'ベトナム',
@@ -371,242 +433,273 @@ function cleanNat(nat){
   return m[nat]||nat;
 }
 function cleanVisa(v){
-  if(!v) return '';
-  return v.replace(/^\d+_/,'').replace(/\[.*?\]/g,'').trim()
-          .replace('特定活動（ワーキングホリデー等）','特定活動(ワーホリ)');
+  if(!v)return '';
+  return (v+'').replace(/^\d+_/,'').replace(/\[.*?\]/g,'').trim()
+    .replace('特定活動（ワーキングホリデー等）','特定活動(ワーホリ)');
 }
 
 function buildDB(raw){
-  const hosho = raw.hosho || {};
-  const agent  = raw.agent  || {};
+  const hosho=raw.hosho||{}, agent=raw.agent||{};
 
-  // ---- HOSHO 管理会社別 ----
-  const hMap = {};
+  // hosho 管理会社別
+  const hMap={};
   (hosho.byCompany||[]).forEach(r=>{
-    const nm = cleanNm(r.nm||'');
-    if(!nm) return;
-    hMap[nm] = {
-      nm, total:r.total||0, kaigai:r.kaigai||0, kokunai:r.kokunai||0,
-      kr: r.total ? Math.round((r.kaigai||0)/r.total*100) : 0,
-      rent: r.avg_rent||0, date: (r.last_date||'').substring(0,7),
-      pref: r.pref||'', tv:{}, tn:{}, tv2:[], tn2l:[], tc:[], mo:{}
-    };
+    const nm=cleanNm(r.nm||'');if(!nm)return;
+    hMap[nm]={nm,total:r.total||0,kaigai:r.kaigai||0,kokunai:r.kokunai||0,
+      kr:r.total?Math.round((r.kaigai||0)/r.total*100):0,
+      rent:r.avg_rent||0,date:(r.last_date||'').substring(0,7),
+      pref:r.pref||'',tv:{},tn:{},tv2:[],tn2l:[],tc:[],mo:{}};
   });
 
-  // ---- ビザ集計 → 各会社に付与 ----
-  (hosho.byVisa||[]).forEach(r=>{
-    const visa = cleanVisa(r.visa||'');
-    if(!visa) return;
-    Object.values(hMap).forEach(h=>{
-      // 全社合算のため会社別ビザはbyCompanyに含まれていない → 別途マトリクスから取得
+  // matrix → visas/nats per company
+  const mxRaw=hosho.matrix||[];
+  mxRaw.forEach(r=>{
+    const nm=cleanNm(r.nm||'');
+    const visa=cleanVisa(r.visa||''), nat=cleanNat(r.nat||'');
+    if(!hMap[nm]||!visa||!nat)return;
+    const h=hMap[nm];
+    h.tv[visa]=(h.tv[visa]||0)+(r.cnt||0);
+    h.tn[nat]=(h.tn[nat]||0)+(r.cnt||0);
+  });
+
+  // chukai top3 per company
+  const ckByMg={};
+  (hosho.byChukai||[]).forEach(r=>{
+    const mg=cleanNm(r.mgmt||'');
+    if(!mg)return;
+    ckByMg[mg]=ckByMg[mg]||[];
+    ckByMg[mg].push([r.chukai,r.cnt||0]);
+  });
+
+  // monthly trend (all)
+  const moAll={};
+  (hosho.byMonth||[]).forEach(r=>{if(r.month)moAll[r.month]=r.cnt||0;});
+
+  Object.values(hMap).forEach(h=>{
+    h.tv2=Object.entries(h.tv).sort((a,b)=>b[1]-a[1]).slice(0,2);
+    h.tn2l=Object.entries(h.tn).sort((a,b)=>b[1]-a[1]).slice(0,2);
+    h.tv=Object.fromEntries(Object.entries(h.tv).sort((a,b)=>b[1]-a[1]).slice(0,8));
+    h.tn=Object.fromEntries(Object.entries(h.tn).sort((a,b)=>b[1]-a[1]).slice(0,8));
+    h.tc=(ckByMg[h.nm]||[]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    h.mo=moAll;
+  });
+
+  // chukai list (全件)
+  const ck=(hosho.byChukai||[]).filter(r=>r.chukai&&r.chukai!=='仲介会社利用無し'&&r.chukai!=='仲介会社　要確認').map(r=>{
+    const visas={},nats={};
+    mxRaw.filter(m=>cleanNm(m.nm||'')===(cleanNm(r.mgmt||''))).forEach(m=>{
+      const v=cleanVisa(m.visa||''),n=cleanNat(m.nat||'');
+      if(v)visas[v]=(visas[v]||0)+(m.cnt||0);
+      if(n)nats[n]=(nats[n]||0)+(m.cnt||0);
     });
+    return{ck:r.chukai,mg:cleanNm(r.mgmt||''),t:r.cnt||0,r:r.avg_rent||0,p:r.pref||'',
+      n:Object.entries(nats).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]),
+      v:Object.entries(visas).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0])};
   });
 
-  // ---- matrix → 各会社のビザ・国籍・月別トレンド ----
-  (hosho.matrix||[]).forEach(r=>{
-    const nm = cleanNm(r.nm||'');
-    const visa = cleanVisa(r.visa||'');
-    const nat  = cleanNat(r.nat||'');
-    if(!hMap[nm]||!visa||!nat) return;
-    const h = hMap[nm];
-    h.tv[visa] = (h.tv[visa]||0) + (r.cnt||0);
-    h.tn[nat]  = (h.tn[nat]||0)  + (r.cnt||0);
-  });
-
-  // ---- 月別トレンド (全社) ----
-  const moAll = {};
-  (hosho.byMonth||[]).forEach(r=>{ if(r.month) moAll[r.month]=r.cnt||0; });
-
-  // ---- top2 visa/nat + 月別 各社 ----
-  Object.values(hMap).forEach(h=>{
-    h.tv2 = Object.entries(h.tv).sort((a,b)=>b[1]-a[1]).slice(0,2);
-    h.tn2l= Object.entries(h.tn).sort((a,b)=>b[1]-a[1]).slice(0,2);
-    h.tv  = Object.fromEntries(Object.entries(h.tv).sort((a,b)=>b[1]-a[1]).slice(0,6));
-    h.tn  = Object.fromEntries(Object.entries(h.tn).sort((a,b)=>b[1]-a[1]).slice(0,6));
-  });
-
-  // ---- 仲介会社 ----
-  const ck = (hosho.byChukai||[])
-    .filter(r=>r.chukai&&r.chukai!=='仲介会社利用無し'&&r.chukai!=='仲介会社　要確認')
-    .map(r=>({ck:r.chukai, mg:cleanNm(r.mgmt||''), t:r.cnt||0, r:r.avg_rent||0, p:r.pref||'', n:[], v:[]}));
-
-  // ---- 仲介会社 → 管理会社 top3 連携 ----
-  const ckByMg = {};
-  ck.forEach(r=>{ ckByMg[r.mg] = ckByMg[r.mg]||[]; ckByMg[r.mg].push([r.ck, r.t]); });
-  Object.values(hMap).forEach(h=>{
-    h.tc = (ckByMg[h.nm]||[]).sort((a,b)=>b[1]-a[1]).slice(0,3);
-    h.mo = moAll; // 月別は全社共通で代用
-  });
-
-  // ---- 都道府県別 ----
-  const prefMap = {};
+  // pref data
+  const prefMap={};
   (hosho.byPref||[]).forEach(r=>{
-    if(!r.pref) return;
-    if(!prefMap[r.pref]) prefMap[r.pref] = {t:0,k:0,r:0,n:[],v:[],c:[]};
-    prefMap[r.pref].t += r.cnt||0;
-    if(r.shinsa==='海外') prefMap[r.pref].k += r.cnt||0;
-    if(r.avg_rent) prefMap[r.pref].r = r.avg_rent;
+    if(!r.pref)return;
+    if(!prefMap[r.pref])prefMap[r.pref]={t:0,k:0,r:0,n:[],v:[],c:[]};
+    prefMap[r.pref].t+=r.cnt||0;
+    if(r.shinsa==='海外')prefMap[r.pref].k+=r.cnt||0;
+    if(r.avg_rent)prefMap[r.pref].r=r.avg_rent;
   });
-  // pref → 国籍/ビザ top5 (matrix から)
-  const prefNat={}, prefVisa={}, prefCo={};
-  (hosho.matrix||[]).forEach(r=>{
-    const p = (hMap[cleanNm(r.nm||'')]||{}).pref||'';
-    if(!p) return;
-    const nat=cleanNat(r.nat||''), visa=cleanVisa(r.visa||'');
-    prefNat[p]=prefNat[p]||{};  prefNat[p][nat]=(prefNat[p][nat]||0)+(r.cnt||0);
-    prefVisa[p]=prefVisa[p]||{}; prefVisa[p][visa]=(prefVisa[p][visa]||0)+(r.cnt||0);
-    prefCo[p]=prefCo[p]||{};    prefCo[p][cleanNm(r.nm||'')]=(prefCo[p][cleanNm(r.nm||'')]||0)+(r.cnt||0);
+  const pNat={},pVis={},pCo={};
+  mxRaw.forEach(r=>{
+    const p=(hMap[cleanNm(r.nm||'')]||{}).pref||'';
+    if(!p)return;
+    const nat=cleanNat(r.nat||''),visa=cleanVisa(r.visa||''),co=cleanNm(r.nm||'');
+    pNat[p]=pNat[p]||{};pNat[p][nat]=(pNat[p][nat]||0)+(r.cnt||0);
+    pVis[p]=pVis[p]||{};pVis[p][visa]=(pVis[p][visa]||0)+(r.cnt||0);
+    pCo[p]=pCo[p]||{};pCo[p][co]=(pCo[p][co]||0)+(r.cnt||0);
   });
   Object.keys(prefMap).forEach(p=>{
-    prefMap[p].n = Object.entries(prefNat[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    prefMap[p].v = Object.entries(prefVisa[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    prefMap[p].c = Object.entries(prefCo[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    prefMap[p].n=Object.entries(pNat[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    prefMap[p].v=Object.entries(pVis[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    prefMap[p].c=Object.entries(pCo[p]||{}).sort((a,b)=>b[1]-a[1]).slice(0,6);
   });
 
-  // ---- マトリクス ----
-  const mxMap = {};
-  (hosho.matrix||[]).forEach(r=>{
-    const visa=cleanVisa(r.visa||''), nat=cleanNat(r.nat||'');
-    if(!visa||!nat) return;
-    const k = visa+'|||'+nat;
-    if(!mxMap[k]) mxMap[k]={v:visa,n:nat,t:0,k:0,c:{}};
-    mxMap[k].t += r.cnt||0;
-    if(r.shinsa==='海外') mxMap[k].k += r.cnt||0;
-    const nm=cleanNm(r.nm||'');
-    if(nm) mxMap[k].c[nm]=(mxMap[k].c[nm]||0)+(r.cnt||0);
+  // matrix
+  const mxMap={};
+  mxRaw.forEach(r=>{
+    const visa=cleanVisa(r.visa||''),nat=cleanNat(r.nat||'');
+    if(!visa||!nat)return;
+    const k=visa+'|||'+nat;
+    if(!mxMap[k])mxMap[k]={v:visa,n:nat,t:0,k:0,c:{}};
+    mxMap[k].t+=r.cnt||0;
+    if(r.shinsa==='海外')mxMap[k].k+=r.cnt||0;
+    const co=cleanNm(r.nm||'');
+    if(co)mxMap[k].c[co]=(mxMap[k].c[co]||0)+(r.cnt||0);
   });
-  const mx = Object.values(mxMap).map(m=>({
-    v:m.v, n:m.n, t:m.t, k:m.k,
-    c:Object.entries(m.c).sort((a,b)=>b[1]-a[1]).slice(0,3)
-  })).filter(m=>m.t>=3).sort((a,b)=>b.t-a.t);
+  const mx=Object.values(mxMap).map(m=>({v:m.v,n:m.n,t:m.t,k:m.k,
+    c:Object.entries(m.c).sort((a,b)=>b[1]-a[1]).slice(0,3)})).filter(m=>m.t>=3).sort((a,b)=>b.t-a.t);
 
-  // ---- AGENT ----
-  const agMap = {};
+  // agent — 決着ベース成約率
+  const agMap={};
   (agent.byCompany||[]).forEach(r=>{
-    const nm = r.nm||'';
-    if(!nm||nm==='その他') return;
-    if(!agMap[nm]) agMap[nm]={nm,total:0,contract:0,cancel:0,rent:0,pref:r.pref||'',crs:{},topCR:''};
-    agMap[nm].total    += r.total||0;
-    agMap[nm].contract += r.contract||0;
-    agMap[nm].cancel   += r.cancel||0;
-    agMap[nm].rent      = r.avg_rent||agMap[nm].rent;
-    agMap[nm].pref      = r.pref||agMap[nm].pref;
+    const nm=r.nm||'';if(!nm||nm==='その他')return;
+    if(!agMap[nm])agMap[nm]={nm,total:0,contract:0,cancel:0,rent:0,pref:r.pref||'',crs:{}};
+    agMap[nm].total+=r.total||0;
+    agMap[nm].contract+=r.contract||0;
+    agMap[nm].cancel+=r.cancel||0;
+    agMap[nm].rent=r.avg_rent||agMap[nm].rent;
+    agMap[nm].pref=r.pref||agMap[nm].pref;
   });
   (agent.byCancelReason||[]).forEach(r=>{
-    const nm=r.nm||'', reason=r.reason||'';
-    if(!nm||!reason||reason.includes('該当なし')) return;
-    if(!agMap[nm]) return;
+    const nm=r.nm||'',reason=r.reason||'';
+    if(!nm||!reason||reason.includes('該当なし'))return;
+    if(!agMap[nm])return;
     agMap[nm].crs[reason]=(agMap[nm].crs[reason]||0)+(r.cnt||0);
   });
-  const al = Object.values(agMap).map(a=>{
+  const al=Object.values(agMap).map(a=>{
     const decided=a.contract+a.cancel;
+    // 決着ベース
+    const cr=decided?Math.round(a.contract/decided*100):0;
+    const xr=decided?Math.round(a.cancel/decided*100):0;
     const topCR=Object.entries(a.crs).sort((x,y)=>y[1]-x[1])[0]?.[0]||'';
-    return {...a,
-      cr:decided?Math.round(a.contract/decided*100):0,
-      xr:decided?Math.round(a.cancel/decided*100):0,
-      topCR
-    };
+    return{...a,cr,xr,topCR,decided};
   }).sort((a,b)=>b.total-a.total);
 
-  // ---- キャンセル理由全体 ----
   const cr={};
-  (agent.cancelReasonTotal||[]).forEach(r=>{
-    if(r.reason&&!r.reason.includes('該当なし')) cr[r.reason]=r.cnt||0;
-  });
+  (agent.cancelReasonTotal||[]).forEach(r=>{if(r.reason&&!r.reason.includes('該当なし'))cr[r.reason]=r.cnt||0;});
 
-  // ---- サマリー ----
-  const hl = Object.values(hMap).sort((a,b)=>b.total-a.total);
-  const totH = hl.reduce((s,r)=>s+r.total,0);
-  const totK = hl.reduce((s,r)=>s+r.kaigai,0);
-  const rents = hl.filter(r=>r.rent>0).map(r=>r.rent);
+  const hl=Object.values(hMap).sort((a,b)=>b.total-a.total);
+  const totH=hl.reduce((s,r)=>s+r.total,0);
+  const totK=hl.reduce((s,r)=>s+r.kaigai,0);
+  const rents=hl.filter(r=>r.rent>0).map(r=>r.rent);
 
-  // フィルター用リスト
-  const fv=[...new Set(Object.values(mxMap).map(m=>m.v))].sort();
-  const fn=[...new Set(Object.values(mxMap).map(m=>m.n))].sort();
-  const fp=Object.keys(prefMap).sort();
+  // filter lists — 全件 sorted ascending
+  const allVisa=[...new Set(mxRaw.map(m=>cleanVisa(m.visa||'')).filter(Boolean))].sort();
+  const allNat=[...new Set(mxRaw.map(m=>cleanNat(m.nat||'')).filter(Boolean))].sort();
+  const allPref=Object.keys(prefMap).sort();
+  const allAgPref=[...new Set(al.map(r=>r.pref).filter(Boolean))].sort();
+  const allCR=Object.keys(cr).sort();
+  const allChukai=[...new Set(ck.map(r=>r.ck))].sort();
 
-  return {
-    s:{
-      th: totH,
-      ta: al.reduce((s,r)=>s+r.total,0),
-      ar: rents.length ? Math.round(rents.reduce((a,b)=>a+b)/rents.length) : 0,
-      kp: totH ? Math.round(totK/totH*100) : 0,
-      ld: raw.updated ? raw.updated.substring(0,10) : ''
-    },
-    h: hl, a: al, p: prefMap, m: mx, k: ck, cr,
-    fv, fn, fp,
-    fa: [...new Set(al.map(r=>r.pref).filter(Boolean))].sort(),
-    fcr: Object.keys(cr).sort()
+  return{
+    s:{th:totH,ta:al.reduce((s,r)=>s+r.total,0),
+       ar:rents.length?Math.round(rents.reduce((a,b)=>a+b)/rents.length):0,
+       kp:totH?Math.round(totK/totH*100):0,ld:raw.updated?raw.updated.substring(0,10):''},
+    h:hl,a:al,p:prefMap,m:mx,k:ck,cr,
+    fv:allVisa,fn:allNat,fp:allPref,fa:allAgPref,fcr:allCR,fck:allChukai,
   };
 }
 </script>
+
 <script>
-// =================================================
-// ALL GLOBALS — unique names, zero conflicts
-// =================================================
+// ================================================================
+// GLOBALS
+// ================================================================
 const CLR=['#2563eb','#0891b2','#059669','#ea580c','#7c3aed','#dc2626','#d97706','#0284c7','#db2777','#16a34a','#c2410c','#0d9488'];
 const PS=50;
 const PAGE={t1:1,t2:1,t3:1,t4:1,t5:1};
 const SORT={t1:{k:'total',d:-1},t2:{k:'total',d:-1},t3:{k:'total',d:-1},t4:{k:'total',d:-1},t5:{k:'total',d:-1}};
 const ROWS={t1:[],t2:[],t3:[],t4:[],t5:[]};
 const CHTS={};
-// autocomplete state — object, never conflicts with function names
 const ACS={AC1:[],AC2:[],AC3:[],AC5:[]};
 const ACD={AC1:[],AC2:[],AC3:[],AC5:[]};
+// searchable select values
+const SSV={ss1v:null,ss1n:null,ss1p:null,ss2p:null,ss3p:null,ss3n:null,ss3v:null,ss4n:null,ss4v:null,ss5p:null,ss5cr:null,ss6p:null};
+const SSD={};// data lists
 let FAVS=JSON.parse(localStorage.getItem('mdb_f')||'[]');
 let HIST=JSON.parse(localStorage.getItem('mdb_h')||'[]');
-let SEL_PREF=null;
-let CUR_PD=null;
+let SEL_PREF=null, CUR_PD=null;
+let MAP_GEO=null;// GeoJSON
 
-// =================================================
+// ================================================================
+// SEARCHABLE SELECT
+// ================================================================
+function SSI(id,items){
+  SSD[id]=items;
+  SSR(id,items);
+}
+function SSR(id,items){
+  const list=document.getElementById(id+'l');if(!list)return;
+  list.innerHTML='<div class="ss-item'+(SSV[id]===null?' sel':'')+'" onclick="SSC(\''+id+'\',null)">すべて</div>'+
+    items.map(v=>`<div class="ss-item${SSV[id]===v?' sel':''}" onclick="SSC('${id}','${v.replace(/'/g,"\\'")}');">${v}</div>`).join('');
+}
+function SSF(id,q){
+  const items=(SSD[id]||[]).filter(v=>v.toLowerCase().includes(q.toLowerCase()));
+  SSR(id,items);
+}
+function SST(id){
+  // close others
+  Object.keys(SSV).forEach(k=>{if(k!==id){const d=document.getElementById(k+'d');if(d)d.classList.remove('op');}});
+  const drop=document.getElementById(id+'d');
+  if(drop)drop.classList.toggle('op');
+}
+function SSC(id,val){
+  SSV[id]=val;
+  const inp=document.getElementById(id+'i');
+  if(inp)inp.value=val===null?'':val;
+  const drop=document.getElementById(id+'d');
+  if(drop)drop.classList.remove('op');
+  SSR(id,SSD[id]||[]);
+  // trigger filter
+  if(id.startsWith('ss1'))A1();
+  else if(id.startsWith('ss2'))A2();
+  else if(id.startsWith('ss3'))A3();
+  else if(id.startsWith('ss4'))A4();
+  else if(id.startsWith('ss5'))A5();
+  else if(id.startsWith('ss6'))DMX();
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.ss'))document.querySelectorAll('.ss-drop').forEach(d=>d.classList.remove('op'));
+  if(!e.target.closest('.ac'))document.querySelectorAll('.acd').forEach(d=>d.classList.remove('op'));
+});
+
+// ================================================================
 // INIT
-// =================================================
+// ================================================================
 function INIT(){
-  if(typeof DB==='undefined'){return;}
+  if(!DB)return;
   const s=DB.s;
   document.getElementById('hht').textContent=s.th.toLocaleString();
   document.getElementById('hat').textContent=s.ta.toLocaleString();
   document.getElementById('hdt').textContent=s.ld||'-';
-  ACD.AC1=DB.h.map(r=>r.nm).sort();
-  ACD.AC2=ACD.AC1.slice();
-  ACD.AC3=[...new Set(DB.k.map(r=>r.ck))].sort();
-  ACD.AC5=DB.a.map(r=>r.nm).sort();
-  FILL('f1v',DB.fv||[]);FILL('f1n',DB.fn||[]);FILL('f1p',DB.fp||[]);
-  FILL('f2p',DB.fp||[]);FILL('f3p',DB.fp||[]);
-  FILL('f4n',DB.fn||[]);FILL('f4v',DB.fv||[]);
-  FILL('f5p',DB.fa||[]);FILL('f5cr',DB.fcr||[]);
-  FILL('mxp',DB.fp||[]);
+
+  ACD.AC1=DB.h.map(r=>r.nm).sort();ACD.AC2=ACD.AC1.slice();
+  ACD.AC3=DB.fck.slice();ACD.AC5=DB.a.map(r=>r.nm).sort();
+
+  // init searchable selects
+  SSI('ss1v',DB.fv);SSI('ss1n',DB.fn);SSI('ss1p',DB.fp);
+  SSI('ss2p',DB.fp);
+  SSI('ss3p',DB.fp);SSI('ss3n',DB.fn);SSI('ss3v',DB.fv);
+  SSI('ss4n',DB.fn);SSI('ss4v',DB.fv);
+  SSI('ss5p',DB.fa);SSI('ss5cr',DB.fcr);
+  SSI('ss6p',DB.fp);
+
   CUR_PD=DB.p;
   A1();A2();A3();A4();A5();DMX();
-  DRAW_MAP(DB.p);
+  LOAD_MAP();
   RFav();RHIST();
 }
 
-function FILL(id,arr){const el=document.getElementById(id);if(!el)return;arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;el.appendChild(o);});}
 function GV(id){return document.getElementById(id)?.value||'';}
 function GN(id){return parseFloat(document.getElementById(id)?.value||'');}
 function ESC(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 
-// =================================================
-// FILTER FUNCTIONS
-// =================================================
+// ================================================================
+// FILTERS
+// ================================================================
 function A1(){
   let rows=[...DB.h];
-  const visa=GV('f1v'),nat=GV('f1n'),pref=GV('f1p'),sh=GV('f1s');
+  const visa=SSV.ss1v,nat=SSV.ss1n,pref=SSV.ss1p,sh=GV('f1s');
   const rn=GN('f1rn'),rx=GN('f1rx');
-  if(visa) rows=rows.filter(r=>r.tv&&r.tv[visa]||r.tv2&&r.tv2.some(e=>e[0]===visa));
-  if(nat)  rows=rows.filter(r=>r.tn&&r.tn[nat]||r.tn2l&&r.tn2l.some(e=>e[0]===nat));
-  if(pref) rows=rows.filter(r=>r.pref===pref);
-  if(sh==='海外') rows=rows.filter(r=>r.kaigai>0);
-  if(sh==='国内') rows=rows.filter(r=>(r.total-r.kaigai)>0);
-  if(!isNaN(rn)&&rn>0) rows=rows.filter(r=>r.rent>=rn*10000);
-  if(!isNaN(rx)&&rx>0) rows=rows.filter(r=>r.rent<=rx*10000);
-  if(ACS.AC1.length) rows=rows.filter(r=>ACS.AC1.includes(r.nm));
+  if(visa)rows=rows.filter(r=>r.tv&&r.tv[visa]||r.tv2&&r.tv2.some(e=>e[0]===visa));
+  if(nat)rows=rows.filter(r=>r.tn&&r.tn[nat]||r.tn2l&&r.tn2l.some(e=>e[0]===nat));
+  if(pref)rows=rows.filter(r=>r.pref===pref);
+  if(sh==='海外')rows=rows.filter(r=>r.kaigai>0);
+  if(sh==='国内')rows=rows.filter(r=>(r.total-r.kaigai)>0);
+  if(!isNaN(rn)&&rn>0)rows=rows.filter(r=>r.rent>=rn*10000);
+  if(!isNaN(rx)&&rx>0)rows=rows.filter(r=>r.rent<=rx*10000);
+  if(ACS.AC1.length)rows=rows.filter(r=>ACS.AC1.includes(r.nm));
   SARR(rows,SORT.t1);ROWS.t1=rows;PAGE.t1=1;RT1();
   const cb=document.getElementById('f1c');
   cb.textContent=rows.length+'社';cb.classList.toggle('z',rows.length===0);
-  const tot=rows.reduce((s,r)=>s+r.total,0);
-  const kai=rows.reduce((s,r)=>s+r.kaigai,0);
+  const tot=rows.reduce((s,r)=>s+r.total,0),kai=rows.reduce((s,r)=>s+r.kaigai,0);
   const rents=rows.filter(r=>r.rent>0).map(r=>r.rent);
   document.getElementById('k1t').textContent=tot.toLocaleString();
   document.getElementById('k1c').textContent=rows.length.toLocaleString();
@@ -617,68 +710,77 @@ function A1(){
 }
 function A2(){
   let rows=[...DB.h];
-  if(GV('f2p')) rows=rows.filter(r=>r.pref===GV('f2p'));
-  if(ACS.AC2.length) rows=rows.filter(r=>ACS.AC2.includes(r.nm));
+  if(SSV.ss2p)rows=rows.filter(r=>r.pref===SSV.ss2p);
+  if(ACS.AC2.length)rows=rows.filter(r=>ACS.AC2.includes(r.nm));
   SARR(rows,SORT.t2);ROWS.t2=rows;PAGE.t2=1;RT2();
-  document.getElementById('f2c').textContent=rows.length+'社';
-  CH2(rows);
+  document.getElementById('f2c').textContent=rows.length+'社';CH2(rows);
 }
 function A3(){
   let rows=[...DB.k];
-  if(GV('f3p')) rows=rows.filter(r=>r.p===GV('f3p'));
-  if(ACS.AC3.length) rows=rows.filter(r=>ACS.AC3.includes(r.ck));
+  if(SSV.ss3p)rows=rows.filter(r=>r.p===SSV.ss3p);
+  if(SSV.ss3n)rows=rows.filter(r=>r.n&&r.n.includes(SSV.ss3n));
+  if(SSV.ss3v)rows=rows.filter(r=>r.v&&r.v.includes(SSV.ss3v));
+  if(ACS.AC3.length)rows=rows.filter(r=>ACS.AC3.includes(r.ck));
   rows.sort((a,b)=>b.t-a.t);ROWS.t3=rows;PAGE.t3=1;RT3();CH3(rows);
 }
 function A4(){
-  const nat=GV('f4n'),visa=GV('f4v'),rn=GN('f4rn'),rx=GN('f4rx');
+  const nat=SSV.ss4n,visa=SSV.ss4v,rn=GN('f4rn'),rx=GN('f4rx');
   let rows=[...DB.h];
-  if(nat)  rows=rows.filter(r=>r.tn&&r.tn[nat]||r.tn2l&&r.tn2l.some(e=>e[0]===nat));
-  if(visa) rows=rows.filter(r=>r.tv&&r.tv[visa]||r.tv2&&r.tv2.some(e=>e[0]===visa));
-  if(!isNaN(rn)&&rn>0) rows=rows.filter(r=>r.rent>=rn*10000);
-  if(!isNaN(rx)&&rx>0) rows=rows.filter(r=>r.rent<=rx*10000);
+  if(nat)rows=rows.filter(r=>r.tn&&r.tn[nat]||r.tn2l&&r.tn2l.some(e=>e[0]===nat));
+  if(visa)rows=rows.filter(r=>r.tv&&r.tv[visa]||r.tv2&&r.tv2.some(e=>e[0]===visa));
+  if(!isNaN(rn)&&rn>0)rows=rows.filter(r=>r.rent>=rn*10000);
+  if(!isNaN(rx)&&rx>0)rows=rows.filter(r=>r.rent<=rx*10000);
   if(nat||visa||(!isNaN(rn)&&rn>0)||(!isNaN(rx)&&rx>0)){
-    const pm={};
-    rows.forEach(r=>{if(!r.pref)return;if(!pm[r.pref]){const orig=DB.p[r.pref]||{};pm[r.pref]={...orig,t:0,k:0};}pm[r.pref].t+=r.total;pm[r.pref].k+=r.kaigai;});
-    CUR_PD=pm;DRAW_MAP(pm);
-  } else {CUR_PD=DB.p;DRAW_MAP(DB.p);}
+    const pm={};rows.forEach(r=>{if(!r.pref)return;if(!pm[r.pref]){const o=DB.p[r.pref]||{};pm[r.pref]={...o,t:0,k:0};}pm[r.pref].t+=r.total;pm[r.pref].k+=r.kaigai;});
+    CUR_PD=pm;
+  }else{CUR_PD=DB.p;}
+  if(MAP_GEO)DRAW_MAP();
   SARR(rows,SORT.t4);ROWS.t4=rows;PAGE.t4=1;RT4();
   document.getElementById('f4c').textContent=rows.length+'社';
 }
 function A5(){
   let rows=[...DB.a];
-  if(GV('f5p'))  rows=rows.filter(r=>r.pref===GV('f5p'));
-  if(GV('f5cr')) rows=rows.filter(r=>r.crs&&r.crs[GV('f5cr')]);
-  if(ACS.AC5.length) rows=rows.filter(r=>ACS.AC5.includes(r.nm));
+  if(SSV.ss5p)rows=rows.filter(r=>r.pref===SSV.ss5p);
+  if(SSV.ss5cr)rows=rows.filter(r=>r.crs&&r.crs[SSV.ss5cr]);
+  if(ACS.AC5.length)rows=rows.filter(r=>ACS.AC5.includes(r.nm));
   SARR(rows,SORT.t5);ROWS.t5=rows;PAGE.t5=1;RT5();CH5(rows);
 }
+function R1(){SSV.ss1v=null;SSV.ss1n=null;SSV.ss1p=null;['ss1vi','ss1ni','ss1pi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('f1s').value='';['f1rn','f1rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC1=[];RAC('AC1');A1();}
+function R2(){SSV.ss2p=null;const e=document.getElementById('ss2pi');if(e)e.value='';ACS.AC2=[];RAC('AC2');A2();}
+function R3(){SSV.ss3p=null;SSV.ss3n=null;SSV.ss3v=null;['ss3pi','ss3ni','ss3vi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC3=[];RAC('AC3');A3();}
+function R4(){SSV.ss4n=null;SSV.ss4v=null;['ss4ni','ss4vi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});['f4rn','f4rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});A4();}
+function R5(){SSV.ss5p=null;SSV.ss5cr=null;['ss5pi','ss5cri'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC5=[];RAC('AC5');A5();}
+function RMX(){SSV.ss6p=null;const e=document.getElementById('ss6pi');if(e)e.value='';document.getElementById('mxmd').value='vn';document.getElementById('mxs').value='';document.getElementById('mxmn').value='10';DMX();}
 
-// RESETS
-function R1(){['f1v','f1n','f1p','f1s'].forEach(id=>document.getElementById(id).value='');['f1rn','f1rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC1=[];RAC('AC1');A1();}
-function R2(){document.getElementById('f2p').value='';ACS.AC2=[];RAC('AC2');A2();}
-function R3(){document.getElementById('f3p').value='';ACS.AC3=[];RAC('AC3');A3();}
-function R4(){['f4n','f4v'].forEach(id=>document.getElementById(id).value='');['f4rn','f4rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});A4();}
-function R5(){['f5p','f5cr'].forEach(id=>document.getElementById(id).value='');ACS.AC5=[];RAC('AC5');A5();}
-function RMX(){['mxp','mxs'].forEach(id=>document.getElementById(id).value='');document.getElementById('mxmd').value='vn';document.getElementById('mxmn').value='10';DMX();}
-
-// =================================================
+// ================================================================
 // SORT / PAGE
-// =================================================
+// ================================================================
 function SARR(arr,s){arr.sort((a,b)=>{const av=a[s.k]??'',bv=b[s.k]??'';return(av>bv?1:av<bv?-1:0)*s.d;});}
 function SRT(tab,k){const s=SORT[tab];s.d=s.k===k?-s.d:-1;s.k=k;if(tab==='t1'){SARR(ROWS.t1,s);PAGE.t1=1;RT1();}else if(tab==='t2'){SARR(ROWS.t2,s);PAGE.t2=1;RT2();}else if(tab==='t4'){SARR(ROWS.t4,s);PAGE.t4=1;RT4();}else if(tab==='t5'){SARR(ROWS.t5,s);PAGE.t5=1;RT5();}}
-function PG(tab,d){const arr=ROWS[tab];const mx=Math.ceil((arr?arr.length:0)/PS);PAGE[tab]=Math.max(1,Math.min(PAGE[tab]+d,mx||1));const fn={t1:RT1,t2:RT2,t3:RT3,t4:RT4,t5:RT5};if(fn[tab])fn[tab]();}
+function PG(tab,d){const arr=ROWS[tab]||[];const mx=Math.ceil((arr.length||1)/PS);PAGE[tab]=Math.max(1,Math.min(PAGE[tab]+d,mx));const fn={t1:RT1,t2:RT2,t3:RT3,t4:RT4,t5:RT5};if(fn[tab])fn[tab]();}
 function SLC(tab){const arr=ROWS[tab]||[];const s=(PAGE[tab]-1)*PS;return{rows:arr.slice(s,s+PS),start:s,tot:arr.length};}
 
-// =================================================
-// HELPERS
-// =================================================
-function DBG(kr){if(kr<=30)return '<span class="badge bg">🟢 通りやすい</span>';if(kr<=60)return '<span class="badge by">🟡 普通</span>';return '<span class="badge br">🔴 要注意</span>';}
-function ABG(cr,xr){if(cr>=25&&xr<=25)return '<span class="badge bg">🟢 優良</span>';if(cr>=15)return '<span class="badge by">🟡 普通</span>';return '<span class="badge br">🔴 要改善</span>';}
+// ================================================================
+// BADGES
+// ================================================================
+function KRBADGE(kr){
+  if(kr<=30)return `<span class="badge bg">🟢 ${kr}%</span>`;
+  if(kr<=60)return `<span class="badge by">🟡 ${kr}%</span>`;
+  return `<span class="badge br">🔴 ${kr}%</span>`;
+}
+// 成約スコア — 決着ベース
+function SCORE(cr){
+  if(cr===null||cr===undefined||isNaN(cr))return '<span style="color:var(--t3);font-size:11px">—</span>';
+  if(cr>=30)return `<span class="badge bg">🟢 A優良 ${cr}%</span>`;
+  if(cr>=15)return `<span class="badge by">🟡 B普通 ${cr}%</span>`;
+  return `<span class="badge br">🔴 C要注意 ${cr}%</span>`;
+}
 function BW(pct,col){return `<div class="bw"><div class="bbg"><div class="bf" style="width:${pct}%;background:${col}"></div></div><span>${pct}%</span></div>`;}
 function TOPN(obj,n){return Object.entries(obj||{}).sort((a,b)=>b[1]-a[1]).slice(0,n);}
 
-// =================================================
+// ================================================================
 // RENDER TABLES
-// =================================================
+// ================================================================
 function RT1(){
   const{rows,start,tot}=SLC('t1');
   document.getElementById('b1').innerHTML=rows.map((r,i)=>`<tr>
@@ -691,7 +793,7 @@ function RT1(){
     <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:150px">${r.tv2?r.tv2.map(e=>e[0]).join(' / '):'-'}</td>
     <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:130px">${r.tn2l?r.tn2l.map(e=>e[0]).join(' / '):'-'}</td>
     <td class="mono">¥${r.rent.toLocaleString()}</td>
-    <td>${DBG(r.kr)}</td>
+    <td>${KRBADGE(r.kr)}</td>
     <td><button class="fav" onclick="TFav('${ESC(r.nm)}')">${FAVS.includes(r.nm)?'⭐':'☆'}</button></td>
   </tr>`).join('');
   document.getElementById('p1i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}社`;
@@ -737,7 +839,7 @@ function RT4(){
     <td style="font-size:11px;color:var(--t2)">${r.tn2l?r.tn2l.map(e=>e[0]).join(' / '):'-'}</td>
     <td style="font-size:11px;color:var(--t2)">${r.tv2?r.tv2.map(e=>e[0]).join(' / '):'-'}</td>
     <td class="mono">¥${r.rent.toLocaleString()}</td>
-    <td>${DBG(r.kr)}</td>
+    <td>${KRBADGE(r.kr)}</td>
   </tr>`).join('');
   document.getElementById('p4i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}社`;
 }
@@ -745,22 +847,22 @@ function RT5(){
   const{rows,start,tot}=SLC('t5');
   document.getElementById('b5').innerHTML=rows.map((r,i)=>`<tr>
     <td style="color:var(--t3)">${start+i+1}</td>
-    <td class="tl" onclick="OM5('${ESC(r.nm)}')" style="white-space:normal;max-width:200px">${r.nm}</td>
+    <td class="tl" onclick="OM('${ESC(r.nm)}')" style="white-space:normal;max-width:200px">${r.nm}</td>
     <td class="mono">${r.total}</td>
     <td class="mono" style="color:var(--g);font-weight:700">${r.contract}</td>
     <td class="mono" style="color:var(--r);font-weight:700">${r.cancel}</td>
-    <td>${BW(r.cr,'#059669')}</td>
-    <td>${BW(r.xr,'#dc2626')}</td>
+    <td>${r.decided>0?BW(r.cr,'#059669'):'<span style="color:var(--t3)">—</span>'}</td>
+    <td>${r.decided>0?BW(r.xr,'#dc2626'):'<span style="color:var(--t3)">—</span>'}</td>
     <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:150px">${r.topCR||'-'}</td>
     <td class="mono">¥${r.rent.toLocaleString()}</td>
-    <td>${ABG(r.cr,r.xr)}</td>
+    <td>${r.decided>0?SCORE(r.cr):'<span style="color:var(--t3);font-size:11px">データなし</span>'}</td>
   </tr>`).join('');
   document.getElementById('p5i').textContent=`${start+1}〜${Math.min(start+PS,tot)} / ${tot}社`;
 }
 
-// =================================================
+// ================================================================
 // CHARTS
-// =================================================
+// ================================================================
 function MCH(id,type,labels,datasets,opts){
   if(CHTS[id])CHTS[id].destroy();
   const ctx=document.getElementById(id);if(!ctx)return;
@@ -774,15 +876,9 @@ function CH1(rows){
     Object.entries(r.tn||{}).forEach(([k,c])=>{if(!nm[k])nm[k]={ka:0,ko:0};nm[k].ka+=c*krf;nm[k].ko+=c*(1-krf);});
   });
   const vl=TOPN(Object.fromEntries(Object.entries(vm).map(([k,v])=>[k,v.ka+v.ko])),8).map(e=>e[0]);
-  MCH('c1v','bar',vl,[
-    {label:'海外',data:vl.map(k=>Math.round(vm[k]?.ka||0)),backgroundColor:'rgba(234,88,12,.8)',borderRadius:4},
-    {label:'国内',data:vl.map(k=>Math.round(vm[k]?.ko||0)),backgroundColor:'rgba(37,99,235,.8)',borderRadius:4}
-  ],{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}});
+  MCH('c1v','bar',vl,[{label:'海外',data:vl.map(k=>Math.round(vm[k]?.ka||0)),backgroundColor:'rgba(234,88,12,.8)',borderRadius:4},{label:'国内',data:vl.map(k=>Math.round(vm[k]?.ko||0)),backgroundColor:'rgba(37,99,235,.8)',borderRadius:4}],{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}});
   const nl=TOPN(Object.fromEntries(Object.entries(nm).map(([k,v])=>[k,v.ka+v.ko])),8).map(e=>e[0]);
-  MCH('c1n','bar',nl,[
-    {label:'海外',data:nl.map(k=>Math.round(nm[k]?.ka||0)),backgroundColor:'rgba(5,150,105,.8)',borderRadius:4},
-    {label:'国内',data:nl.map(k=>Math.round(nm[k]?.ko||0)),backgroundColor:'rgba(124,58,237,.8)',borderRadius:4}
-  ],{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}});
+  MCH('c1n','bar',nl,[{label:'海外',data:nl.map(k=>Math.round(nm[k]?.ka||0)),backgroundColor:'rgba(5,150,105,.8)',borderRadius:4},{label:'国内',data:nl.map(k=>Math.round(nm[k]?.ko||0)),backgroundColor:'rgba(124,58,237,.8)',borderRadius:4}],{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}});
 }
 function CH2(rows){
   const cm={},vm={};let kai=0,kok=0;
@@ -793,11 +889,12 @@ function CH2(rows){
   MCH('c2s','doughnut',['海外審査','国内審査'],[{data:[kai,kok],backgroundColor:['#ea580c','#2563eb']}]);
 }
 function CH3(rows){
-  const cm={},vm={};
-  rows.forEach(r=>{cm[r.mg]=(cm[r.mg]||0)+r.t;(r.v||[]).forEach(k=>{vm[k]=(vm[k]||0)+1;});});
+  const cm={},vm={},nat={};
+  rows.forEach(r=>{cm[r.mg]=(cm[r.mg]||0)+r.t;(r.v||[]).forEach(k=>{vm[k]=(vm[k]||0)+r.t;});(r.n||[]).forEach(k=>{nat[k]=(nat[k]||0)+r.t;});});
   const top=TOPN(cm,10);
   MCH('c3m','bar',top.map(e=>e[0].length>13?e[0].substring(0,13)+'…':e[0]),[{data:top.map(e=>e[1]),backgroundColor:CLR.map(c=>c+'cc'),borderRadius:4}],{indexAxis:'y',plugins:{legend:{display:false}}});
-  MCH('c3v','doughnut',TOPN(vm,7).map(e=>e[0]),[{data:TOPN(vm,7).map(e=>e[1]),backgroundColor:CLR}]);
+  const vt=TOPN(vm,7);MCH('c3v','doughnut',vt.map(e=>e[0]),[{data:vt.map(e=>e[1]),backgroundColor:CLR}]);
+  const nt=TOPN(nat,7);MCH('c3n','doughnut',nt.map(e=>e[0]),[{data:nt.map(e=>e[1]),backgroundColor:CLR.map((c,i)=>CLR[(i+3)%CLR.length])}]);
 }
 function CH5(rows){
   const sorted=[...rows].filter(r=>r.cancel>0).sort((a,b)=>b.cancel-a.cancel).slice(0,15);
@@ -805,96 +902,83 @@ function CH5(rows){
     {label:'キャンセル数',data:sorted.map(r=>r.cancel),backgroundColor:'rgba(220,38,38,.78)',borderRadius:4},
     {label:'成約数',data:sorted.map(r=>r.contract),backgroundColor:'rgba(5,150,105,.78)',borderRadius:4}
   ],{plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}});
-  const cr=Object.fromEntries(Object.entries(DB.cr||{}).filter(([k])=>k&&!k.includes('該当なし')));
-  const crt=TOPN(cr,8);
+  const crt=TOPN(DB.cr,8);
   MCH('c5r','doughnut',crt.map(e=>e[0].replace(/^\d+_/,'')),[{data:crt.map(e=>e[1]),backgroundColor:CLR}]);
 }
 
-// =================================================
-// MAP — actual Japan polygon coordinates
-// =================================================
-const PMAP={
-  '北海道':'285,90 325,28 410,18 468,42 465,115 428,130 365,134 288,110',
-  '青森県':'358,122 402,114 414,138 400,160 368,164 350,142',
-  '岩手県':'384,157 412,142 425,165 418,202 392,210 376,192',
-  '宮城県':'364,206 394,200 406,220 396,239 369,244 352,228',
-  '秋田県':'337,146 363,136 378,160 368,198 340,202 323,180',
-  '山形県':'341,198 368,192 378,216 363,234 337,237 324,216',
-  '福島県':'323,234 368,228 382,250 370,270 320,272 298,252',
-  '茨城県':'386,236 415,226 424,254 408,270 382,265 374,248',
-  '栃木県':'360,230 388,222 396,247 380,260 352,254 345,239',
-  '群馬県':'337,228 364,220 370,246 353,256 325,251 318,236',
-  '埼玉県':'350,248 380,240 386,262 370,274 346,270 338,255',
-  '千葉県':'388,250 420,242 428,272 410,286 382,280 375,262',
-  '東京都':'348,260 378,252 384,272 368,282 345,278 338,264',
-  '神奈川県':'340,275 374,268 378,285 360,296 336,292 330,279',
-  '新潟県':'316,192 354,180 366,202 351,232 315,238 292,218',
-  '富山県':'288,222 320,212 328,240 311,252 285,249 275,233',
-  '石川県':'266,216 296,206 305,236 288,250 260,244 250,225',
-  '福井県':'254,239 287,228 295,256 278,268 249,263 241,246',
-  '山梨県':'332,255 360,248 366,272 350,283 321,280 314,266',
-  '長野県':'309,218 345,208 355,242 337,258 302,252 292,230',
-  '岐阜県':'277,249 317,238 325,270 305,285 268,279 261,261',
-  '静岡県':'322,268 359,260 365,285 345,299 314,293 308,278',
-  '愛知県':'279,260 319,250 325,275 307,290 272,284 264,268',
-  '三重県':'262,273 295,262 303,292 286,308 255,302 247,283',
-  '滋賀県':'251,260 282,252 289,278 271,291 244,286 237,269',
-  '京都府':'236,253 275,242 283,270 265,284 231,280 222,262',
-  '大阪府':'243,278 277,270 284,296 266,309 236,303 228,285',
-  '兵庫県':'205,262 251,250 259,279 243,297 202,290 194,272',
-  '奈良県':'251,283 281,274 289,300 271,316 241,309 233,293',
-  '和歌山県':'235,306 269,296 277,324 257,342 222,335 215,313',
-  '鳥取県':'206,248 245,238 255,268 236,281 202,276 194,255',
-  '島根県':'167,249 212,238 222,269 202,283 163,277 158,256',
-  '岡山県':'214,274 251,265 261,294 241,310 207,304 198,282',
-  '広島県':'178,278 219,268 229,300 207,318 168,310 162,285',
-  '山口県':'143,284 186,272 196,305 172,322 136,314 129,289',
-  '徳島県':'239,281 275,273 283,302 261,319 227,312 219,290',
-  '香川県':'221,271 259,262 267,285 249,298 214,294 207,278',
-  '愛媛県':'191,288 233,278 243,310 219,328 182,320 176,297',
-  '高知県':'203,318 251,306 260,339 236,358 197,349 190,324',
-  '福岡県':'139,297 178,284 188,315 168,332 131,324 124,305',
-  '佐賀県':'114,308 147,298 157,328 135,345 102,337 95,316',
-  '長崎県':'87,321 122,310 131,344 106,362 74,353 68,330',
-  '熊本県':'135,328 174,315 184,348 161,366 122,357 114,335',
-  '大分県':'172,302 211,290 220,322 198,342 160,333 153,309',
-  '宮崎県':'162,345 201,332 210,367 186,387 146,377 138,352',
-  '鹿児島県':'133,360 172,347 182,385 156,406 116,395 108,369',
-  '沖縄県':'100,470 144,462 152,484 128,500 90,492 86,474'
-};
+// ================================================================
+// MAP — GeoJSON (d3)
+// ================================================================
+const GEO_URL='https://raw.githubusercontent.com/dataofjapan/land/master/japan.topojson';
+const PREF_NAME_MAP={'北海道':'北海道','青森県':'青森','岩手県':'岩手','宮城県':'宮城','秋田県':'秋田','山形県':'山形','福島県':'福島','茨城県':'茨城','栃木県':'栃木','群馬県':'群馬','埼玉県':'埼玉','千葉県':'千葉','東京都':'東京','神奈川県':'神奈川','新潟県':'新潟','富山県':'富山','石川県':'石川','福井県':'福井','山梨県':'山梨','長野県':'長野','岐阜県':'岐阜','静岡県':'静岡','愛知県':'愛知','三重県':'三重','滋賀県':'滋賀','京都府':'京都','大阪府':'大阪','兵庫県':'兵庫','奈良県':'奈良','和歌山県':'和歌山','鳥取県':'鳥取','島根県':'島根','岡山県':'岡山','広島県':'広島','山口県':'山口','徳島県':'徳島','香川県':'香川','愛媛県':'愛媛','高知県':'高知','福岡県':'福岡','佐賀県':'佐賀','長崎県':'長崎','熊本県':'熊本','大分県':'大分','宮崎県':'宮崎','鹿児島県':'鹿児島','沖縄県':'沖縄'};
+// reverse map: short name → full name
+const PREF_FULL={};Object.entries(PREF_NAME_MAP).forEach(([f,s])=>PREF_FULL[s]=f);
 
 function PCOLOR(cnt,mx){
   if(!cnt)return '#e8edf5';const r=Math.min(cnt/mx,1);
   if(r<0.04)return '#dbeafe';if(r<0.12)return '#bfdbfe';if(r<0.25)return '#93c5fd';
-  if(r<0.45)return '#60a5fa';if(r<0.65)return '#3b82f6';if(r<0.82)return '#2563eb';
-  return '#1d4ed8';
+  if(r<0.45)return '#60a5fa';if(r<0.65)return '#3b82f6';if(r<0.82)return '#2563eb';return '#1d4ed8';
 }
-function DRAW_MAP(pd){
+
+async function LOAD_MAP(){
+  try{
+    const res=await fetch(GEO_URL);
+    const topo=await res.json();
+    MAP_GEO=topo;
+    DRAW_MAP();
+  }catch(e){
+    document.getElementById('mapArea').innerHTML='<div style="padding:40px;text-align:center;color:var(--t2)">地図の読み込みに失敗しました</div>';
+  }
+}
+
+function DRAW_MAP(){
+  if(!MAP_GEO)return;
+  const pd=CUR_PD||DB.p;
   const mx=Math.max(...Object.values(pd).map(p=>p.t||p.total||0),1);
-  let out='';
-  Object.entries(PMAP).forEach(([nm,pts])=>{
-    const p=pd[nm];const cnt=p?(p.t||p.total||0):0;
-    const col=PCOLOR(cnt,mx);const isSel=SEL_PREF===nm;
-    const coords=pts.split(' ').map(s=>s.split(',').map(Number));
-    const cx=Math.round(coords.reduce((s,c)=>s+c[0],0)/coords.length);
-    const cy=Math.round(coords.reduce((s,c)=>s+c[1],0)/coords.length);
-    const lbl=nm.replace(/[都道府県]/g,'').substring(0,3);
-    const fs=nm==='北海道'?9:nm.length>3?6.5:7.5;
-    out+=`<polygon class="pp${isSel?' sel':''}" points="${pts}" fill="${col}" data-pref="${nm}" onclick="SELP('${nm}')"><title>${nm}: ${cnt.toLocaleString()}件</title></polygon>`;
-    out+=`<text x="${cx}" y="${cy+3}" text-anchor="middle" font-size="${fs}" fill="${cnt>300?'#1e3a5f':'#64748b'}" pointer-events="none" font-weight="500" font-family="Noto Sans JP">${lbl}</text>`;
-  });
-  out+=`<line x1="120" y1="470" x2="175" y2="445" stroke="#94a3b8" stroke-width="0.8" stroke-dasharray="3"/>`;
-  document.getElementById('mapSvg').innerHTML=`<svg viewBox="60 12 430 500" xmlns="http://www.w3.org/2000/svg">${out}</svg>`;
+  const area=document.getElementById('mapArea');
+  const W=area.clientWidth||700,H=Math.max(area.clientHeight||540,480);
+  d3.select('#mapArea').selectAll('svg').remove();
+  const svg=d3.select('#mapArea').append('svg').attr('width',W).attr('height',H);
+  const geo=topojson.feature(MAP_GEO,MAP_GEO.objects.japan);
+  const proj=d3.geoMercator().fitSize([W,H],geo);
+  const path=d3.geoPath().projection(proj);
+  const tip=document.getElementById('mapTip');
+  svg.selectAll('path').data(geo.features).enter().append('path')
+    .attr('d',path)
+    .attr('fill',d=>{
+      // find pref name
+      const nm=d.properties.nam_ja||d.properties.name||'';
+      const full=PREF_FULL[nm]||nm;
+      const p=pd[full];
+      return PCOLOR(p?p.t||p.total||0:0,mx);
+    })
+    .attr('stroke','#fff').attr('stroke-width',0.6)
+    .attr('class','pref-geo')
+    .style('cursor','pointer')
+    .on('mousemove',(event,d)=>{
+      const nm=d.properties.nam_ja||d.properties.name||'';
+      const full=PREF_FULL[nm]||nm;
+      const p=pd[full];
+      tip.style.display='block';
+      tip.style.left=(event.offsetX+12)+'px';
+      tip.style.top=(event.offsetY-28)+'px';
+      tip.textContent=full+': '+(p?((p.t||p.total||0).toLocaleString())+'件':'データなし');
+    })
+    .on('mouseleave',()=>{tip.style.display='none';})
+    .on('click',(event,d)=>{
+      const nm=d.properties.nam_ja||d.properties.name||'';
+      const full=PREF_FULL[nm]||nm;
+      svg.selectAll('.pref-geo').attr('stroke','#fff').attr('stroke-width',0.6);
+      d3.select(event.target).attr('stroke','#2563eb').attr('stroke-width',2);
+      SEL_PREF=full;SELP(full);
+    });
 }
+
 function SELP(nm){
-  SEL_PREF=nm;
-  document.querySelectorAll('.pp').forEach(el=>el.classList.toggle('sel',el.dataset.pref===nm));
-  const pd=CUR_PD?.[nm];
+  const pd=CUR_PD?.[nm]||DB.p[nm];
   if(!pd||(pd.t||pd.total||0)===0){document.getElementById('mapPanel').innerHTML=`<div class="mp-ph"><div class="ico">📭</div><div>${nm}<br>データなし</div></div>`;return;}
   const tot=pd.t||pd.total||0,kai=pd.k||pd.kaigai||0;
-  const kr=tot?Math.round(kai/tot*100):0;
-  const rent=pd.r||pd.avgRent||0;
-  const nats=pd.n||pd.topNat||[];const cos=pd.c||pd.topCo||[];const visas=pd.v||pd.topVisa||[];
+  const kr=tot?Math.round(kai/tot*100):0,rent=pd.r||pd.avgRent||0;
   document.getElementById('mapPanel').innerHTML=`<div class="mp-in">
     <div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">選択エリア</div>
     <div class="pname">${nm}</div><div class="ptot">${tot.toLocaleString()}件</div>
@@ -902,27 +986,26 @@ function SELP(nm){
     <div class="mrow"><span class="ml">国内審査</span><span class="mr">${tot-kai}件</span></div>
     <div class="mrow"><span class="ml">平均月額</span><span class="mr">¥${rent.toLocaleString()}</span></div>
     <div class="msec">国籍 TOP5</div>
-    ${nats.slice(0,5).map((e,i)=>`<div class="mrow"><span class="ml">${i+1}. ${Array.isArray(e)?e[0]:e}</span><span class="mr">${Array.isArray(e)?e[1]:'-'}件</span></div>`).join('')}
+    ${(pd.n||[]).slice(0,5).map((e,i)=>`<div class="mrow"><span class="ml">${i+1}. ${Array.isArray(e)?e[0]:e}</span><span class="mr">${Array.isArray(e)?e[1]:'-'}件</span></div>`).join('')}
     <div class="msec">主な管理会社</div>
-    ${cos.slice(0,5).map((e,i)=>`<div class="mco"><div class="mco-r">${i+1}位</div><div class="mco-n">${Array.isArray(e)?e[0]:e}</div><div class="mco-c">${Array.isArray(e)?e[1]:'-'}件</div></div>`).join('')}
+    ${(pd.c||[]).slice(0,5).map((e,i)=>`<div class="mco"><div class="mco-r">${i+1}位</div><div class="mco-n">${Array.isArray(e)?e[0]:e}</div><div class="mco-c">${Array.isArray(e)?e[1]:'-'}件</div></div>`).join('')}
     <div class="msec">在留資格</div>
-    ${visas.slice(0,4).map((e,i)=>`<div class="mrow"><span class="ml">${Array.isArray(e)?e[0]:e}</span><span class="mr">${Array.isArray(e)?e[1]:'-'}件</span></div>`).join('')}
+    ${(pd.v||[]).slice(0,4).map((e,i)=>`<div class="mrow"><span class="ml">${Array.isArray(e)?e[0]:e}</span><span class="mr">${Array.isArray(e)?e[1]:'-'}件</span></div>`).join('')}
     <button class="map-btn" onclick="FBP('${nm}')">「${nm}」で絞り込む →</button>
   </div>`;
 }
-function FBP(pref){document.getElementById('f1p').value=pref;SW('t1',document.querySelectorAll('.tab')[0]);A1();}
+function FBP(pref){SSV.ss1p=pref;const e=document.getElementById('ss1pi');if(e)e.value=pref;SSR('ss1p',SSD.ss1p||[]);SW('t1',document.querySelectorAll('.tab')[0]);A1();}
 
-// =================================================
+// ================================================================
 // MATRIX
-// =================================================
+// ================================================================
 function DMX(){
-  const mode=GV('mxmd'),pref=GV('mxp'),sh=GV('mxs');
+  const mode=GV('mxmd'),pref=SSV.ss6p,sh=GV('mxs');
   const minC=parseInt(GV('mxmn')||'0');
-  const rk=mode==='vn'?'v':'n', ck=mode==='vn'?'n':'v';
+  const rk=mode==='vn'?'v':'n',ck=mode==='vn'?'n':'v';
   let data=DB.m;
-  if(pref) data=data.filter(m=>{const h=DB.h.find(r=>r.pref===pref&&((r.tv&&r.tv[m.v])||(r.tn&&r.tn[m.n])));return!!h;});
-  if(sh==='海外') data=data.map(m=>({...m,t:m.k}));
-  else if(sh==='国内') data=data.map(m=>({...m,t:m.t-m.k,k:0}));
+  if(sh==='海外')data=data.map(m=>({...m,t:m.k}));
+  else if(sh==='国内')data=data.map(m=>({...m,t:m.t-m.k,k:0}));
   const rcnt={},ccnt={};
   data.forEach(m=>{rcnt[m[rk]]=(rcnt[m[rk]]||0)+m.t;ccnt[m[ck]]=(ccnt[m[ck]]||0)+m.t;});
   const rows=Object.entries(rcnt).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
@@ -932,7 +1015,7 @@ function DMX(){
     if(!rows.includes(m[rk])||!cols.includes(m[ck]))return;
     const k=m[rk]+'|'+m[ck];
     if(!cells[k])cells[k]={t:0,k:0,c:m.c||[]};
-    cells[k].t+=m.t;cells[k].k+=(m.k||0);
+    cells[k].t+=m.t;cells[k].k+=m.k||0;
   });
   const maxC=Math.max(...Object.values(cells).map(c=>c.t),1);
   const rtot={},ctot={};
@@ -961,9 +1044,7 @@ function DMX(){
     });
     html+=`<td class="tc-cell">${rtot[row]}</td></tr>`;
   });
-  html+=`<tr><th class="rh" style="background:#0b1c35">合計</th>`;
-  cols.forEach(c=>html+=`<td class="tc-cell">${ctot[c]}</td>`);
-  html+=`<td class="tc-cell" style="background:#dbeafe">${rows.reduce((s,r)=>s+rtot[r],0)}</td></tr></tbody></table>`;
+  html+=`<tr><th class="rh" style="background:#0b1c35">合計</th>${cols.map(c=>`<td class="tc-cell">${ctot[c]}</td>`).join('')}<td class="tc-cell" style="background:#dbeafe">${rows.reduce((s,r)=>s+rtot[r],0)}</td></tr></tbody></table>`;
   document.getElementById('mxwrap').innerHTML=html;
 }
 function OMX(rv,cv,mode){
@@ -980,15 +1061,15 @@ function OMX(rv,cv,mode){
       <div><div class="mono" style="font-size:22px;font-weight:700;color:var(--g)">${tot-kai}</div><div style="color:var(--t2)">国内審査</div></div>
     </div></div>
     <div class="card full"><div class="ctitle">利用管理会社 ランキング</div>
-      <div class="tw"><table><thead><tr><th>#</th><th>管理会社名</th><th>件数</th><th>難易度</th></tr></thead>
-        <tbody>${topcos.map((e,i)=>`<tr><td>${i+1}</td><td class="tl" onclick="CMOD();OM('${ESC(e[0])}')" style="white-space:normal">${e[0]}</td><td class="mono">${e[1]}</td><td>${DBG(DB.h.find(h=>h.nm===e[0])?.kr||50)}</td></tr>`).join('')}</tbody>
+      <div class="tw"><table><thead><tr><th>#</th><th>管理会社名</th><th>件数</th><th>海外審査比率</th></tr></thead>
+        <tbody>${topcos.map((e,i)=>`<tr><td>${i+1}</td><td class="tl" onclick="CMOD();OM('${ESC(e[0])}')" style="white-space:normal">${e[0]}</td><td class="mono">${e[1]}</td><td>${KRBADGE(DB.h.find(h=>h.nm===e[0])?.kr||50)}</td></tr>`).join('')}</tbody>
       </table></div></div>`;
   document.getElementById('MBG').classList.add('on');
 }
 
-// =================================================
+// ================================================================
 // MODAL
-// =================================================
+// ================================================================
 function OM(nm){
   const h=DB.h.find(r=>r.nm===nm);
   const a=DB.a.find(r=>r.nm===nm);
@@ -1000,7 +1081,7 @@ function OM(nm){
   const crMax=crItems[0]?.[1]||1;
   document.getElementById('MBOD').innerHTML=`
     <div class="card">
-      <div class="ctitle">保証データ概要</div>
+      <div class="ctitle">保証データ <small>mgmt_hosho_data / 2025-01以降</small></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
         <div>件数: <strong class="mono">${h?.total?.toLocaleString()||'0'}</strong></div>
         <div>海外: <strong style="color:var(--o)">${h?.kaigai||0}件 (${h?.kr||0}%)</strong></div>
@@ -1011,14 +1092,16 @@ function OM(nm){
       </div>
     </div>
     <div class="card">
-      <div class="ctitle">営業データ概要</div>
+      <div class="ctitle">営業データ <small>mgmt_agent_data / 決着ベース</small></div>
       ${a?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
         <div>総案件: <strong class="mono">${a.total}</strong></div>
-        <div>成約: <strong style="color:var(--g)">${a.contract}件 (${a.cr}%)</strong></div>
-        <div>キャンセル: <strong style="color:var(--r)">${a.cancel}件 (${a.xr}%)</strong></div>
+        <div>決着件数: <strong class="mono">${a.decided}</strong></div>
+        <div>成約: <strong style="color:var(--g)">${a.contract}件</strong></div>
+        <div>成約スコア: ${SCORE(a.cr)}</div>
+        <div>キャンセル: <strong style="color:var(--r)">${a.cancel}件</strong></div>
         <div>主なキャンセル: <span style="font-size:11px">${a.topCR||'-'}</span></div>
       </div>
-      ${crItems.length?`<div style="height:1px;background:var(--bg);margin:10px 0"></div>
+      ${crItems.length?`<div class="divider"></div>
         <div style="font-size:11px;color:var(--t2);margin-bottom:6px;font-weight:700">キャンセル理由内訳</div>
         <div class="cr-list">${crItems.map(([k,c])=>`<div class="cr-item"><span style="flex:1">${k.replace(/^\d+_/,'')}</span><div class="cr-bar"><div class="cr-bf" style="width:${Math.round(c/crMax*100)}%"></div></div><span class="mono" style="color:var(--r);min-width:30px;text-align:right">${c}</span></div>`).join('')}</div>`:''}`
       :'<div style="color:var(--t3);font-size:12px">営業データなし</div>'}
@@ -1035,16 +1118,14 @@ function OM(nm){
     if(mo.length)MCH('mcm','line',mo,[{label:'件数',data:mo.map(m=>h.mo[m]||0),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.35,pointBackgroundColor:'#2563eb',pointRadius:4}],{plugins:{legend:{display:false}}});
   },80);
 }
-function OM5(nm){OM(nm);}
 function CMOD(e){if(!e||e.target===document.getElementById('MBG'))document.getElementById('MBG').classList.remove('on');}
 
-// =================================================
-// AUTOCOMPLETE — using ACS/ACD objects only
-// =================================================
+// ================================================================
+// AUTOCOMPLETE
+// ================================================================
 function ACF(id){
   const q=(document.getElementById(id+'i')?.value||'').toLowerCase();
-  const drop=document.getElementById(id+'d');
-  if(!drop)return;
+  const drop=document.getElementById(id+'d');if(!drop)return;
   const items=(ACD[id]||[]).filter(v=>v.toLowerCase().includes(q)&&!ACS[id].includes(v)).slice(0,30);
   drop.innerHTML=items.map(v=>`<div class="aci" onclick="ACADD('${id}','${ESC(v)}')">${v}</div>`).join('');
   drop.classList.toggle('op',items.length>0&&q.length>0);
@@ -1056,82 +1137,47 @@ function ACADD(id,val){
   ACTAG(id);
   if(id==='AC1')A1();else if(id==='AC2')A2();else if(id==='AC3')A3();else if(id==='AC5')A5();
 }
-function ACRM(id,val){
-  ACS[id]=ACS[id].filter(v=>v!==val);ACTAG(id);
-  if(id==='AC1')A1();else if(id==='AC2')A2();else if(id==='AC3')A3();else if(id==='AC5')A5();
-}
+function ACRM(id,val){ACS[id]=ACS[id].filter(v=>v!==val);ACTAG(id);if(id==='AC1')A1();else if(id==='AC2')A2();else if(id==='AC3')A3();else if(id==='AC5')A5();}
 function RAC(id){ACS[id]=[];ACTAG(id);}
-function ACTAG(id){
-  const el=document.getElementById(id+'t');if(!el)return;
-  el.innerHTML=(ACS[id]||[]).map(v=>`<span class="actag">${v}<button onclick="ACRM('${id}','${ESC(v)}')">×</button></span>`).join('');
-}
-document.addEventListener('click',e=>{if(!e.target.closest('.ac'))document.querySelectorAll('.acd').forEach(d=>d.classList.remove('op'));});
+function ACTAG(id){const el=document.getElementById(id+'t');if(!el)return;el.innerHTML=(ACS[id]||[]).map(v=>`<span class="actag">${v}<button onclick="ACRM('${id}','${ESC(v)}')">×</button></span>`).join('');}
 
-// =================================================
+// ================================================================
 // FAV / HIST
-// =================================================
-function TFav(nm){
-  if(FAVS.includes(nm))FAVS=FAVS.filter(v=>v!==nm);else FAVS.push(nm);
-  localStorage.setItem('mdb_f',JSON.stringify(FAVS));
-  RFav();RT1();RT2();
-}
-function RFav(){
-  const el=document.getElementById('favL');if(!el)return;
-  if(!FAVS.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">お気に入りはまだありません</div>';return;}
-  el.innerHTML=FAVS.map(nm=>`<div class="fav-item" onclick="OM('${ESC(nm)}')" style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid var(--bg);cursor:pointer;font-size:12px"><span>${nm}</span><button onclick="event.stopPropagation();TFav('${ESC(nm)}')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:13px">✕</button></div>`).join('');
-}
-function SHIST(){
-  const visa=GV('f1v'),nat=GV('f1n'),pref=GV('f1p');
-  if(!visa&&!nat&&!pref)return;
-  const label=[visa,nat,pref].filter(Boolean).join(' / ');
-  HIST=HIST.filter(h=>h.label!==label);
-  HIST.unshift({label,visa,nat,pref,time:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})});
-  HIST=HIST.slice(0,15);
-  localStorage.setItem('mdb_h',JSON.stringify(HIST));
-  RHIST();
-}
-function RHIST(){
-  const el=document.getElementById('histL');if(!el)return;
-  if(!HIST.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">履歴はありません</div>';return;}
-  el.innerHTML=HIST.map(h=>`<div style="display:flex;justify-content:space-between;padding:7px 6px;border-bottom:1px solid var(--bg);cursor:pointer;font-size:12px" onclick="LH(${JSON.stringify(h).replace(/"/g,'&quot;')})"><span>🔍 ${h.label}</span><span style="color:var(--t3);font-size:11px">${h.time}</span></div>`).join('');
-}
-function LH(h){document.getElementById('f1v').value=h.visa||'';document.getElementById('f1n').value=h.nat||'';document.getElementById('f1p').value=h.pref||'';A1();SW('t1',document.querySelectorAll('.tab')[0]);}
+// ================================================================
+function TFav(nm){if(FAVS.includes(nm))FAVS=FAVS.filter(v=>v!==nm);else FAVS.push(nm);localStorage.setItem('mdb_f',JSON.stringify(FAVS));RFav();RT1();RT2();}
+function RFav(){const el=document.getElementById('favL');if(!el)return;if(!FAVS.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">お気に入りはまだありません</div>';return;}el.innerHTML=FAVS.map(nm=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid var(--bg);cursor:pointer;font-size:12px" onclick="OM('${ESC(nm)}')"><span>${nm}</span><button onclick="event.stopPropagation();TFav('${ESC(nm)}')" style="background:none;border:none;cursor:pointer;color:#aaa">✕</button></div>`).join('');}
+function SHIST(){const visa=SSV.ss1v,nat=SSV.ss1n,pref=SSV.ss1p;if(!visa&&!nat&&!pref)return;const label=[visa,nat,pref].filter(Boolean).join(' / ');HIST=HIST.filter(h=>h.label!==label);HIST.unshift({label,visa,nat,pref,time:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})});HIST=HIST.slice(0,15);localStorage.setItem('mdb_h',JSON.stringify(HIST));RHIST();}
+function RHIST(){const el=document.getElementById('histL');if(!el)return;if(!HIST.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">履歴はありません</div>';return;}el.innerHTML=HIST.map(h=>`<div style="display:flex;justify-content:space-between;padding:7px 6px;border-bottom:1px solid var(--bg);cursor:pointer;font-size:12px" onclick="LH(${JSON.stringify(h).replace(/"/g,'&quot;')})"><span>🔍 ${h.label}</span><span style="color:var(--t3);font-size:11px">${h.time}</span></div>`).join('');}
+function LH(h){SSV.ss1v=h.visa||null;SSV.ss1n=h.nat||null;SSV.ss1p=h.pref||null;['ss1vi','ss1ni','ss1pi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=SSV[id.replace('i','')]||'';});A1();SW('t1',document.querySelectorAll('.tab')[0]);}
 function CLRH(){HIST=[];localStorage.setItem('mdb_h','[]');RHIST();}
 
-// =================================================
+// ================================================================
 // TABS
-// =================================================
-function SW(id,el){
-  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-  el.classList.add('on');
-}
+// ================================================================
+function SW(id,el){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById(id).classList.add('on');el.classList.add('on');if(id==='t4'&&MAP_GEO)setTimeout(DRAW_MAP,50);}
 
-window.addEventListener('DOMContentLoaded', async function(){
-  const prog = document.getElementById('lprog');
-  const msg  = document.getElementById('lmsg');
-  try {
-    prog.style.width='20%'; msg.textContent='APIに接続中...';
-    // Apps Script は /exec → /exec?... にリダイレクトするため redirect:'follow' が必要
-    const res = await fetch(API_URL + '?type=all', {
-      redirect: 'follow',
-      mode: 'cors'
-    });
-    prog.style.width='60%'; msg.textContent='データを変換中...';
-    const raw = await res.json();
-    if(raw.error) throw new Error(raw.error);
-    prog.style.width='85%'; msg.textContent='ダッシュボードを描画中...';
-    DB = buildDB(raw);
+// ================================================================
+// LOAD
+// ================================================================
+window.addEventListener('DOMContentLoaded',async function(){
+  const prog=document.getElementById('lprog');
+  const msg=document.getElementById('lmsg');
+  try{
+    prog.style.width='20%';msg.textContent='APIに接続中...';
+    const res=await fetch(API_URL+'?type=all',{redirect:'follow',mode:'cors'});
+    prog.style.width='60%';msg.textContent='データを変換中...';
+    const raw=await res.json();
+    if(raw.error)throw new Error(raw.error);
+    prog.style.width='85%';msg.textContent='ダッシュボードを描画中...';
+    DB=buildDB(raw);
     prog.style.width='100%';
     await new Promise(r=>setTimeout(r,300));
     document.getElementById('loading').style.display='none';
     INIT();
-  } catch(e) {
-    document.getElementById('lmsg').textContent='エラー: ' + e.message;
+  }catch(e){
+    document.getElementById('lmsg').textContent='エラー: '+e.message;
     document.getElementById('lprog').style.background='#dc2626';
     prog.style.width='100%';
-    console.error(e);
   }
 });
 </script>
