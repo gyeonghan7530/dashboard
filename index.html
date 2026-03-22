@@ -124,7 +124,7 @@ tr:hover td{background:#f8fafc}
 .map-ctrl button:hover{background:#eff6ff;color:var(--acc)}
 .pref-path{cursor:pointer;stroke:rgba(255,255,255,0.8);stroke-width:0.7;transition:opacity .12s;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.08))}
 .pref-path:hover{opacity:.78}
-.pref-path.sel{stroke:#2563eb;stroke-width:2.5;filter:drop-shadow(0 0 5px rgba(37,99,235,.6))}
+.pref-path.sel{stroke:#2563eb;stroke-width:0.4;filter:drop-shadow(0 0 3px rgba(37,99,235,.5))}
 .pref-lbl{pointer-events:none;font-family:'Noto Sans JP',sans-serif;fill:#334155;font-weight:500}
 /* Map pref list - dropdown style */
 .pref-dd{position:relative;display:inline-block}
@@ -1391,7 +1391,7 @@ function DRAW_MAP(){
 
     // 都道府県名ラベル (zoom>=1.8で表示)
     // 都道府県別 ラベル位置オフセット (MultiPolygon補正)
-    const LABEL_OFFSET={'東京都':[8,-12],'神奈川県':[0,8],'大阪府':[-6,0],'京都府':[0,6]};
+    const LABEL_OFFSET={'東京都':[6,14],'神奈川県':[0,6],'大阪府':[-4,0],'京都府':[0,4],'埼玉県':[-8,0]};
     features.forEach(d=>{
       const nm=d.properties.nam_ja||d.properties.name||'';
       const full=PREF_FULL[nm]||nm;
@@ -1450,8 +1450,8 @@ function DRAW_MAP(){
     const okGrp=svg.append('g').attr('class','ok-inset');
     okGrp.append('rect').attr('x',okX-4).attr('y',okY-20)
       .attr('width',okW+8).attr('height',okH+24)
-      .attr('fill','rgba(255,255,255,.88)').attr('stroke','#cbd5e1')
-      .attr('stroke-width',1).attr('rx',6);
+      .attr('fill','#e8f0f8').attr('stroke','#b0c4d8')
+      .attr('stroke-width',0.8).attr('rx',6);
     okGrp.append('text').attr('x',okX+okW/2).attr('y',okY-6)
       .attr('text-anchor','middle').attr('font-size',10)
       .attr('fill','#64748b').text('沖縄県');
