@@ -515,7 +515,9 @@ function buildDB(raw){
   (hosho.byCoVisa||[]).forEach(r=>{
     const nm=cleanNm(r.nm||''), visa=cleanVisa(r.visa||'');
     if(!nm||!visa)return;
-    CV.push({nm, visa, shinsa:r.shinsa||'', pref:r.pref||'', rent:r.avg_rent||0, cnt:r.cnt||0});
+    // prefはbyCompanyから取得 (detail_bではprefなし)
+    const cvPref=r.pref||(DB&&DB.coBase&&DB.coBase[nm]?DB.coBase[nm].pref:'')||'';
+    CV.push({nm, visa, shinsa:r.shinsa||'', pref:cvPref, rent:r.avg_rent||0, cnt:r.cnt||0});
   });
 
   // ── byCoNat: {nm, nat, shinsa, pref, avg_rent, cnt}
@@ -523,7 +525,8 @@ function buildDB(raw){
   (hosho.byCoNat||[]).forEach(r=>{
     const nm=cleanNm(r.nm||''), nat=cleanNat(r.nat||'');
     if(!nm||!nat)return;
-    CN.push({nm, nat, shinsa:r.shinsa||'', pref:r.pref||'', rent:r.avg_rent||0, cnt:r.cnt||0});
+    const cnPref=r.pref||(DB&&DB.coBase&&DB.coBase[nm]?DB.coBase[nm].pref:'')||'';
+    CN.push({nm, nat, shinsa:r.shinsa||'', pref:cnPref, rent:r.avg_rent||0, cnt:r.cnt||0});
   });
 
   // ── byVisaNat: {nm, visa, nat, shinsa, cnt} (マトリクス+複合フィルタ用)
@@ -1391,7 +1394,7 @@ function DRAW_MAP(){
 
     // 都道府県名ラベル (zoom>=1.8で表示)
     // 都道府県別 ラベル位置オフセット (MultiPolygon補正)
-    const LABEL_OFFSET={'東京都':[6,14],'神奈川県':[0,6],'大阪府':[-4,0],'京都府':[0,4],'埼玉県':[-8,0]};
+    const LABEL_OFFSET={'東京都':[-2,2],'神奈川県':[0,4],'大阪府':[-3,0],'京都府':[0,3],'埼玉県':[-6,0]};
     features.forEach(d=>{
       const nm=d.properties.nam_ja||d.properties.name||'';
       const full=PREF_FULL[nm]||nm;
@@ -1446,12 +1449,12 @@ function DRAW_MAP(){
     return full==='沖縄県';
   });
   if(okAll.length){
-    const okW=120,okH=80,okX=10,okY=H-okH-10;
+    const okW=150,okH=95,okX=10,okY=H-okH-10;
     const okGrp=svg.append('g').attr('class','ok-inset');
     okGrp.append('rect').attr('x',okX-4).attr('y',okY-20)
       .attr('width',okW+8).attr('height',okH+24)
-      .attr('fill','#e8f0f8').attr('stroke','#b0c4d8')
-      .attr('stroke-width',0.8).attr('rx',6);
+      .attr('fill','#d4e4f2').attr('stroke','#8bacc8')
+      .attr('stroke-width',1).attr('rx',6);
     okGrp.append('text').attr('x',okX+okW/2).attr('y',okY-6)
       .attr('text-anchor','middle').attr('font-size',10)
       .attr('fill','#64748b').text('沖縄県');
@@ -1469,6 +1472,20 @@ function DRAW_MAP(){
         const pref=pd2[full];return PCOLOR(pref?pref.t||0:0,mx2);
       })
       .attr('stroke','rgba(255,255,255,0.8)').attr('stroke-width',0.7)
+      .on('mousemove',function(event,d){
+        const nm=d.properties.nam_ja||d.properties.name||'';
+        const full=PREF_FULL[nm]||nm;
+        const pref=(CUR_PD||DB.PD)[full];
+        const rect=document.getElementById('mapArea').getBoundingClientRect();
+        const tip=document.getElementById('mapTip');
+        tip.style.display='block';
+        tip.style.left=(event.clientX-rect.left+14)+'px';
+        tip.style.top=(event.clientY-rect.top-32)+'px';
+        tip.textContent=full+': '+(pref?(pref.t||0).toLocaleString()+'件':'データなし');
+      })
+      .on('mouseleave',function(){
+        document.getElementById('mapTip').style.display='none';
+      })
       .on('click',function(event,d){
         const nm=d.properties.nam_ja||d.properties.name||'';
         const full=PREF_FULL[nm]||nm;
@@ -1938,20 +1955,21 @@ window.addEventListener('DOMContentLoaded',async function(){
     if(msg2)msg2.textContent='⏳ フィルタ・マトリクスデータ取得中...';
     if(prog2)prog2.style.width='5%';
 
-    // 詳細データ取得 (タイムアウト対策: 90秒)
-    const hdCtrl=new AbortController();
-    const hdTimer=setTimeout(()=>hdCtrl.abort(),90000);
-    let rawHd;
+    // 2段階: detail_a(仲介+マトリクス) と detail_b(フィルタ用) を並列取得
+    if(msg2)msg2.textContent='⏳ 仲介・フィルタデータを並列取得中...';
+    let rawHd={};
     try{
-      const rHd=await fetch(API_URL+'?type=hosho_detail',{redirect:'follow',mode:'cors',signal:hdCtrl.signal});
-      clearTimeout(hdTimer);
+      const [rA,rB]=await Promise.all([
+        fetch(API_URL+'?type=detail_a',{redirect:'follow',mode:'cors'}),
+        fetch(API_URL+'?type=detail_b',{redirect:'follow',mode:'cors'})
+      ]);
       if(prog2)prog2.style.width='70%';
-      rawHd=await rHd.json();
-      if(rawHd.error)throw new Error(rawHd.error);
+      const [rawA,rawB]=await Promise.all([rA.json(),rB.json()]);
+      if(rawA.error)throw new Error('detail_a: '+rawA.error);
+      if(rawB.error)throw new Error('detail_b: '+rawB.error);
+      rawHd=Object.assign({},rawA,rawB);
     } catch(detailErr){
-      clearTimeout(hdTimer);
-      if(msg2)msg2.textContent='⚠️ フィルタデータ取得失敗: '+detailErr.message;
-      // 失敗してもT1~T5は使えるので継続
+      if(msg2)msg2.textContent='⚠️ 詳細データ取得失敗: '+detailErr.message;
       rawHd={};
     }
     if(prog2)prog2.style.width='90%';
