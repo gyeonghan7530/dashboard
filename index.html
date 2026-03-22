@@ -640,7 +640,11 @@ function buildDB(raw){
   const allNat=CN.length
     ?[...new Set(CN.map(m=>m.nat).filter(Boolean))].sort()
     :[...new Set((hosho.byNat||[]).map(r=>cleanNat(r.nat||'')).filter(Boolean))].sort();
-  const allPref=Object.keys(PD).sort();
+  const PREF_ORDER_LIST=['北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県', '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県', '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県', '静岡県', '愛知県', '三重県', '滋賀県', '京都府', '大阪府', '兵庫県', '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県', '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'];
+  const allPref=[...Object.keys(PD)].sort((a,b)=>{
+    const ai=PREF_ORDER_LIST.indexOf(a),bi=PREF_ORDER_LIST.indexOf(b);
+    return (ai<0?999:ai)-(bi<0?999:bi);
+  });
   const allAgPref=[...new Set(AL.map(r=>r.pref).filter(Boolean))].sort();
 
   // ── 인덱스 캐시 (getTopN_CV/CN 성능향상)
@@ -900,7 +904,12 @@ function INIT(){
 
   // 都道府県クイック選択ボタン生成
   const pl=document.getElementById('prefList');
-  if(pl){pl.innerHTML=DB.fp.map(p=>`<button class="pref-tag" onclick="PTOG('${ESC(p)}')" id="ptag_${ESC(p)}" data-full="${p}">${PREF_SHORT(p)}</button>`).join('');}
+  const PREF_ORD=['北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県', '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県', '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県', '静岡県', '愛知県', '三重県', '滋賀県', '京都府', '大阪府', '兵庫県', '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県', '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'];
+  const sortedFp=[...DB.fp].sort((a,b)=>{
+    const ai=PREF_ORD.indexOf(a),bi=PREF_ORD.indexOf(b);
+    return (ai<0?999:ai)-(bi<0?999:bi);
+  });
+  if(pl){pl.innerHTML=sortedFp.map(p=>`<button class="pref-tag" onclick="PTOG('${ESC(p)}')" id="ptag_${ESC(p)}" data-full="${p}">${PREF_SHORT(p)}</button>`).join('');}
 
   CUR_PD=DB.PD;
   A1();A2();A3();A4();A5();DMX();
@@ -1300,12 +1309,15 @@ function DRAW_MAP(){
     g.attr('transform',event.transform);
     // ラベル表示切替 (zoom level 2以上で表示)
     const zk=event.transform.k;
+    // g要素がzoomでscaleされるため、font-sizeを1/zkにすると画面サイズ固定
+    // font-size固定にすると画面上では zoom倍で表示される (ズームインで大きく)
     g.selectAll('.pref-lbl')
-      .style('display',zk>=1.2?'block':'none')
-      .attr('font-size',function(){
-        const pref=d3.select(this).attr('data-pref');
-        const base=pref==='北海道'?9:7;
-        return Math.min(base*Math.sqrt(zk/1.2),16);
+      .style('display', zk >= 1.5 ? 'block' : 'none')
+      .attr('font-size', function(){
+        const pref = d3.select(this).attr('data-pref');
+        // 画面上のサイズ = font-size × zk → zk=1.5で4px, zk=4で約11px
+        const base = pref === '北海道' ? 7 : 5;
+        return base; // SVG座標固定 → ズームで自然に拡大
       });
   });
   svg.call(MAP_ZOOM_OBJ).on('dblclick.zoom',null);
@@ -1392,7 +1404,7 @@ function DRAW_MAP(){
         .attr('x',cx+off[0]).attr('y',cy+off[1]+3.5)
         .attr('text-anchor','middle')
         .attr('font-size',full==='北海道'?9:7)
-        .style('display','none')
+        .style('display','none')// 初期非表示: zoom1.5以上で表示
         .text(short);
     });
   }
@@ -1881,10 +1893,22 @@ window.addEventListener('DOMContentLoaded',async function(){
     if(msg2)msg2.textContent='⏳ フィルタ・マトリクスデータ取得中...';
     if(prog2)prog2.style.width='5%';
 
-    const rHd=await fetch(API_URL+'?type=hosho_detail',{redirect:'follow',mode:'cors'});
-    if(prog2)prog2.style.width='70%';
-    const rawHd=await rHd.json();
-    if(rawHd.error)throw new Error('保証データ(detail): '+rawHd.error);
+    // 詳細データ取得 (タイムアウト対策: 90秒)
+    const hdCtrl=new AbortController();
+    const hdTimer=setTimeout(()=>hdCtrl.abort(),90000);
+    let rawHd;
+    try{
+      const rHd=await fetch(API_URL+'?type=hosho_detail',{redirect:'follow',mode:'cors',signal:hdCtrl.signal});
+      clearTimeout(hdTimer);
+      if(prog2)prog2.style.width='70%';
+      rawHd=await rHd.json();
+      if(rawHd.error)throw new Error(rawHd.error);
+    } catch(detailErr){
+      clearTimeout(hdTimer);
+      if(msg2)msg2.textContent='⚠️ フィルタデータ取得失敗: '+detailErr.message;
+      // 失敗してもT1~T5は使えるので継続
+      rawHd={};
+    }
     if(prog2)prog2.style.width='90%';
 
     // DB に detail データをマージ
