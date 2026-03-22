@@ -126,11 +126,21 @@ tr:hover td{background:#f8fafc}
 .pref-path:hover{opacity:.78}
 .pref-path.sel{stroke:#2563eb;stroke-width:2.5;filter:drop-shadow(0 0 5px rgba(37,99,235,.6))}
 .pref-lbl{pointer-events:none;font-family:'Noto Sans JP',sans-serif;fill:#334155;font-weight:500}
-/* Map pref list */
-.pref-list{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
-.pref-tag{padding:3px 9px;border:1.5px solid var(--bd);border-radius:12px;font-size:11px;cursor:pointer;background:#fff;transition:all .12s}
+/* Map pref list - dropdown style */
+.pref-dd{position:relative;display:inline-block}
+.pref-dd-btn{padding:6px 14px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;cursor:pointer;background:#fff;display:flex;align-items:center;gap:6px}
+.pref-dd-btn:hover{border-color:var(--acc);color:var(--acc)}
+.pref-dd-menu{position:absolute;top:calc(100% + 4px);left:0;width:340px;background:#fff;border:1.5px solid var(--bd);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.12);z-index:200;display:none;padding:10px}
+.pref-dd-menu.op{display:block}
+.pref-dd-search{width:100%;padding:6px 10px;border:1.5px solid var(--bd);border-radius:7px;font-size:12px;font-family:'Noto Sans JP',sans-serif;margin-bottom:8px}
+.pref-dd-search:focus{outline:none;border-color:var(--acc)}
+.pref-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;max-height:200px;overflow-y:auto}
+.pref-tag{padding:4px 6px;border:1.5px solid var(--bd);border-radius:8px;font-size:11px;cursor:pointer;background:#fff;transition:all .12s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pref-tag:hover{border-color:var(--acc);color:var(--acc)}
 .pref-tag.sel{background:var(--acc);color:#fff;border-color:var(--acc)}
+.pref-sel-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;min-height:0}
+.pref-sel-tag{display:inline-flex;align-items:center;gap:3px;background:#eff6ff;color:var(--acc);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.pref-sel-tag button{background:none;border:none;cursor:pointer;color:#93c5fd;font-size:12px}
 /* Matrix */
 .mx-wrap{overflow-x:auto}
 .mxt{border-collapse:collapse;font-size:11px}
@@ -184,6 +194,8 @@ tr:hover td{background:#f8fafc}
 #loading{position:fixed;inset:0;background:#0d1f3c;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;gap:18px}
 #lprog-wrap{width:240px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
 #lprog{height:100%;background:linear-gradient(90deg,#2563eb,#0ea5e9);border-radius:2px;width:0%;transition:width .4s ease}
+#lprog2-wrap{width:240px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;display:none}
+#lprog2{height:100%;background:linear-gradient(90deg,#059669,#0ea5e9);border-radius:2px;width:0%;transition:width .4s ease}
 
 /* Filter active tags */
 .ftags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;min-height:0}
@@ -209,6 +221,8 @@ tr:hover td{background:#f8fafc}
   <div style="font-size:16px;font-weight:700">管理会社ダッシュボード</div>
   <div id="lprog-wrap"><div id="lprog"></div></div>
   <div id="lmsg" style="font-size:12px;opacity:.55">BigQueryからデータを取得中...</div>
+  <div id="lprog2-wrap"><div id="lprog2"></div></div>
+  <div id="lmsg2" style="font-size:11px;opacity:.35;margin-top:4px"></div>
 </div>
 <div class="hdr">
   <div class="hdr-l">
@@ -223,10 +237,10 @@ tr:hover td{background:#f8fafc}
 <div class="tabs">
   <div class="tab on"  onclick="SW('t1',this)">🔍 条件検索</div>
   <div class="tab"     onclick="SW('t2',this)">🏢 管理会社</div>
-  <div class="tab"     onclick="SW('t3',this)">🤝 仲介会社</div>
+  <div class="tab" id="tab_t3"    onclick="SW('t3',this)">🤝 仲介会社</div>
   <div class="tab"     onclick="SW('t4',this)">🗾 地域マップ</div>
   <div class="tab"     onclick="SW('t5',this)">❌ キャンセル</div>
-  <div class="tab"     onclick="SW('t6',this)">📊 マトリクス</div>
+  <div class="tab" id="tab_t6"    onclick="SW('t6',this)">📊 マトリクス</div>
   <div class="tab"     onclick="SW('t7',this)">⭐ お気に入り</div>
 </div>
 <div class="wrap">
@@ -336,11 +350,21 @@ tr:hover td{background:#f8fafc}
   </div>
   <!-- 都道府県クイック選択 -->
   <div class="card" style="margin-bottom:12px;padding:12px 16px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-size:11px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:.5px">都道府県クイック選択 <span style="font-weight:400;color:var(--t3)">（複数選択可 / Ctrl+クリックで複数）</span></div>
-      <button onclick="PREF_TO_T1()" class="btn btn-d" style="font-size:11px;padding:4px 12px">🔍 選択中の都道府県でT1絞込</button>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="pref-dd" id="prefDD">
+        <button class="pref-dd-btn" onclick="TOGGLE_PREF_DD()">
+          🗾 都道府県を選択
+          <span style="color:var(--t3);font-size:10px">▼</span>
+        </button>
+        <div class="pref-dd-menu" id="prefDDMenu">
+          <input class="pref-dd-search" type="text" placeholder="都道府県を検索..." oninput="FILTER_PREFS(this.value)" id="prefSearch">
+          <div class="pref-grid" id="prefList"></div>
+        </div>
+      </div>
+      <div class="pref-sel-tags" id="prefSelTags"></div>
+      <button onclick="PREF_TO_T1()" class="btn btn-d" style="font-size:11px;padding:5px 12px;margin-left:auto">🔍 T1絞込</button>
+      <button onclick="R4()" style="padding:5px 12px;border:1.5px solid var(--bd);border-radius:8px;cursor:pointer;font-size:11px;background:#fff">クリア</button>
     </div>
-    <div class="pref-list" id="prefList"></div>
   </div>
   <div class="card full" style="padding:0;overflow:hidden;margin-bottom:12px">
     <div style="padding:12px 16px;border-bottom:1px solid var(--bg);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
@@ -862,7 +886,7 @@ function INIT(){
 
   // 都道府県クイック選択ボタン生成
   const pl=document.getElementById('prefList');
-  if(pl){pl.innerHTML=DB.fp.map(p=>`<button class="pref-tag" onclick="PTOG('${ESC(p)}')" id="ptag_${ESC(p)}">${p.replace(/[都道府県]/g,'')}</button>`).join('');}
+  if(pl){pl.innerHTML=DB.fp.map(p=>`<button class="pref-tag" onclick="PTOG('${ESC(p)}')" id="ptag_${ESC(p)}" data-full="${p}">${PREF_SHORT(p)}</button>`).join('');}
 
   CUR_PD=DB.PD;
   A1();A2();A3();A4();A5();DMX();
@@ -975,8 +999,12 @@ function PTOG(p){
     const nm=d.properties.nam_ja||d.properties.name||'';
     const full=PREF_FULL[nm]||nm;return SEL_PREFS.includes(full);
   });
+  // 最後に選択した都道府県の詳細を表示
+  if(SEL_PREFS.length>0)SELP(SEL_PREFS[SEL_PREFS.length-1]);
+  UPD_PREF_SEL_TAGS();
 }
 function UPREF_TAGS(){
+  UPD_PREF_SEL_TAGS();
   document.querySelectorAll('.pref-tag').forEach(btn=>{
     const p=btn.textContent;
     const full=DB.fp.find(f=>f.replace(/[都道府県]/g,'')||f===p||f.startsWith(p));
@@ -1198,10 +1226,17 @@ function DRAW_MAP(){
     if(full==='沖縄県')return false;
     // 東京都の離島は経度で判定（本土範囲: 138.9~139.9）
     if(full==='東京都'){
-      const bounds=d3.geoBounds(d);
-      if(!bounds||!bounds[0])return true;
-      const lng=(bounds[0][0]+bounds[1][0])/2;
-      return lng>=138.5&&lng<=140.5;// 伊豆・小笠原除外
+      // MultiPolygonの場合は各polygonの重心で判定
+      const geom=d.geometry;
+      if(geom&&geom.type==='MultiPolygon'){
+        // 本土ポリゴン: 経度139付近の最大面積polygonのみ
+        return geom.coordinates.some(poly=>{
+          const lngs=poly[0].map(c=>c[0]);
+          const avgLng=lngs.reduce((a,b)=>a+b,0)/lngs.length;
+          return avgLng>=138.8&&avgLng<=140.2;
+        });
+      }
+      return true;
     }
     return true;
   });
@@ -1337,6 +1372,40 @@ function SELP(nm){
     <button class="map-btn" onclick="FBP('${nm}')">「${nm}」で絞り込む →</button>
   </div>`;
 }
+// 都道府県短縮名
+function PREF_SHORT(p){
+  const m={'東京都':'東京','大阪府':'大阪','京都府':'京都','北海道':'北海道'};
+  return m[p]||(p.replace(/[都道府県]$/,''));
+}
+
+// 都道府県ドロップダウン制御
+function TOGGLE_PREF_DD(){
+  const m=document.getElementById('prefDDMenu');
+  if(m){m.classList.toggle('op');}
+  if(m&&m.classList.contains('op')){
+    const s=document.getElementById('prefSearch');
+    if(s){s.value='';s.focus();FILTER_PREFS('');}
+  }
+}
+function FILTER_PREFS(q){
+  const items=document.querySelectorAll('#prefList .pref-tag');
+  items.forEach(el=>{
+    el.style.display=el.dataset.full.includes(q)||PREF_SHORT(el.dataset.full).includes(q)?'':'none';
+  });
+}
+function UPD_PREF_SEL_TAGS(){
+  const el=document.getElementById('prefSelTags');if(!el)return;
+  el.innerHTML=SEL_PREFS.map(p=>
+    `<span class="pref-sel-tag">${p}<button onclick="PTOG('${ESC(p)}')">×</button></span>`
+  ).join('');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#prefDD')){
+    const m=document.getElementById('prefDDMenu');
+    if(m)m.classList.remove('op');
+  }
+});
+
 // 複数選択都道府県でT1へ絞込
 function PREF_TO_T1(){
   if(!SEL_PREFS.length){alert('都道府県を選択してください');return;}
@@ -1686,25 +1755,67 @@ function SW(id,el){
 }
 
 window.addEventListener('DOMContentLoaded',async function(){
-  const prog=document.getElementById('lprog'),msg=document.getElementById('lmsg');
+  const prog=document.getElementById('lprog');
+  const msg=document.getElementById('lmsg');
+  const prog2=document.getElementById('lprog2');
+  const msg2=document.getElementById('lmsg2');
+  const p2wrap=document.getElementById('lprog2-wrap');
+
   try{
-    prog.style.width='15%';msg.textContent='保証データ・営業データを並列取得中...';
-    // hosho と agent を並列フェッチ
-    const [rH,rA]=await Promise.all([
-      fetch(API_URL+'?type=hosho',{redirect:'follow',mode:'cors'}),
+    // ── 1段階: 軽量データ (hosho_fast + agent) 並列取得 → 即座に表示
+    prog.style.width='10%';
+    msg.textContent='🚀 基本データを取得中...';
+
+    const [rHf,rA]=await Promise.all([
+      fetch(API_URL+'?type=hosho_fast',{redirect:'follow',mode:'cors'}),
       fetch(API_URL+'?type=agent',{redirect:'follow',mode:'cors'})
     ]);
-    prog.style.width='60%';msg.textContent='データを受信中...';
-    const [rawH,rawA]=await Promise.all([rH.json(),rA.json()]);
-    if(rawH.error)throw new Error('保証データ: '+rawH.error);
+    prog.style.width='55%';msg.textContent='データを受信中...';
+    const [rawHf,rawA]=await Promise.all([rHf.json(),rA.json()]);
+    if(rawHf.error)throw new Error('保証データ(fast): '+rawHf.error);
     if(rawA.error)throw new Error('営業データ: '+rawA.error);
+
     prog.style.width='85%';msg.textContent='ダッシュボードを描画中...';
-    const raw={hosho:rawH,agent:rawA,updated:rawH.updated||new Date().toISOString()};
-    DB=buildDB(raw);
+    // 1段階データでDB構築 (byCoVisa等はまだなし)
+    const raw1={hosho:rawHf,agent:rawA,updated:rawHf.updated||new Date().toISOString()};
+    DB=buildDB(raw1);
     prog.style.width='100%';
-    await new Promise(r=>setTimeout(r,250));
+    await new Promise(r=>setTimeout(r,200));
     document.getElementById('loading').style.display='none';
+
+    // T3/T6を一時的にグレーアウト
+    const t3=document.getElementById('tab_t3');
+    const t6=document.getElementById('tab_t6');
+    if(t3)t3.style.opacity='.4';
+    if(t6)t6.style.opacity='.4';
+
     INIT();
+
+    // ── 2段階: 重いデータ (hosho_detail) バックグラウンド取得
+    if(p2wrap)p2wrap.style.display='block';
+    if(msg2)msg2.textContent='⏳ フィルタ・マトリクスデータ取得中...';
+    if(prog2)prog2.style.width='5%';
+
+    const rHd=await fetch(API_URL+'?type=hosho_detail',{redirect:'follow',mode:'cors'});
+    if(prog2)prog2.style.width='70%';
+    const rawHd=await rHd.json();
+    if(rawHd.error)throw new Error('保証データ(detail): '+rawHd.error);
+    if(prog2)prog2.style.width='90%';
+
+    // DB に detail データをマージ
+    const hoshoFull=Object.assign({},rawHf,rawHd);
+    const raw2={hosho:hoshoFull,agent:rawA,updated:rawHf.updated||new Date().toISOString()};
+    DB=buildDB(raw2);
+
+    if(prog2)prog2.style.width='100%';
+    if(msg2)msg2.textContent='✅ 全データ読み込み完了！';
+    setTimeout(()=>{if(p2wrap)p2wrap.style.display='none';},2000);
+
+    // T3/T6を有効化してリフレッシュ
+    if(t3){t3.style.opacity='1';t3.title='';}
+    if(t6){t6.style.opacity='1';t6.title='';}
+    A3();DMX();
+
   }catch(e){
     document.getElementById('lmsg').textContent='エラー: '+e.message;
     document.getElementById('lprog').style.background='#dc2626';
