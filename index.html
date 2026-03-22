@@ -1301,58 +1301,6 @@ function OM(nm){
     if(months.length)MCH('mcm','line',months,[{label:'件数',data:months.map(m=>mo[m]||0),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.35,pointBackgroundColor:'#2563eb',pointRadius:4}],{plugins:{legend:{display:false}}});
   },80);
 }
-  const base=DB.coBase[nm]||{};
-  const a=DB.AL.find(r=>r.nm===nm);
-  const mxCo=DB.MX.filter(m=>m.nm===nm);
-  const tot=mxCo.reduce((s,m)=>s+m.cnt,0);
-  const kai=mxCo.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
-  const kr=tot?Math.round(kai/tot*100):0;
-  const tvMap={},tnMap={};
-  mxCo.forEach(m=>{tvMap[m.visa]=(tvMap[m.visa]||0)+m.cnt;tnMap[m.nat]=(tnMap[m.nat]||0)+m.cnt;});
-  const tv=TOPN(tvMap,7),tn=TOPN(tnMap,8);
-  // 月別トレンドはDB内キャッシュを使用（初回はAPIから遅延ロード）
-  const mo=DB.coMonthMap[nm]||{};
-  const months=Object.keys(mo).sort().slice(-10);
-  const crItems=TOPN(a?.crs||{},5);const crMax=crItems[0]?.[1]||1;
-  document.getElementById('MTIT').textContent='🏢 '+nm;
-  document.getElementById('MBOD').innerHTML=`
-    <div class="card">
-      <div class="ctitle">保証データ <small>mgmt_hosho_data / 2025-01以降</small></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
-        <div>件数: <strong class="mono">${tot.toLocaleString()}</strong></div>
-        <div>海外: <strong style="color:var(--o)">${kai}件 (${kr}%)</strong></div>
-        <div>国内: <strong style="color:var(--acc)">${tot-kai}件</strong></div>
-        <div>平均月額: <strong class="mono">¥${(base.rent||0).toLocaleString()}</strong></div>
-        <div>主要地域: <strong>${base.pref||'-'}</strong></div>
-        <div>最終承認: <strong>${base.date||'-'}</strong></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="ctitle">営業データ <small>mgmt_agent_data / 決着ベース</small></div>
-      ${a?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
-        <div>総案件: <strong class="mono">${a.total}</strong></div>
-        <div>決着件数: <strong class="mono">${a.decided}</strong></div>
-        <div>成約: <strong style="color:var(--g)">${a.contract}件</strong></div>
-        <div>成約スコア: ${SCORE(a.cr)}</div>
-        <div>キャンセル: <strong style="color:var(--r)">${a.cancel}件</strong></div>
-        <div>主なキャンセル: <span style="font-size:11px">${a.topCR||'-'}</span></div>
-      </div>
-      ${crItems.length?`<div style="height:1px;background:var(--bg);margin:10px 0"></div>
-        <div style="font-size:11px;color:var(--t2);margin-bottom:6px;font-weight:700">キャンセル理由内訳</div>
-        <div class="cr-list">${crItems.map(([k,c])=>`<div class="cr-item"><span style="flex:1">${k.replace(/^\d+_/,'')}</span><div class="cr-bar"><div class="cr-bf" style="width:${Math.round(c/crMax*100)}%"></div></div><span class="mono" style="color:var(--r);min-width:30px;text-align:right">${c}</span></div>`).join('')}</div>`:''}`
-      :'<div style="color:var(--t3);font-size:12px">営業データなし</div>'}
-    </div>
-    <div class="card"><div class="ctitle">在留資格別 件数</div><canvas id="mcv" style="max-height:200px"></canvas></div>
-    <div class="card"><div class="ctitle">国籍別 件数</div><canvas id="mcn" style="max-height:200px"></canvas></div>
-    ${months.length?`<div class="card full"><div class="ctitle">月別 件数トレンド（会社別）</div><canvas id="mcm" style="max-height:155px"></canvas></div>`:''}
-  `;
-  document.getElementById('MBG').classList.add('on');
-  setTimeout(()=>{
-    if(tv.length)MCH('mcv','bar',tv.map(e=>e[0]),[{data:tv.map(e=>e[1]),backgroundColor:CLR.map(c=>c+'bb'),borderRadius:4}],{plugins:{legend:{display:false}}});
-    if(tn.length)MCH('mcn','bar',tn.map(e=>e[0]),[{data:tn.map(e=>e[1]),backgroundColor:'rgba(14,165,233,.72)',borderRadius:4}],{plugins:{legend:{display:false}}});
-    if(months.length)MCH('mcm','line',months,[{label:'件数',data:months.map(m=>mo[m]||0),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.35,pointBackgroundColor:'#2563eb',pointRadius:4}],{plugins:{legend:{display:false}}});
-  },80);
-}
 function OM5(nm){OM(nm);}
 function CMOD(e){if(!e||e.target===document.getElementById('MBG'))document.getElementById('MBG').classList.remove('on');}
 
