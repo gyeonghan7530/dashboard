@@ -558,8 +558,10 @@ function buildDB(raw){
   CV.forEach(m=>{if(!ckByMg[m.nm])ckByMg[m.nm]={v:{},n:{}};ckByMg[m.nm].v[m.visa]=(ckByMg[m.nm].v[m.visa]||0)+m.cnt;});
   CN.forEach(m=>{if(!ckByMg[m.nm])ckByMg[m.nm]={v:{},n:{}};ckByMg[m.nm].n[m.nat]=(ckByMg[m.nm].n[m.nat]||0)+m.cnt;});
 
-  // 月別トレンドをグローバルに保存
+  // 全体データをグローバルに保存 (1段階時のチャート用)
   window._hoshoByMonth=hosho.byMonth||[];
+  window._hoshoByVisa=hosho.byVisa||[];
+  window._hoshoByNat=hosho.byNat||[];
 
   const CK=(hosho.byChukai||[]).filter(r=>r.chukai&&r.chukai!=='仲介会社利用無し'&&r.chukai!=='仲介会社　要確認').map(r=>{
     const mg=cleanNm(r.mgmt||'');
@@ -631,8 +633,13 @@ function buildDB(raw){
   const rents=coList.filter(r=>r.rent>0).map(r=>r.rent);
 
   // ── フィルタリスト (全データから構築)
-  const allVisa=[...new Set(CV.map(m=>m.visa).filter(Boolean))].sort();
-  const allNat=[...new Set(CN.map(m=>m.nat).filter(Boolean))].sort();
+  // CV/CNが空の場合(1段階ロード時)はbyVisa/byNatから生成
+  const allVisa=CV.length
+    ?[...new Set(CV.map(m=>m.visa).filter(Boolean))].sort()
+    :[...new Set((hosho.byVisa||[]).map(r=>cleanVisa(r.visa||'')).filter(Boolean))].sort();
+  const allNat=CN.length
+    ?[...new Set(CN.map(m=>m.nat).filter(Boolean))].sort()
+    :[...new Set((hosho.byNat||[]).map(r=>cleanNat(r.nat||'')).filter(Boolean))].sort();
   const allPref=Object.keys(PD).sort();
   const allAgPref=[...new Set(AL.map(r=>r.pref).filter(Boolean))].sort();
 
@@ -694,7 +701,8 @@ function AGG(filters){
   }
 
   if(visa && !nat){
-    // ビザフィルタのみ → byCoVisa使用
+    // ビザフィルタのみ → byCoVisa使用 (2段階完了後のみ正確)
+    if(!DB.CV.length)return [];// 1段階: フィルタ未対応
     let src=DB.CV.filter(m=>m.visa===visa);
     if(pref)src=src.filter(m=>m.pref===pref);
     if(shinsa==='海外')src=src.filter(m=>m.shinsa==='海外');
@@ -706,7 +714,8 @@ function AGG(filters){
   }
 
   if(!visa && nat){
-    // 国籍フィルタのみ → byCoNat使用
+    // 国籍フィルタのみ → byCoNat使用 (2段階完了後のみ正確)
+    if(!DB.CN.length)return [];// 1段階: フィルタ未対応
     let src=DB.CN.filter(m=>m.nat===nat);
     if(pref)src=src.filter(m=>m.pref===pref);
     if(shinsa==='海外')src=src.filter(m=>m.shinsa==='海外');
@@ -718,6 +727,7 @@ function AGG(filters){
   }
 
   // ビザ + 国籍 同時フィルタ → byVisaNat使用
+  if(!DB.VN.length)return [];// 1段階: フィルタ未対応
   let src=DB.VN.filter(m=>m.visa===visa&&m.nat===nat);
   if(pref){
     // VNにはprefがないため、prefに該当する会社セットを絞り込み
@@ -856,6 +866,10 @@ function SST(id){
   }
 }
 function SSC(id,val){
+  // 1段階ロード中にビザ/国籍フィルタを使うと不正確な場合の案内
+  if((id.includes('v')||id.includes('n'))&&val&&DB&&!DB.CV.length){
+    showToast('⏳ フィルタデータ読み込み中... 完了後に再選択してください');
+  }
   SSV[id]=val;
   const inp=document.getElementById(id+'i');if(inp)inp.value=val===null?'':val;
   const drop=document.getElementById(id+'d');if(drop)drop.classList.remove('op');
@@ -948,6 +962,11 @@ function A2(){
   document.getElementById('f2c').textContent=rows.length+'社';CH2(rows);
 }
 function A3(){
+  if(!DB||!DB.CK||!DB.CK.length){
+    document.getElementById('b3').innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--t2)">⏳ データ読み込み中...</td></tr>';
+    document.getElementById('p3i').textContent='';
+    return;
+  }
   let rows=[...DB.CK];
   if(SSV.ss3p)rows=rows.filter(r=>r.p===SSV.ss3p);
   if(SSV.ss3n)rows=rows.filter(r=>r.n&&r.n.includes(SSV.ss3n));
@@ -985,7 +1004,7 @@ function A5(){
 function R1(){SSV.ss1v=null;SSV.ss1n=null;SSV.ss1p=null;['ss1vi','ss1ni','ss1pi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('f1s').value='';['f1rn','f1rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC1=[];RAC('AC1');A1();}
 function R2(){SSV.ss2p=null;const e=document.getElementById('ss2pi');if(e)e.value='';ACS.AC2=[];RAC('AC2');A2();}
 function R3(){SSV.ss3p=null;SSV.ss3n=null;SSV.ss3v=null;['ss3pi','ss3ni','ss3vi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC3=[];RAC('AC3');A3();}
-function R4(){SSV.ss4n=null;SSV.ss4v=null;['ss4ni','ss4vi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});['f4rn','f4rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});SEL_PREFS=[];UPREF_TAGS();A4();}
+function R4(){SSV.ss4n=null;SSV.ss4v=null;['ss4ni','ss4vi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});['f4rn','f4rx'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});SEL_PREFS=[];UPREF_TAGS();UPD_PREF_SEL_TAGS();A4();}
 function R5(){SSV.ss5p=null;SSV.ss5cr=null;['ss5pi','ss5cri'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});ACS.AC5=[];RAC('AC5');A5();}
 function RMX(){SSV.ss6p=null;const e=document.getElementById('ss6pi');if(e)e.value='';document.getElementById('mxmd').value='vn';document.getElementById('mxs').value='';document.getElementById('mxmn').value='50';DMX();}
 
@@ -1112,8 +1131,22 @@ function MCH(id,type,labels,datasets,opts){
   CHTS[id]=new Chart(ctx,{type,data:{labels,datasets},options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},animation:{duration:200},...(opts||{})}});
 }
 function CH1(rows,filters){
-  // CV(ビザ軸) / CN(国籍軸) からフィルタして集計
+  // CV/CNが空の場合はbyVisa/byNatから直接集計
   const vm={},nm={};
+  if(!DB.CV.length){
+    // 1段階ロード: byVisa/byNatから集計
+    (window._hoshoByVisa||[]).forEach(r=>{
+      const v=cleanVisa(r.visa||'');if(!v)return;
+      if(!vm[v])vm[v]={ka:0,ko:0};
+      if(r.shinsa==='海外')vm[v].ka+=(r.cnt||0);else vm[v].ko+=(r.cnt||0);
+    });
+    (window._hoshoByNat||[]).forEach(r=>{
+      const n=cleanNat(r.nat||'');if(!n)return;
+      if(!nm[n])nm[n]={ka:0,ko:0};
+      if(r.shinsa==='海外')nm[n].ka+=(r.cnt||0);else nm[n].ko+=(r.cnt||0);
+    });
+  } else {
+  // CV(ビザ軸) / CN(国籍軸) からフィルタして集計
   // ビザチャート: CV基準
   let cvSrc=DB.CV;
   if(filters.visa)cvSrc=cvSrc.filter(m=>m.visa===filters.visa);
@@ -1142,6 +1175,7 @@ function CH1(rows,filters){
     if(!nm[m.nat])nm[m.nat]={ka:0,ko:0};
     if(m.shinsa==='海外')nm[m.nat].ka+=m.cnt;else nm[m.nat].ko+=m.cnt;
   });
+  } // end else CV.length
   const vl=TOPN(Object.fromEntries(Object.entries(vm).map(([k,v])=>[k,v.ka+v.ko])),8).map(e=>e[0]);
   MCH('c1v','bar',vl,[{label:'海外',data:vl.map(k=>Math.round(vm[k]?.ka||0)),backgroundColor:'rgba(234,88,12,.8)',borderRadius:4},{label:'国内',data:vl.map(k=>Math.round(vm[k]?.ko||0)),backgroundColor:'rgba(37,99,235,.8)',borderRadius:4}],{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}});
   const nl=TOPN(Object.fromEntries(Object.entries(nm).map(([k,v])=>[k,v.ka+v.ko])),8).map(e=>e[0]);
@@ -1432,6 +1466,11 @@ function FBP(pref){SSV.ss1p=pref;const e=document.getElementById('ss1pi');if(e)e
 // MATRIX — pref-filterable
 // ================================================================
 function DMX(){
+  if(!DB||!DB.VN||!DB.VN.length){
+    document.getElementById('mxwrap').innerHTML='<div style="padding:40px;text-align:center;color:var(--t2)">⏳ データ読み込み中... しばらくお待ちください</div>';
+    document.getElementById('mxsum').innerHTML='';
+    return;
+  }
   const mode=GV('mxmd'),pref=SSV.ss6p,sh=GV('mxs');
   const minC=parseInt(GV('mxmn')||'0');
   const rk=mode==='vn'?'visa':'nat',ck=mode==='vn'?'nat':'visa';
@@ -1711,6 +1750,16 @@ function DO_CMP(){
   document.getElementById('MBG').classList.add('on');
 }
 
+// トースト通知
+function showToast(msg){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';
+    t.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;z-index:600;opacity:0;transition:opacity .3s;white-space:nowrap';
+    document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  setTimeout(()=>{t.style.opacity='0';},3000);
+}
+
 function CMOD(e){if(!e||e.target===document.getElementById('MBG'))document.getElementById('MBG').classList.remove('on');}
 
 // ================================================================
@@ -1814,7 +1863,8 @@ window.addEventListener('DOMContentLoaded',async function(){
     // T3/T6を有効化してリフレッシュ
     if(t3){t3.style.opacity='1';t3.title='';}
     if(t6){t6.style.opacity='1';t6.title='';}
-    A3();DMX();
+    // 2段階完了: 全タブ再描画
+    A1();A2();A3();A4();A5();DMX();
 
   }catch(e){
     document.getElementById('lmsg').textContent='エラー: '+e.message;
