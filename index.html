@@ -424,7 +424,7 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycby-oOHWTcpdYhiRATC0oBbxNPvXGlK9_LpOuueljBvMEyioiSQ9OzQnk67HT9LhFbPoWw/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbxRWhaR50dsz8iW6Hc90xkOT4YFgb4C_fKJZIMzBEKydpB-nVRd1tsRBmtGvbvROqUUUg/exec";
 let DB=null;
 </script>
 <script>
@@ -566,6 +566,9 @@ function buildDB(raw){
   const coList=Object.values(coBase);
   const totH=coList.reduce((s,r)=>s+r.total,0);
   const totK=coList.reduce((s,r)=>s+r.kaigai,0);
+  // 건수 가중평균 임대료 계산
+  const totRent=coList.reduce((s,r)=>s+(r.rent||0)*(r.total||0),0);
+  const totForRent=coList.filter(r=>r.rent>0).reduce((s,r)=>s+(r.total||0),0);
   const rents=coList.filter(r=>r.rent>0).map(r=>r.rent);
 
   // ── フィルタリスト (全データから構築)
@@ -574,12 +577,17 @@ function buildDB(raw){
   const allPref=Object.keys(PD).sort();
   const allAgPref=[...new Set(AL.map(r=>r.pref).filter(Boolean))].sort();
 
+  // ── 인덱스 캐시 (getTopN_CV/CN 성능향상)
+  const CV_IDX={}, CN_IDX={};
+  CV.forEach(m=>{if(!CV_IDX[m.nm])CV_IDX[m.nm]={};CV_IDX[m.nm][m.visa]=(CV_IDX[m.nm][m.visa]||0)+m.cnt;});
+  CN.forEach(m=>{if(!CN_IDX[m.nm])CN_IDX[m.nm]={};CN_IDX[m.nm][m.nat]=(CN_IDX[m.nm][m.nat]||0)+m.cnt;});
+
   return{
     s:{th:totH, ta:AL.reduce((s,r)=>s+r.total,0),
-       ar:rents.length?Math.round(rents.reduce((a,b)=>a+b)/rents.length):0,
+       ar:totForRent>0?Math.round(totRent/totForRent):0,
        kp:totH?Math.round(totK/totH*100):0,
-       ld:raw.updated||hosho.updated||(hosho.byCompany&&hosho.byCompany[0]&&hosho.byCompany[0].last_date)||''},
-    CV, CN, VN, coBase, coMonthMap, CK, PD, AL, CR,
+       ld:(raw.updated||hosho.updated||'').replace('T',' ').substring(0,10)},
+    CV, CN, VN, coBase, coMonthMap, CK, PD, AL, CR, CV_IDX, CN_IDX,
     fv:allVisa, fn:allNat, fp:allPref, fa:allAgPref,
     fcr:Object.keys(CR).sort(),
     fck:[...new Set(CK.map(r=>r.ck))].sort(),
@@ -690,25 +698,17 @@ function aggregateRows(rows,srcType,companies){
 
 // 会社のビザ別件数 (CV基準)
 function getTopN_CV(nm,visa,nat,n){
-  const m={};
-  DB.CV.filter(r=>r.nm===nm&&(visa?r.visa===visa:true)).forEach(r=>{m[r.visa]=(m[r.visa]||0)+r.cnt;});
-  return TOPN(m,n);
+  return TOPN(DB.CV_IDX[nm]||{},n);
 }
 // 会社の国籍別件数 (CN基準)
 function getTopN_CN(nm,visa,nat,n){
-  const m={};
-  DB.CN.filter(r=>r.nm===nm&&(nat?r.nat===nat:true)).forEach(r=>{m[r.nat]=(m[r.nat]||0)+r.cnt;});
-  return TOPN(m,n);
+  return TOPN(DB.CN_IDX[nm]||{},n);
 }
 function getTopObj_CV(nm,visa,nat){
-  const m={};
-  DB.CV.filter(r=>r.nm===nm).forEach(r=>{m[r.visa]=(m[r.visa]||0)+r.cnt;});
-  return m;
+  return DB.CV_IDX[nm]||{};
 }
 function getTopObj_CN(nm,visa,nat){
-  const m={};
-  DB.CN.filter(r=>r.nm===nm).forEach(r=>{m[r.nat]=(m[r.nat]||0)+r.cnt;});
-  return m;
+  return DB.CN_IDX[nm]||{};
 }
 
 
