@@ -1196,10 +1196,12 @@ function DRAW_MAP(){
     const nm=d.properties.nam_ja||d.properties.name||'';
     const full=PREF_FULL[nm]||nm;
     if(full==='沖縄県')return false;
-    // 東京都の離島（伊豆諸島・小笠原）を除外 — areaが小さいポリゴンを除く
+    // 東京都の離島は経度で判定（本土範囲: 138.9~139.9）
     if(full==='東京都'){
-      const area=d3.geoArea(d);
-      return area>0.0002;// 本州の東京都エリアのみ残す（伊豆諸島除外）
+      const bounds=d3.geoBounds(d);
+      if(!bounds||!bounds[0])return true;
+      const lng=(bounds[0][0]+bounds[1][0])/2;
+      return lng>=138.5&&lng<=140.5;// 伊豆・小笠原除外
     }
     return true;
   });
@@ -1302,7 +1304,7 @@ function DRAW_MAP(){
 
   // 沖縄インセット — 左下に配置
   if(okinawaFeatures.length){
-    const okW=110,okH=72,okX=14,okY=H-okH-14;
+    const okW=120,okH=80,okX=10,okY=H-okH-10;
     svg.append('rect').attr('x',okX-4).attr('y',okY-20).attr('width',okW+8).attr('height',okH+24)
       .attr('fill','rgba(255,255,255,.88)').attr('stroke','#cbd5e1').attr('stroke-width',1).attr('rx',6);
     svg.append('text').attr('x',okX+okW/2).attr('y',okY-6).attr('text-anchor','middle')
