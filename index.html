@@ -101,7 +101,7 @@ tr:hover td{background:#f8fafc}
 .fav:hover{transform:scale(1.2)}
 /* Map */
 .map-shell{display:flex;border-radius:var(--rd);overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh);height:660px}
-.map-area{flex:1;background:linear-gradient(150deg,#dbeafe,#e0f2fe 50%,#ede9fe);position:relative;overflow:hidden}
+.map-area{flex:1;background:linear-gradient(160deg,#e8f0f8,#dce8f5 40%,#d4e4f0);position:relative;overflow:hidden}
 .map-area svg{width:100%;height:100%}
 .map-panel{width:400px;flex-shrink:0;background:var(--pri);color:#fff;overflow-y:auto;height:100%}
 .mp-in{padding:18px}
@@ -122,7 +122,7 @@ tr:hover td{background:#f8fafc}
 .map-ctrl{position:absolute;bottom:14px;right:14px;display:flex;flex-direction:column;gap:4px;z-index:10}
 .map-ctrl button{width:30px;height:30px;background:#fff;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh)}
 .map-ctrl button:hover{background:#eff6ff;color:var(--acc)}
-.pref-path{cursor:pointer;stroke:#fff;stroke-width:0.5;transition:opacity .12s}
+.pref-path{cursor:pointer;stroke:rgba(255,255,255,0.8);stroke-width:0.7;transition:opacity .12s;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.08))}
 .pref-path:hover{opacity:.78}
 .pref-path.sel{stroke:#2563eb;stroke-width:2.5;filter:drop-shadow(0 0 5px rgba(37,99,235,.6))}
 .pref-lbl{pointer-events:none;font-family:'Noto Sans JP',sans-serif;fill:#334155;font-weight:500}
@@ -929,7 +929,9 @@ function A1(){
   document.getElementById('k1c').textContent=rows.length.toLocaleString();
   document.getElementById('k1r').textContent=rents.length?'¥'+Math.round(rents.reduce((a,b)=>a+b)/rents.length).toLocaleString():'-';
   document.getElementById('k1k').textContent=tot?Math.round(kai/tot*100)+'%':'-';
-  document.getElementById('k1d').textContent=rows.map(r=>r.date).filter(Boolean).sort().reverse()[0]||'-';
+  const latestDate=rows.map(r=>r.date).filter(Boolean).sort().reverse()[0]||'';
+  document.getElementById('k1d').textContent=
+    latestDate?latestDate.substring(0,7).replace('-','年')+'月':'-';
   CH1(rows,GETF1());SHIST();FTAGS1();
 }
 
@@ -1232,9 +1234,14 @@ const PREF_NAME_MAP={'北海道':'北海道','青森県':'青森','岩手県':'�
 const PREF_FULL={};Object.entries(PREF_NAME_MAP).forEach(([f,s])=>{PREF_FULL[s]=f;PREF_FULL[f]=f;});
 
 function PCOLOR(cnt,mx){
-  if(!cnt)return '#e8edf5';const r=Math.min(cnt/mx,1);
-  if(r<0.04)return '#dbeafe';if(r<0.12)return '#bfdbfe';if(r<0.25)return '#93c5fd';
-  if(r<0.45)return '#60a5fa';if(r<0.65)return '#3b82f6';if(r<0.82)return '#2563eb';return '#1d4ed8';
+  if(!cnt)return '#dde6f0';// データなし: 少し濃いグレー
+  const r=Math.min(cnt/mx,1);
+  if(r<0.04)return '#c8d9ee';// 最小: 見えやすいグレーブルー
+  if(r<0.12)return '#a8c4e4';
+  if(r<0.25)return '#7aadd8';
+  if(r<0.45)return '#4d8cc4';
+  if(r<0.65)return '#2b6cb0';
+  if(r<0.82)return '#1a4f8a';return '#0f3460';
 }
 
 async function LOAD_MAP(){
@@ -1292,7 +1299,14 @@ function DRAW_MAP(){
   MAP_ZOOM_OBJ=d3.zoom().scaleExtent([0.5,10]).on('zoom',event=>{
     g.attr('transform',event.transform);
     // ラベル表示切替 (zoom level 2以上で表示)
-    g.selectAll('.pref-lbl').style('display',event.transform.k>=1.8?'block':'none');
+    const zk=event.transform.k;
+    g.selectAll('.pref-lbl')
+      .style('display',zk>=1.2?'block':'none')
+      .attr('font-size',function(){
+        const pref=d3.select(this).attr('data-pref');
+        const base=pref==='北海道'?9:7;
+        return Math.min(base*Math.sqrt(zk/1.2),16);
+      });
   });
   svg.call(MAP_ZOOM_OBJ).on('dblclick.zoom',null);
 
@@ -1345,18 +1359,40 @@ function DRAW_MAP(){
       });
 
     // 都道府県名ラベル (zoom>=1.8で表示)
+    // 都道府県別 ラベル位置オフセット (MultiPolygon補正)
+    const LABEL_OFFSET={'東京都':[8,-12],'神奈川県':[0,8],'大阪府':[-6,0],'京都府':[0,6]};
     features.forEach(d=>{
       const nm=d.properties.nam_ja||d.properties.name||'';
       const full=PREF_FULL[nm]||nm;
       const short=PREF_NAME_MAP[full]||full.replace(/[都道府県]/g,'');
-      const centroid=p.centroid(d);
-      if(!centroid||isNaN(centroid[0]))return;
+      // 東京都: 本土ポリゴン(最大面積)の重心を使用
+      let cx,cy;
+      if(full==='東京都'&&d.geometry&&d.geometry.type==='MultiPolygon'){
+        let maxArea=0,bestPoly=null;
+        d.geometry.coordinates.forEach(poly=>{
+          const lngs=poly[0].map(c=>c[0]);
+          const avgLng=lngs.reduce((a,b)=>a+b,0)/lngs.length;
+          if(avgLng>=138.8&&avgLng<=140.2){
+            const fc={type:'Feature',geometry:{type:'Polygon',coordinates:poly}};
+            const area=d3.geoArea(fc);
+            if(area>maxArea){maxArea=area;bestPoly=fc;}
+          }
+        });
+        if(bestPoly){const c=p.centroid(bestPoly);cx=c[0];cy=c[1];}
+      } else {
+        const centroid=p.centroid(d);
+        if(!centroid||isNaN(centroid[0]))return;
+        cx=centroid[0];cy=centroid[1];
+      }
+      if(cx===undefined||isNaN(cx))return;
+      const off=LABEL_OFFSET[full]||[0,0];
       container.append('text')
         .attr('class','pref-lbl')
-        .attr('x',centroid[0]).attr('y',centroid[1]+3.5)
+        .attr('data-pref',full)
+        .attr('x',cx+off[0]).attr('y',cy+off[1]+3.5)
         .attr('text-anchor','middle')
         .attr('font-size',full==='北海道'?9:7)
-        .style('display','none')// zoom>=1.8で表示
+        .style('display','none')
         .text(short);
     });
   }
