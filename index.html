@@ -444,7 +444,8 @@ function cleanVisa(v){
 }
 
 function buildDB(raw){
-  const hosho=raw.hosho||{}, agent=raw.agent||{};
+  // hosho/agentは直接データ or ラップ済みどちらにも対応
+  const hosho=raw.hosho||raw||{}, agent=raw.agent||{};
 
   // Raw matrix records (nm, visa, nat, shinsa, pref, avg_rent, cnt)
   const MX_RAW=[];
@@ -454,7 +455,7 @@ function buildDB(raw){
     MX_RAW.push({nm, visa, nat, shinsa:r.shinsa||'', pref:r.pref||'', rent:r.avg_rent||0, cnt:r.cnt||0});
   });
 
-  // byCompanyMonth map: nm -> {month -> cnt}
+  // byCompanyMonth map: nm -> {month -> cnt} (遅延ロード対応)
   const coMonthMap={};
   (hosho.byCompanyMonth||[]).forEach(r=>{
     const nm=cleanNm(r.nm||'');
@@ -533,9 +534,10 @@ function buildDB(raw){
   const CR={};
   (agent.cancelReasonTotal||[]).forEach(r=>{if(r.reason&&!r.reason.includes('該当なし'))CR[r.reason]=r.cnt||0;});
 
-  // Summary
-  const totMx=MX_RAW.reduce((s,m)=>s+m.cnt,0);
-  const totK=MX_RAW.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
+  // Summary — byCompanyの合計を使用（matrixより正確）
+  const hoshoList=hosho.byCompany||[];
+  const totMx=hoshoList.reduce((s,r)=>s+(r.total||0),0)||MX_RAW.reduce((s,m)=>s+m.cnt,0);
+  const totK=hoshoList.reduce((s,r)=>s+(r.kaigai||0),0)||MX_RAW.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
 
   // Filter lists
   const allVisa=[...new Set(MX_RAW.map(m=>m.visa).filter(Boolean))].sort();
@@ -1226,6 +1228,7 @@ function OM(nm){
   const tvMap={},tnMap={};
   mxCo.forEach(m=>{tvMap[m.visa]=(tvMap[m.visa]||0)+m.cnt;tnMap[m.nat]=(tnMap[m.nat]||0)+m.cnt;});
   const tv=TOPN(tvMap,7),tn=TOPN(tnMap,8);
+  // 月別トレンドはDB内キャッシュを使用（初回はAPIから遅延ロード）
   const mo=DB.coMonthMap[nm]||{};
   const months=Object.keys(mo).sort().slice(-10);
   const crItems=TOPN(a?.crs||{},5);const crMax=crItems[0]?.[1]||1;
@@ -1307,6 +1310,7 @@ function OM(nm){
   const tvMap={},tnMap={};
   mxCo.forEach(m=>{tvMap[m.visa]=(tvMap[m.visa]||0)+m.cnt;tnMap[m.nat]=(tnMap[m.nat]||0)+m.cnt;});
   const tv=TOPN(tvMap,7),tn=TOPN(tnMap,8);
+  // 月別トレンドはDB内キャッシュを使用（初回はAPIから遅延ロード）
   const mo=DB.coMonthMap[nm]||{};
   const months=Object.keys(mo).sort().slice(-10);
   const crItems=TOPN(a?.crs||{},5);const crMax=crItems[0]?.[1]||1;
@@ -1396,21 +1400,28 @@ function SW(id,el){
 window.addEventListener('DOMContentLoaded',async function(){
   const prog=document.getElementById('lprog'),msg=document.getElementById('lmsg');
   try{
-    prog.style.width='20%';msg.textContent='APIに接続中...';
-    const res=await fetch(API_URL+'?type=all',{redirect:'follow',mode:'cors'});
-    prog.style.width='60%';msg.textContent='データを変換中...';
-    const raw=await res.json();
-    if(raw.error)throw new Error(raw.error);
+    prog.style.width='15%';msg.textContent='保証データ・営業データを並列取得中...';
+    // hosho と agent を並列フェッチ
+    const [rH,rA]=await Promise.all([
+      fetch(API_URL+'?type=hosho',{redirect:'follow',mode:'cors'}),
+      fetch(API_URL+'?type=agent',{redirect:'follow',mode:'cors'})
+    ]);
+    prog.style.width='60%';msg.textContent='データを受信中...';
+    const [rawH,rawA]=await Promise.all([rH.json(),rA.json()]);
+    if(rawH.error)throw new Error('保証データ: '+rawH.error);
+    if(rawA.error)throw new Error('営業データ: '+rawA.error);
     prog.style.width='85%';msg.textContent='ダッシュボードを描画中...';
+    const raw={hosho:rawH,agent:rawA,updated:rawH.updated||new Date().toISOString()};
     DB=buildDB(raw);
     prog.style.width='100%';
-    await new Promise(r=>setTimeout(r,300));
+    await new Promise(r=>setTimeout(r,250));
     document.getElementById('loading').style.display='none';
     INIT();
   }catch(e){
     document.getElementById('lmsg').textContent='エラー: '+e.message;
     document.getElementById('lprog').style.background='#dc2626';
     prog.style.width='100%';
+    console.error(e);
   }
 });
 </script>
