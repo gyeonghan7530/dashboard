@@ -999,7 +999,7 @@ function A4(){
     });
     CUR_PD=pm;
   } else {CUR_PD=DB.PD;}
-  if(MAP_GEO)DRAW_MAP();
+  if(MAP_GEO)UPDATE_MAP_COLORS();
   SARR(rows,SORT.t4);ROWS.t4=rows;PAGE.t4=1;RT4();
   document.getElementById('f4c').textContent=rows.length+'社';
 }
@@ -1261,6 +1261,25 @@ async function LOAD_MAP(){
   }catch(e){document.getElementById('mapArea').innerHTML='<div style="padding:40px;text-align:center;color:var(--t2)">地図の読み込みに失敗しました</div>';}
 }
 
+// 色・選択状態だけ更新 (zoom維持)
+function UPDATE_MAP_COLORS(){
+  if(!MAP_G||!MAP_GEO)return;
+  const pd=CUR_PD||DB.PD;
+  const mx=Math.max(...Object.values(pd).map(p=>p.t||0),1);
+  MAP_G.selectAll('.pref-path').attr('fill',d=>{
+    const nm=d.properties.nam_ja||d.properties.name||'';
+    const full=PREF_FULL[nm]||nm;
+    const pref=pd[full];return PCOLOR(pref?pref.t||0:0,mx);
+  });
+  // 選択状態復元
+  if(SEL_PREFS.length){
+    MAP_G.selectAll('.pref-path').classed('sel',d=>{
+      const nm=d.properties.nam_ja||d.properties.name||'';
+      return SEL_PREFS.includes(PREF_FULL[nm]||nm);
+    });
+  }
+}
+
 function DRAW_MAP(){
   if(!MAP_GEO)return;
   const pd=CUR_PD||DB.PD;
@@ -1420,15 +1439,41 @@ function DRAW_MAP(){
   }
 
   // 沖縄インセット — 左下に配置
-  if(okinawaFeatures.length){
+  // 沖縄インセット: zoom外のsvg直下に固定表示
+  const okAll=geo.features.filter(d=>{
+    const nm=d.properties.nam_ja||d.properties.name||'';
+    const full=PREF_FULL[nm]||nm;
+    return full==='沖縄県';
+  });
+  if(okAll.length){
     const okW=120,okH=80,okX=10,okY=H-okH-10;
-    svg.append('rect').attr('x',okX-4).attr('y',okY-20).attr('width',okW+8).attr('height',okH+24)
-      .attr('fill','rgba(255,255,255,.88)').attr('stroke','#cbd5e1').attr('stroke-width',1).attr('rx',6);
-    svg.append('text').attr('x',okX+okW/2).attr('y',okY-6).attr('text-anchor','middle')
-      .attr('font-size',10).attr('fill','#64748b').text('沖縄県');
-    const okGeo={type:'FeatureCollection',features:okinawaFeatures};
+    const okGrp=svg.append('g').attr('class','ok-inset');
+    okGrp.append('rect').attr('x',okX-4).attr('y',okY-20)
+      .attr('width',okW+8).attr('height',okH+24)
+      .attr('fill','rgba(255,255,255,.88)').attr('stroke','#cbd5e1')
+      .attr('stroke-width',1).attr('rx',6);
+    okGrp.append('text').attr('x',okX+okW/2).attr('y',okY-6)
+      .attr('text-anchor','middle').attr('font-size',10)
+      .attr('fill','#64748b').text('沖縄県');
+    const okGeo={type:'FeatureCollection',features:okAll};
     const okProj=d3.geoMercator().fitExtent([[okX,okY],[okX+okW,okY+okH]],okGeo);
-    drawLayer(svg,okinawaFeatures,okProj,true);
+    const okPath=d3.geoPath().projection(okProj);
+    const pd2=CUR_PD||DB.PD;
+    const mx2=Math.max(...Object.values(pd2).map(p=>p.t||0),1);
+    okGrp.selectAll('.ok-path').data(okAll).enter().append('path')
+      .attr('d',okPath)
+      .attr('class','pref-path ok-path')
+      .attr('fill',d=>{
+        const nm=d.properties.nam_ja||d.properties.name||'';
+        const full=PREF_FULL[nm]||nm;
+        const pref=pd2[full];return PCOLOR(pref?pref.t||0:0,mx2);
+      })
+      .attr('stroke','rgba(255,255,255,0.8)').attr('stroke-width',0.7)
+      .on('click',function(event,d){
+        const nm=d.properties.nam_ja||d.properties.name||'';
+        const full=PREF_FULL[nm]||nm;
+        SEL_PREFS=[full];UPREF_TAGS();UPD_PREF_SEL_TAGS();A4();SELP(full);
+      });
   }
 }
 
