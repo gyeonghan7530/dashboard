@@ -518,8 +518,24 @@ function cleanVisa(v){
     .replace('特定活動（ワーキングホリデー等）','特定活動(ワーホリ)');
 }
 
-// FIX #5: 日付フォーマット統一ヘルパー
-function fmtDate(d){return d?d.replace('-','年')+'月':'-';}
+// FIX #12: 不明・ダミー会社名フィルタ
+function isUnknownNm(nm){
+  if(!nm)return true;
+  const exact=['その他','(管理会社不明)','管理会社不明','不明','未設定','要確認','(未設定)','(不明)'];
+  if(exact.includes(nm))return true;
+  if(/^[\s　]*$/.test(nm))return true;
+  if(nm.includes('不明')&&nm.length<=8)return true;
+  return false;
+}
+
+// FIX #5: 日付フォーマット統一ヘルパー (YYYY-MM → YYYY年MM月)
+function fmtDate(d){
+  if(!d)return '-';
+  const s=(d+'').substring(0,7);// YYYY-MM 以外も安全に
+  const m=s.match(/^(\d{4})-(\d{2})$/);
+  if(!m)return d;
+  return `${m[1]}年${m[2]}月`;
+}
 
 function buildDB(raw){
   const hosho=raw.hosho||raw||{}, agent=raw.agent||{};
@@ -535,7 +551,7 @@ function buildDB(raw){
   const CV=[];
   (hosho.byCoVisa||[]).forEach(r=>{
     const nm=cleanNm(r.nm||''), visa=cleanVisa(r.visa||'');
-    if(!nm||!visa)return;
+    if(!nm||!visa||isUnknownNm(nm))return;
     // FIX #1: DB参照不要、coBaseSeedから直接取得
     const cvPref=r.pref||coBaseSeed[nm]||'';
     CV.push({nm, visa, shinsa:r.shinsa||'', pref:cvPref, rent:r.avg_rent||0, cnt:r.cnt||0});
@@ -545,7 +561,7 @@ function buildDB(raw){
   const CN=[];
   (hosho.byCoNat||[]).forEach(r=>{
     const nm=cleanNm(r.nm||''), nat=cleanNat(r.nat||'');
-    if(!nm||!nat)return;
+    if(!nm||!nat||isUnknownNm(nm))return;
     // FIX #1: DB参照不要、coBaseSeedから直接取得
     const cnPref=r.pref||coBaseSeed[nm]||'';
     CN.push({nm, nat, shinsa:r.shinsa||'', pref:cnPref, rent:r.avg_rent||0, cnt:r.cnt||0});
@@ -555,7 +571,7 @@ function buildDB(raw){
   const VN=[];
   (hosho.byVisaNat||[]).forEach(r=>{
     const nm=cleanNm(r.nm||''), visa=cleanVisa(r.visa||''), nat=cleanNat(r.nat||'');
-    if(!nm||!visa||!nat)return;
+    if(!nm||!visa||!nat||isUnknownNm(nm))return;
     VN.push({nm, visa, nat, shinsa:r.shinsa||'', cnt:r.cnt||0});
   });
 
@@ -563,7 +579,7 @@ function buildDB(raw){
   const coBase={};
   (hosho.byCompany||[]).forEach(r=>{
     const nm=cleanNm(r.nm||'');
-    if(!nm)return;
+    if(!nm||isUnknownNm(nm))return;
     coBase[nm]={nm, total:r.total||0, kaigai:r.kaigai||0, rent:r.avg_rent||0,
                 date:(r.last_date||'').substring(0,7), pref:r.pref||''};
   });
@@ -572,7 +588,7 @@ function buildDB(raw){
   const coMonthMap={};
   (hosho.byCompanyMonth||[]).forEach(r=>{
     const nm=cleanNm(r.nm||'');
-    if(!nm||!r.month)return;
+    if(!nm||!r.month||isUnknownNm(nm))return;
     if(!coMonthMap[nm])coMonthMap[nm]={};
     coMonthMap[nm][r.month]=(coMonthMap[nm][r.month]||0)+(r.cnt||0);
   });
@@ -620,7 +636,7 @@ function buildDB(raw){
   // ── 営業データ
   const agMap={};
   (agent.byCompany||[]).forEach(r=>{
-    const nm=r.nm||'';if(!nm||nm==='その他')return;
+    const nm=cleanNm(r.nm||'');if(!nm||isUnknownNm(nm))return;
     if(!agMap[nm])agMap[nm]={nm,total:0,contract:0,cancel:0,rent:0,pref:r.pref||'',crs:{}};
     agMap[nm].total+=r.total||0; agMap[nm].contract+=r.contract||0;
     agMap[nm].cancel+=r.cancel||0;
@@ -628,7 +644,7 @@ function buildDB(raw){
     agMap[nm].pref=r.pref||agMap[nm].pref;
   });
   (agent.byCancelReason||[]).forEach(r=>{
-    const nm=r.nm||'',reason=r.reason||'';
+    const nm=cleanNm(r.nm||''),reason=r.reason||'';
     if(!nm||!reason||reason.includes('該当なし'))return;
     if(!agMap[nm])return;
     agMap[nm].crs[reason]=(agMap[nm].crs[reason]||0)+(r.cnt||0);
@@ -638,7 +654,7 @@ function buildDB(raw){
     return{...a,decided,
       cr:decided?Math.round(a.contract/decided*100):0,
       xr:decided?Math.round(a.cancel/decided*100):0,
-      topCR:TOPN(a.crs,1)[0]?.[0]||''};
+      topCR:(TOPN(a.crs,1)[0]?.[0]||'').replace(/^\d+_/,'')};
   }).sort((a,b)=>b.total-a.total);
 
   const CR={};
@@ -1142,7 +1158,7 @@ function RT5(){
     <td class="mono" style="color:var(--r);font-weight:700">${r.cancel}</td>
     <td>${r.decided>0?BW(r.cr,'#059669'):'<span style="color:var(--t3)">—</span>'}</td>
     <td>${r.decided>0?BW(r.xr,'#dc2626'):'<span style="color:var(--t3)">—</span>'}</td>
-    <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:150px">${r.topCR||'-'}</td>
+    <td style="font-size:11px;color:var(--t2);white-space:normal;max-width:150px">${r.topCR?r.topCR.replace(/^\d+_/,''):'-'}</td>
     <td class="mono">¥${r.rent.toLocaleString()}</td>
     <td>${r.decided>0?SCORE(r.cr):'<span style="color:var(--t3);font-size:11px">データなし</span>'}</td>
   </tr>`).join('');
