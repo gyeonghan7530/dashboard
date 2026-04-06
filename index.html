@@ -528,13 +528,15 @@ function isUnknownNm(nm){
   return false;
 }
 
-// FIX #5: 日付フォーマット統一ヘルパー (YYYY-MM → YYYY年MM月)
+// FIX #5 v2: YYYY-MM-DD→YYYY年MM月DD日 / YYYY-MM→YYYY年MM月
 function fmtDate(d){
   if(!d)return '-';
-  const s=(d+'').substring(0,7);// YYYY-MM 以外も安全に
-  const m=s.match(/^(\d{4})-(\d{2})$/);
-  if(!m)return d;
-  return `${m[1]}年${m[2]}月`;
+  const s=(d+'').trim();
+  const fd=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(fd)return fd[1]+'年'+fd[2]+'月'+fd[3]+'日';
+  const ym=s.match(/^(\d{4})-(\d{2})/);
+  if(ym)return ym[1]+'年'+ym[2]+'月';
+  return s||'-';
 }
 
 function buildDB(raw){
@@ -581,7 +583,7 @@ function buildDB(raw){
     const nm=cleanNm(r.nm||'');
     if(!nm||isUnknownNm(nm))return;
     coBase[nm]={nm, total:r.total||0, kaigai:r.kaigai||0, rent:r.avg_rent||0,
-                date:(r.last_date||'').substring(0,7), pref:r.pref||''};
+                date:(r.last_date||'').substring(0,10), pref:r.pref||''}; // FIX: 日まで保持
   });
 
   // ── 月別トレンド
@@ -929,7 +931,7 @@ function INIT(){
   const s=DB.s;
   document.getElementById('hht').textContent=s.th.toLocaleString();
   document.getElementById('hat').textContent=s.ta.toLocaleString();
-  document.getElementById('hdt').textContent=s.ld||'-';
+  document.getElementById('hdt').textContent=fmtDate(s.ld);
 
   ACD.AC1=Object.keys(DB.coBase).sort();ACD.AC2=ACD.AC1.slice();
   ACD.AC3=DB.fck.slice();ACD.AC5=DB.AL.map(r=>r.nm).sort();
@@ -974,7 +976,7 @@ function A1(){
   document.getElementById('k1k').textContent=tot?Math.round(kai/tot*100)+'%':'-';
   const latestDate=rows.map(r=>r.date).filter(Boolean).sort().reverse()[0]||'';
   // FIX #5: fmtDate統一ヘルパーで表示
-  document.getElementById('k1d').textContent=fmtDate(latestDate?latestDate.substring(0,7):null);
+  document.getElementById('k1d').textContent=fmtDate(latestDate||null);
   CH1(rows,GETF1());SHIST();FTAGS1();
 }
 
