@@ -237,11 +237,11 @@ tr:hover td{background:#f8fafc}
 <div class="hdr">
   <div class="hdr-l">
     <span class="hdr-title">🏢 管理会社ダッシュボード</span>
-    <span class="hdr-pill">2025 保証データ</span>
+    <span class="hdr-pill" id="hdr-year-pill">保証データ</span>
   </div>
   <div class="hdr-r">
     <div>保証 <span class="mono" id="hht">-</span>件 ／ 営業 <span class="mono" id="hat">-</span>件</div>
-    <div>最終更新 <span id="hdt">-</span></div>
+    <div>最終承認日 <span id="hdt">-</span></div>
   </div>
 </div>
 <div class="tabs">
@@ -257,7 +257,7 @@ tr:hover td{background:#f8fafc}
 
 <!-- T1 -->
 <div id="t1" class="tc on">
-  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
+  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025年1月1日以降</div>
   <div class="ftags" id="ftags1"></div>
   <div class="kpis">
     <div class="kpi"><div class="kpi-l">保証件数</div><div class="kpi-v" id="k1t">-</div></div>
@@ -296,7 +296,7 @@ tr:hover td{background:#f8fafc}
 
 <!-- T2 -->
 <div id="t2" class="tc">
-  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
+  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025年1月1日以降</div>
   <div class="fbar">
     <div class="fg"><label>管理会社で絞込</label>
       <div class="ac" id="AC2"><input type="text" id="AC2i" placeholder="会社名を入力..." oninput="ACF('AC2')" onfocus="ACF('AC2')" autocomplete="off"><div class="acd" id="AC2d"></div><div class="act" id="AC2t"></div></div></div>
@@ -318,7 +318,7 @@ tr:hover td{background:#f8fafc}
       <th>#</th><th onclick="SRT('t2','nm')">管理会社名↕</th><th onclick="SRT('t2','total')">件数↕</th>
       <th onclick="SRT('t2','kaigai')">海外↕</th><th onclick="SRT('t2','kr')">海外比率↕</th>
       <th>国籍 Top2</th><th>在留資格 Top2</th>
-      <th onclick="SRT('t2','rent')">平均月額↕</th><th onclick="SRT('t2','date')">最終承認↕</th><th>⭐</th>
+      <th onclick="SRT('t2','rent')">平均月額賃料↕</th><th onclick="SRT('t2','date')">最終承認日↕</th><th>⭐</th>
     </tr></thead><tbody id="b2"></tbody></table></div>
     <div class="pgn"><span id="p2i"></span><div class="pb"><button onclick="PG('t2',-1)">＜</button><button onclick="PG('t2',1)">＞</button></div></div>
   </div>
@@ -326,7 +326,7 @@ tr:hover td{background:#f8fafc}
 
 <!-- T3 -->
 <div id="t3" class="tc">
-  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
+  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025年1月1日以降</div>
   <div class="fbar">
     <div class="fg"><label>仲介会社で絞込</label>
       <div class="ac" id="AC3"><input type="text" id="AC3i" placeholder="仲介会社名を入力..." oninput="ACF('AC3')" onfocus="ACF('AC3')" autocomplete="off"><div class="acd" id="AC3d"></div><div class="act" id="AC3t"></div></div></div>
@@ -351,7 +351,7 @@ tr:hover td{background:#f8fafc}
 
 <!-- T4 -->
 <div id="t4" class="tc">
-  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
+  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025年1月1日以降</div>
   <div class="fbar">
     <div class="fg"><label>国籍</label><div class="ss" id="ss4n"><input class="ss-inp" id="ss4ni" placeholder="すべて" readonly onclick="SST('ss4n')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss4nd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss4n',this.value)"></div><div class="ss-list" id="ss4nl"></div></div></div></div>
     <div class="fg"><label>在留資格</label><div class="ss" id="ss4v"><input class="ss-inp" id="ss4vi" placeholder="すべて" readonly onclick="SST('ss4v')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss4vd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss4v',this.value)"></div><div class="ss-list" id="ss4vl"></div></div></div></div>
@@ -412,7 +412,7 @@ tr:hover td{background:#f8fafc}
 
 <!-- T5 -->
 <div id="t5" class="tc">
-  <div class="dsrc">📊 営業案件データ (mgmt_agent_data) ／ 成約スコア: 決着ベース（成約÷(成約+キャンセル)）</div>
+  <div class="dsrc">📊 営業案件データ (mgmt_agent_data) ／ 成約スコア: 総申込数ベース（成約÷総申込数）</div>
   <div class="fbar">
     <div class="fg"><label>管理会社で絞込</label>
       <div class="ac" id="AC5"><input type="text" id="AC5i" placeholder="管理会社名を入力..." oninput="ACF('AC5')" onfocus="ACF('AC5')" autocomplete="off"><div class="acd" id="AC5d"></div><div class="act" id="AC5t"></div></div></div>
@@ -427,14 +427,14 @@ tr:hover td{background:#f8fafc}
   <div class="card">
     <div class="ctitle">管理会社別 成約 / キャンセル実績 <small>行クリックで詳細モーダル</small></div>
     <div style="display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap">
-      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge bg" style="font-size:10px">🟢 A優良</span>成約率30%以上</div>
-      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge by" style="font-size:10px">🟡 B普通</span>成約率15〜29%</div>
-      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge br" style="font-size:10px">🔴 C要注意</span>成約率15%未満</div>
-      <div style="font-size:11px;color:var(--t3)">※決着ベース（成約＋キャンセルが母数）</div>
+      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge bg" style="font-size:10px">🟢 A優良</span>成約率50%以上</div>
+      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge by" style="font-size:10px">🟡 B普通</span>成約率30〜49%</div>
+      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge br" style="font-size:10px">🔴 C要注意</span>成約率30%未満</div>
+      <div style="font-size:11px;color:var(--t3)">※総申込数ベース（成約÷総申込数）</div>
     </div>
     <div class="tw"><table><thead><tr>
       <th>#</th><th>管理会社名</th>
-      <th onclick="SRT('t5','total')">総案件↕</th><th onclick="SRT('t5','contract')">成約↕</th><th onclick="SRT('t5','cancel')">キャンセル↕</th>
+      <th onclick="SRT('t5','total')">総申込数↕</th><th onclick="SRT('t5','contract')">成約↕</th><th onclick="SRT('t5','cancel')">キャンセル↕</th>
       <th onclick="SRT('t5','cr')">成約率↕</th><th onclick="SRT('t5','xr')">キャンセル率↕</th>
       <th>主なキャンセル理由</th><th onclick="SRT('t5','rent')">平均賃料↕</th><th>成約スコア</th>
     </tr></thead><tbody id="b5"></tbody></table></div>
@@ -444,7 +444,7 @@ tr:hover td{background:#f8fafc}
 
 <!-- T6 -->
 <div id="t6" class="tc">
-  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025-01-01以降</div>
+  <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025年1月1日以降</div>
   <div class="fbar">
     <div class="fg"><label>表示モード</label><select id="mxmd" onchange="DMX()"><option value="vn">在留資格 × 国籍</option><option value="nv">国籍 × 在留資格</option></select></div>
     <div class="fg"><label>地域</label><div class="ss" id="ss6p"><input class="ss-inp" id="ss6pi" placeholder="すべて" readonly onclick="SST('ss6p')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss6pd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss6p',this.value)"></div><div class="ss-list" id="ss6pl"></div></div></div></div>
@@ -653,9 +653,10 @@ function buildDB(raw){
   });
   const AL=Object.values(agMap).map(a=>{
     const decided=a.contract+a.cancel;
+    // FIX: 分母を total（総申込数）に変更
     return{...a,decided,
-      cr:decided?Math.round(a.contract/decided*100):0,
-      xr:decided?Math.round(a.cancel/decided*100):0,
+      cr:a.total?Math.round(a.contract/a.total*100):0,
+      xr:a.total?Math.round(a.cancel/a.total*100):0,
       topCR:(TOPN(a.crs,1)[0]?.[0]||'').replace(/^\d+_/,'')};
   }).sort((a,b)=>b.total-a.total);
 
@@ -859,8 +860,9 @@ function KRBADGE(kr){
 }
 function SCORE(cr){
   if(cr===null||cr===undefined||isNaN(cr))return '<span style="color:var(--t3);font-size:11px">—</span>';
-  if(cr>=30)return `<span class="badge bg">🟢 A優良 ${cr}%</span>`;
-  if(cr>=15)return `<span class="badge by">🟡 B普通 ${cr}%</span>`;
+  // FIX: 申込数ベースに変更 → 基準値を調整
+  if(cr>=50)return `<span class="badge bg">🟢 A優良 ${cr}%</span>`;
+  if(cr>=30)return `<span class="badge by">🟡 B普通 ${cr}%</span>`;
   return `<span class="badge br">🔴 C要注意 ${cr}%</span>`;
 }
 function BW(pct,col){return `<div class="bw"><div class="bbg"><div class="bf" style="width:${pct}%;background:${col}"></div></div><span>${pct}%</span></div>`;}
@@ -932,6 +934,12 @@ function INIT(){
   document.getElementById('hht').textContent=s.th.toLocaleString();
   document.getElementById('hat').textContent=s.ta.toLocaleString();
   document.getElementById('hdt').textContent=fmtDate(s.ld);
+  // FIX #3: hdr-pill 年度を動的に設定
+  const yearPill=document.getElementById('hdr-year-pill');
+  if(yearPill){
+    const y=s.ld?s.ld.substring(0,4):new Date().getFullYear();
+    yearPill.textContent=y+'年 保証データ';
+  }
 
   ACD.AC1=Object.keys(DB.coBase).sort();ACD.AC2=ACD.AC1.slice();
   ACD.AC3=DB.fck.slice();ACD.AC5=DB.AL.map(r=>r.nm).sort();
@@ -1700,9 +1708,29 @@ function OM(nm){
   visaPass.sort((a,b)=>b.cnt-a.cnt);
 
   let advice='';
-  if(kr>=60)advice=`外国人顧客に積極的な管理会社です。${TOPN(tnMap,1)[0]?.[0]||''}系の顧客に特に実績があります。`;
-  else if(kr>=30)advice=`国内外バランスよく対応しています。${TOPN(tvMap,1)[0]?.[0]||''}ビザの顧客実績が豊富です。`;
-  else advice=`国内顧客中心の管理会社です。外国人顧客の場合は事前確認をお勧めします。`;
+  const topNat1=TOPN(tnMap,1)[0]?.[0]||'';
+  const topNat2=TOPN(tnMap,2).map(e=>e[0]).join('・');
+  const topVisa1=TOPN(tvMap,1)[0]?.[0]||'';
+  const topVisa2=TOPN(tvMap,2).map(e=>e[0]).join('・');
+  const topVisa2cnt=visaPass.slice(0,2).map(v=>`${v.visa}（${v.cnt}件）`).join('・');
+  const topNat2cnt=TOPN(tnMap,2).map(e=>`${e[0]}（${e[1]}件）`).join('・');
+  const agScore=a?`成約率は総申込数ベースで${a.cr}%（${SCORE(a.cr).replace(/<[^>]+>/g,'')}）です。`:'';
+  if(kr>=60){
+    advice=`外国人顧客の受け入れに積極的な管理会社です。`+
+      (topNat2cnt?`国籍別では${topNat2cnt}の実績が特に多く見られます。`:'')+
+      (topVisa2cnt?`在留資格では${topVisa2cnt}の取り扱い実績が豊富です。`:'')+
+      agScore;
+  } else if(kr>=30){
+    advice=`国内・外国人顧客ともにバランスよく対応している管理会社です。`+
+      (topVisa2cnt?`在留資格では${topVisa2cnt}の取り扱い実績が多く見られます。`:'')+
+      (topNat2cnt?`国籍では${topNat2cnt}系の顧客実績が豊富です。`:'')+
+      agScore;
+  } else {
+    advice=`国内顧客を中心に取り扱っている管理会社です。`+
+      `外国人顧客のご紹介にあたっては、事前に受け入れ条件のご確認をお勧めします。`+
+      (topVisa2cnt?`なお、${topVisa2cnt}の実績は一定数確認されています。`:'')+
+      agScore;
+  }
 
   document.getElementById('MTIT').textContent='🏢 '+nm;
   document.getElementById('MBOD').innerHTML=`
@@ -1710,8 +1738,8 @@ function OM(nm){
       <div class="insight">
         <div class="insight-title">💡 営業インサイト</div>
         <div class="insight-row"><span class="il">外国人顧客の受入タイプ</span><span class="ir">${KRBADGE(kr)}</span></div>
-        <div class="insight-row"><span class="il">保証件数</span><span class="ir">${tot.toLocaleString()}件（海外${kr}%）</span></div>
-        ${a?`<div class="insight-row"><span class="il">成約スコア（決着ベース）</span><span class="ir">${SCORE(a.cr)}</span></div>`:''}
+        <div class="insight-row"><span class="il">保証件数</span><span class="ir">${tot.toLocaleString()}件（海外審査 ${kr}%）</span></div>
+        ${a?`<div class="insight-row"><span class="il">成約スコア <small style="opacity:.6;font-size:10px">申込数ベース・50%以上でA優良</small></span><span class="ir">${SCORE(a.cr)}</span></div>`:''}
         ${visaPass.length?`<div class="insight-row"><span class="il">実績の多い在留資格</span><span class="ir">${visaPass.slice(0,2).map(v=>v.visa).join(' / ')}</span></div>`:''}
         ${TOPN(tnMap,2).length?`<div class="insight-row"><span class="il">実績の多い国籍</span><span class="ir">${TOPN(tnMap,2).map(e=>e[0]).join(' / ')}</span></div>`:''}
         <div class="insight-tip">📌 ${advice}</div>
@@ -1719,25 +1747,26 @@ function OM(nm){
     </div>
 
     <div class="card">
-      <div class="ctitle">保証データ <small>2025-01以降</small></div>
+      <div class="ctitle">保証データ <small>2025年1月1日以降</small></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:12px">
         <div>総件数: <strong class="mono">${tot.toLocaleString()}</strong></div>
         <div>海外審査: <strong style="color:var(--o)">${kai}件 (${kr}%)</strong></div>
         <div>国内審査: <strong style="color:var(--acc)">${tot-kai}件</strong></div>
-        <div>平均月額: <strong class="mono">¥${(base.rent||0).toLocaleString()}</strong></div>
-        <div>主要地域: <strong>${base.pref||'-'}</strong></div>
-        <div>最終承認: <strong>${fmtDate(base.date)}</strong></div>
+        <div>平均月額賃料: <strong class="mono">¥${(base.rent||0).toLocaleString()}</strong></div>
+        <div>主要エリア: <strong>${base.pref||'-'}</strong></div>
+        <div>最終承認日: <strong>${fmtDate(base.date)}</strong></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="ctitle">営業データ <small>決着ベース</small></div>
+      <div class="ctitle">営業データ <small>総申込数ベース</small></div>
       ${a?`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:12px;margin-bottom:8px">
-        <div>総案件: <strong class="mono">${a.total}</strong></div>
-        <div>決着件数: <strong class="mono">${a.decided}</strong></div>
+        <div>総申込数: <strong class="mono">${a.total}</strong></div>
+        <div>進行中: <strong class="mono">${a.total-a.contract-a.cancel}件</strong></div>
         <div>成約: <strong style="color:var(--g)">${a.contract}件 (${a.cr}%)</strong></div>
         <div>キャンセル: <strong style="color:var(--r)">${a.cancel}件 (${a.xr}%)</strong></div>
+        <div>平均賃料: <strong class="mono">¥${(a.rent||0).toLocaleString()}</strong></div>
       </div>
       ${crItems.length?`<div style="height:1px;background:var(--bg);margin:8px 0"></div>
         <div style="font-size:11px;color:var(--t2);margin-bottom:5px;font-weight:700">主なキャンセル理由</div>
@@ -1852,9 +1881,9 @@ function DO_CMP(){
       <div class="cmp-row"><span class="cl">保証件数</span><span class="cv">${(base.total||0).toLocaleString()}件</span></div>
       <div class="cmp-row"><span class="cl">海外審査比率</span><span class="cv">${kr}%</span></div>
       <div class="cmp-row"><span class="cl">外国人受入タイプ</span><span class="cv">${KRBADGE(kr)}</span></div>
-      <div class="cmp-row"><span class="cl">平均月額</span><span class="cv">¥${(base.rent||0).toLocaleString()}</span></div>
-      <div class="cmp-row"><span class="cl">主な地域</span><span class="cv">${base.pref||'-'}</span></div>
-      <div class="cmp-row"><span class="cl">最終承認</span><span class="cv">${fmtDate(base.date)}</span></div>
+      <div class="cmp-row"><span class="cl">平均月額賃料</span><span class="cv">¥${(base.rent||0).toLocaleString()}</span></div>
+      <div class="cmp-row"><span class="cl">主なエリア</span><span class="cv">${base.pref||'-'}</span></div>
+      <div class="cmp-row"><span class="cl">最終承認日</span><span class="cv">${fmtDate(base.date)}</span></div>
       <div class="cmp-row"><span class="cl">主な在留資格</span><span class="cv">${tv2.map(e=>e[0]).join(' / ')||'-'}</span></div>
       <div class="cmp-row"><span class="cl">主な国籍</span><span class="cv">${tn2.map(e=>e[0]).join(' / ')||'-'}</span></div>
       ${a.decided?`<div style="height:1px;background:var(--bd);margin:6px 0"></div>
