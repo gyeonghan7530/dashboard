@@ -658,12 +658,32 @@ function buildDB(raw){
   window._hoshoByVisa=hosho.byVisa||[];
   window._hoshoByNat=hosho.byNat||[];
 
-  const CK=(hosho.byChukai||[]).filter(r=>r.chukai&&r.chukai!=='仲介会社利用無し'&&r.chukai!=='仲介会社　要確認').map(r=>{
+  // GTN自社 仲介会社名 正規化 (支店・部署を統合)
+  const GTN_NM = '株式会社グローバルトラストネットワークス';
+  function normalizeChukaiNm(s){
+    if(!s)return s;
+    if(s.includes('グローバルトラストネットワークス'))return GTN_NM;
+    return s;
+  }
+
+  const ckRaw=(hosho.byChukai||[]).filter(r=>r.chukai&&r.chukai!=='仲介会社利用無し'&&r.chukai!=='仲介会社　要確認').map(r=>{
+    const ck=normalizeChukaiNm(r.chukai);
     const mg=cleanNm(r.mgmt||'');
     const d=ckByMg[mg]||{v:{},n:{}};
-    return{ck:r.chukai, mg, t:r.cnt||0, r:r.avg_rent||0, p:r.pref||'',
+    return{ck, mg, t:r.cnt||0, r:r.avg_rent||0, p:r.pref||'',
       v:TOPN(d.v,2).map(e=>e[0]), n:TOPN(d.n,2).map(e=>e[0])};
   });
+  // ck+mg 単位で集計 (GTN支店を統合)
+  const ckMap={};
+  ckRaw.forEach(r=>{
+    const key=r.ck+'|'+r.mg;
+    if(!ckMap[key])ckMap[key]={...r,t:0,rentSum:0,rentTot:0};
+    ckMap[key].t+=r.t;
+    if(r.r>0){ckMap[key].rentSum+=r.r*r.t;ckMap[key].rentTot+=r.t;}
+  });
+  const CK=Object.values(ckMap).map(r=>({
+    ...r, r:r.rentTot>0?Math.round(r.rentSum/r.rentTot):0
+  }));
 
   // ── 都道府県データ
   const prefMap={};
@@ -693,10 +713,14 @@ function buildDB(raw){
   const agMap={};
   (agent.byCompany||[]).forEach(r=>{
     const nm=cleanNm(r.nm||'');if(!nm||isUnknownNm(nm))return;
-    if(!agMap[nm])agMap[nm]={nm,total:0,contract:0,cancel:0,rent:0,pref:r.pref||'',crs:{}};
+    if(!agMap[nm])agMap[nm]={nm,total:0,contract:0,cancel:0,rentSum:0,rentTot:0,pref:r.pref||'',crs:{}};
     agMap[nm].total+=r.total||0; agMap[nm].contract+=r.contract||0;
     agMap[nm].cancel+=r.cancel||0;
-    agMap[nm].rent=r.avg_rent||agMap[nm].rent;
+    // FIX: 건수 가중평균 (last-value上書きバグ修正)
+    if((r.avg_rent||0)>0){
+      agMap[nm].rentSum+=(r.avg_rent||0)*(r.total||0);
+      agMap[nm].rentTot+=(r.total||0);
+    }
     agMap[nm].pref=r.pref||agMap[nm].pref;
   });
   (agent.byCancelReason||[]).forEach(r=>{
@@ -707,8 +731,10 @@ function buildDB(raw){
   });
   const AL=Object.values(agMap).map(a=>{
     const decided=a.contract+a.cancel;
+    // FIX: 加重平均賃料 (0値除外・複数pref対応)
+    const rent=a.rentTot>0?Math.round(a.rentSum/a.rentTot):0;
     // FIX: 分母を total（総申込数）に変更
-    return{...a,decided,
+    return{...a,decided,rent,
       cr:a.total?Math.round(a.contract/a.total*100):0,
       xr:a.total?Math.round(a.cancel/a.total*100):0,
       topCR:(TOPN(a.crs,1)[0]?.[0]||'').replace(/^\d+_/,'')};
@@ -2069,11 +2095,31 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')CLOSE_DRAWER();});
 // AUTOCOMPLETE
 // ================================================================
 function ACF(id){
-  const q=(document.getElementById(id+'i')?.value||'').toLowerCase();
+  const raw=document.getElementById(id+'i')?.value||'';
+  // 전각/반각 공백 정규화 후 소문자 비교
+  const q=raw.toLowerCase().replace(/[\s　]/g,'');
   const drop=document.getElementById(id+'d');if(!drop)return;
-  const items=(ACD[id]||[]).filter(v=>v.toLowerCase().includes(q)&&!ACS[id].includes(v)).slice(0,30);
-  drop.innerHTML=items.map(v=>`<div class="aci" onclick="ACADD('${id}','${ESC(v)}')">${v}</div>`).join('');
-  drop.classList.toggle('op',items.length>0&&q.length>0);
+  const items=(ACD[id]||[]).filter(v=>{
+    if(ACS[id].includes(v))return false;
+    if(!q)return true;
+    return v.toLowerCase().replace(/[\s　]/g,'').includes(q);
+  }).slice(0,50);
+  // 매칭 텍스트 하이라이트
+  drop.innerHTML=items.map(v=>{
+    if(!q)return`<div class="aci" onclick="ACADD('${id}','${ESC(v)}')">${v}</div>`;
+    const norm=v.toLowerCase().replace(/[\s　]/g,'');
+    const idx=norm.indexOf(q);
+    if(idx<0)return`<div class="aci" onclick="ACADD('${id}','${ESC(v)}')">${v}</div>`;
+    // 원본 텍스트 기준으로 하이라이트 위치 추정
+    return`<div class="aci" onclick="ACADD('${id}','${ESC(v)}')">${v.substring(0,idx)}<mark style="background:#fef08a;border-radius:2px">${v.substring(idx,idx+raw.length)}</mark>${v.substring(idx+raw.length)}</div>`;
+  }).join('');
+  if(items.length>0){
+    const cnt=document.createElement('div');
+    cnt.style.cssText='font-size:10px;color:var(--t3);padding:5px 13px;border-bottom:1px solid var(--bd)';
+    cnt.textContent=items.length<50?`${items.length}件`:`上位50件を表示`;
+    drop.prepend(cnt);
+  }
+  drop.classList.toggle('op',items.length>0);
 }
 function ACADD(id,val){
   if(!ACS[id].includes(val))ACS[id].push(val);
