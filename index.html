@@ -528,6 +528,36 @@ function isUnknownNm(nm){
   return false;
 }
 
+// 会社名正規化マッチング
+// ルール: 法人格の種類が異なる場合(有限会社↔株式会社)は別会社として扱う
+const HOUJIN_LIST=['株式会社','有限会社','合同会社','一般社団法人','NPO法人','（株）','(株)'];
+const DEPT_PATTERN=/[\s　]+(東日本|西日本|東北|関西|九州|関東|中部|北海道|沖縄|四国|南日本|東海|中国|北陸|近畿|首都圏|全国)[^\s　]*/;
+const DEPT_PATTERN2=/[\s　]+(管理|営業|事業|本部|支店|支社|出張所|センター課|事務所|グループ|ブロック|エリア)[^\s　]*/;
+function parseNm(s){
+  let nm=(s||'').replace(/　/g,' ').trim();
+  let type='';
+  for(const h of HOUJIN_LIST){
+    if(nm.includes(h)){type=h.replace(/（株）|\(株\)/,'株式会社');nm=nm.replace(h,'');break;}
+  }
+  nm=nm.replace(DEPT_PATTERN,'').replace(DEPT_PATTERN2,'').replace(/\s+/g,'').trim();
+  return{key:nm,type};
+}
+function findAL(nm){
+  // 1次: 完全一致
+  let r=DB.AL.find(a=>a.nm===nm);
+  if(r)return r;
+  // 2次: 正規化マッチ
+  const{key:k1,type:t1}=parseNm(nm);
+  if(!k1)return null;
+  return DB.AL.find(a=>{
+    const{key:k2,type:t2}=parseNm(a.nm);
+    if(k1!==k2)return false;
+    // 両方法人格あり かつ 種類が異なる → 別会社
+    if(t1&&t2&&t1!==t2)return false;
+    return true;
+  })||null;
+}
+
 // FIX #5 v2: YYYY-MM-DD→YYYY年MM月DD日 / YYYY-MM→YYYY年MM月
 function fmtDate(d){
   if(!d)return '-';
@@ -1686,7 +1716,7 @@ function OMX(rv,cv,mode){
 // ================================================================
 function OM(nm){
   const base=DB.coBase[nm]||{};
-  const a=DB.AL.find(r=>r.nm===nm);
+  const a=findAL(nm);
   const tot=base.total||0;
   const kai=base.kaigai||0;
   const kr=tot?Math.round(kai/tot*100):0;
@@ -1872,7 +1902,7 @@ function DO_CMP(){
   document.getElementById('MTIT').textContent='📊 管理会社 比較';
   const cols=CMP_LIST.map(nm=>{
     const base=DB.coBase[nm]||{};
-    const a=DB.AL.find(r=>r.nm===nm)||{};
+    const a=findAL(nm)||{};
     const kr=base.total?Math.round((base.kaigai||0)/base.total*100):0;
     const tv2=TOPN(getTopObj_CV(nm),2);
     const tn2=TOPN(getTopObj_CN(nm),2);
@@ -1955,51 +1985,76 @@ window.addEventListener('DOMContentLoaded',async function(){
   const msg2=document.getElementById('lmsg2');
   const p2wrap=document.getElementById('lprog2-wrap');
 
+  // ── sessionStorageキャッシュ確認 (当日有効)
+  const TODAY=new Date().toISOString().substring(0,10);
+  const CACHE_KEY='mdb_cache_'+TODAY;
   try{
-    prog.style.width='10%';
-    msg.textContent='🚀 基本データを取得中...';
+    const cached=sessionStorage.getItem(CACHE_KEY);
+    if(cached){
+      msg.textContent='⚡ キャッシュからデータを読み込み中...';
+      prog.style.width='80%';
+      const c=JSON.parse(cached);
+      DB=buildDB(c);
+      prog.style.width='100%';
+      await new Promise(r=>setTimeout(r,100));
+      document.getElementById('loading').style.display='none';
+      INIT();
+      // キャッシュヒット時はT3/T6も即時有効
+      const t3=document.getElementById('tab_t3');
+      const t6=document.getElementById('tab_t6');
+      if(t3){t3.style.opacity='1';t3.style.pointerEvents='';}
+      if(t6){t6.style.opacity='1';t6.style.pointerEvents='';}
+      return;
+    }
+  }catch(e){/* キャッシュ失敗は無視 */}
 
-    const [rHf,rA]=await Promise.all([
+  try{
+    prog.style.width='5%';
+    msg.textContent='🚀 データを取得中...';
+
+    // ── PERF: 4本同時fetch開始 (1段階完了を待たず2段階も即開始)
+    const [pHf,pA,pDa,pDb]=[ 
       fetch(API_URL+'?type=hosho_fast',{redirect:'follow',mode:'cors'}),
-      fetch(API_URL+'?type=agent',{redirect:'follow',mode:'cors'})
-    ]);
-    prog.style.width='55%';msg.textContent='データを受信中...';
+      fetch(API_URL+'?type=agent',{redirect:'follow',mode:'cors'}),
+      fetch(API_URL+'?type=detail_a',{redirect:'follow',mode:'cors'}),
+      fetch(API_URL+'?type=detail_b',{redirect:'follow',mode:'cors'})
+    ];
+
+    // ── 1段階: hosho_fast + agent が揃ったら即表示
+    prog.style.width='20%';
+    const [rHf,rA]=await Promise.all([pHf,pA]);
+    prog.style.width='50%';msg.textContent='データを受信中...';
     const [rawHf,rawA]=await Promise.all([rHf.json(),rA.json()]);
-    if(rawHf.error)throw new Error('保証データ(fast): '+rawHf.error);
+    if(rawHf.error)throw new Error('保証データ: '+rawHf.error);
     if(rawA.error)throw new Error('営業データ: '+rawA.error);
 
-    prog.style.width='85%';msg.textContent='ダッシュボードを描画中...';
+    prog.style.width='80%';msg.textContent='ダッシュボードを描画中...';
     const raw1={hosho:rawHf,agent:rawA,updated:rawHf.updated||new Date().toISOString()};
     DB=buildDB(raw1);
     prog.style.width='100%';
-    await new Promise(r=>setTimeout(r,200));
+    await new Promise(r=>setTimeout(r,150));
     document.getElementById('loading').style.display='none';
 
-    // FIX #4: pointer-events:none でクリックも完全ブロック
     const t3=document.getElementById('tab_t3');
     const t6=document.getElementById('tab_t6');
     if(t3){t3.style.opacity='.4';t3.style.pointerEvents='none';}
     if(t6){t6.style.opacity='.4';t6.style.pointerEvents='none';}
-
     INIT();
 
+    // ── 2段階: detail_a + detail_b (既にfetch済みなのでレスポンス待ちのみ)
     if(p2wrap)p2wrap.style.display='block';
-    if(msg2)msg2.textContent='⏳ フィルタ・マトリクスデータ取得中...';
-    if(prog2)prog2.style.width='5%';
+    if(msg2)msg2.textContent='⏳ 詳細データを受信中...';
+    if(prog2)prog2.style.width='30%';
 
-    if(msg2)msg2.textContent='⏳ 仲介・フィルタデータを並列取得中...';
     let rawHd={};
     try{
-      const [rA2,rB]=await Promise.all([
-        fetch(API_URL+'?type=detail_a',{redirect:'follow',mode:'cors'}),
-        fetch(API_URL+'?type=detail_b',{redirect:'follow',mode:'cors'})
-      ]);
+      const [rA2,rB]=await Promise.all([pDa,pDb]);
       if(prog2)prog2.style.width='70%';
       const [rawA2,rawB]=await Promise.all([rA2.json(),rB.json()]);
       if(rawA2.error)throw new Error('detail_a: '+rawA2.error);
       if(rawB.error)throw new Error('detail_b: '+rawB.error);
       rawHd=Object.assign({},rawA2,rawB);
-    } catch(detailErr){
+    }catch(detailErr){
       if(msg2)msg2.textContent='⚠️ 詳細データ取得失敗: '+detailErr.message;
       rawHd={};
     }
@@ -2009,11 +2064,15 @@ window.addEventListener('DOMContentLoaded',async function(){
     const raw2={hosho:hoshoFull,agent:rawA,updated:rawHf.updated||new Date().toISOString()};
     DB=buildDB(raw2);
 
+    // ── sessionStorageにキャッシュ保存
+    try{
+      sessionStorage.setItem(CACHE_KEY,JSON.stringify(raw2));
+    }catch(e){/* 容量超過等は無視 */}
+
     if(prog2)prog2.style.width='100%';
     if(msg2)msg2.textContent='✅ 全データ読み込み完了！';
     setTimeout(()=>{if(p2wrap)p2wrap.style.display='none';},2000);
 
-    // FIX #4: 2段階完了後に pointer-events も解除
     if(t3){t3.style.opacity='1';t3.style.pointerEvents='';t3.title='';}
     if(t6){t6.style.opacity='1';t6.style.pointerEvents='';t6.title='';}
     A1();A2();A3();A4();A5();DMX();
