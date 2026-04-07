@@ -223,7 +223,26 @@ tr:hover td{background:#f8fafc}
 @media(max-width:768px){
   .map-panel{max-height:220px}
 }
-/* 右スライドドロワー */
+/* 認証画面 */
+#AUTH_SCREEN{position:fixed;inset:0;background:#0d1f3c;z-index:10000;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:'Noto Sans JP',sans-serif}
+.auth-card{background:#fff;border-radius:20px;padding:40px 44px;width:400px;max-width:92vw;box-shadow:0 32px 80px rgba(0,0,0,.5)}
+.auth-logo{font-size:28px;margin-bottom:6px}
+.auth-title{font-size:17px;font-weight:700;color:#0d1f3c;margin-bottom:4px}
+.auth-sub{font-size:12px;color:#64748b;margin-bottom:28px}
+.auth-label{font-size:11px;font-weight:700;color:#475569;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px;display:block}
+.auth-input{width:100%;padding:11px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:'Noto Sans JP',sans-serif;outline:none;transition:border .16s;box-sizing:border-box}
+.auth-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.auth-btn{width:100%;padding:12px;background:#2563eb;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:16px;font-family:'Noto Sans JP',sans-serif;transition:background .15s}
+.auth-btn:hover{background:#1d4ed8}
+.auth-btn:disabled{background:#94a3b8;cursor:not-allowed}
+.auth-back{background:none;border:none;color:#64748b;font-size:12px;cursor:pointer;margin-top:10px;text-decoration:underline;font-family:'Noto Sans JP',sans-serif}
+.auth-back:hover{color:#0d1f3c}
+.auth-err{background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;font-size:12px;color:#dc2626;margin-top:12px;display:none}
+.auth-ok{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:12px;color:#15803d;margin-top:12px;display:none}
+.auth-code-hint{font-size:12px;color:#64748b;margin-top:8px;line-height:1.6}
+.auth-resend{background:none;border:none;color:#2563eb;font-size:12px;cursor:pointer;text-decoration:underline;font-family:'Noto Sans JP',sans-serif;padding:0}
+.auth-code-inp{letter-spacing:6px;font-size:20px;font-family:'DM Mono',monospace;text-align:center}
+
 .drawer{position:fixed;top:0;right:-560px;width:540px;height:100vh;background:#fff;z-index:900;overflow-y:auto;transition:right .28s cubic-bezier(.4,0,.2,1);box-shadow:-6px 0 32px rgba(0,0,0,.18);display:flex;flex-direction:column}
 .drawer.on{right:0}
 .drawer-bg{display:none;position:fixed;inset:0;background:rgba(10,20,40,.45);z-index:899;backdrop-filter:blur(2px)}
@@ -238,6 +257,42 @@ tr:hover td{background:#f8fafc}
 </style>
 </head>
 <body>
+<!-- 認証画面 -->
+<div id="AUTH_SCREEN">
+  <div class="auth-card">
+    <div class="auth-logo">🏢</div>
+    <div class="auth-title">管理会社ダッシュボード</div>
+    <div class="auth-sub">社内スタッフ専用 — ログインにはメール認証が必要です</div>
+
+    <!-- Step 1: メール入力 -->
+    <div id="auth_s1">
+      <label class="auth-label">メールアドレス</label>
+      <input class="auth-input" type="email" id="auth_email" placeholder="example@gtn.co.jp"
+        onkeydown="if(event.key==='Enter')AUTH_STEP1()">
+      <button class="auth-btn" id="auth_btn1" onclick="AUTH_STEP1()">認証コードを送信</button>
+    </div>
+
+    <!-- Step 2: コード入力 -->
+    <div id="auth_s2" style="display:none">
+      <label class="auth-label">認証コード (6桁)</label>
+      <input class="auth-input auth-code-inp" type="text" id="auth_code"
+        maxlength="6" placeholder="000000" inputmode="numeric"
+        oninput="AUTH_CODE_INPUT(this)" onkeydown="if(event.key==='Enter')AUTH_STEP2()">
+      <div class="auth-code-hint">
+        <span id="auth_email_disp"></span> にコードを送信しました。<br>
+        有効期限: <strong>3分</strong>　届かない場合: <button class="auth-resend" onclick="AUTH_RESEND()">再送する</button>
+      </div>
+      <button class="auth-btn" id="auth_btn2" onclick="AUTH_STEP2()">確認</button>
+      <div style="text-align:center">
+        <button class="auth-back" onclick="AUTH_BACK()">← メールアドレスを変更</button>
+      </div>
+    </div>
+
+    <div class="auth-err" id="auth_err"></div>
+    <div class="auth-ok"  id="auth_ok"></div>
+  </div>
+</div>
+
 <div id="loading">
   <div style="font-size:32px">🏢</div>
   <div style="font-size:16px;font-weight:700">管理会社ダッシュボード</div>
@@ -531,6 +586,8 @@ tr:hover td{background:#f8fafc}
 </div>
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbwiYBZ_PbDszQBfYe_Ad9XCF3TIIrwQeh4o5OlefdQ5EooevUL0oNZhDBL7iqAQfffPNw/exec";
+// ↓ auth_gas.gs をデプロイ後にURLを貼り付け
+const AUTH_URL="https://script.google.com/macros/s/AKfycbzehTnRgSfcRERMzlqmFv9N1tqAb_peZo2Bi93QVmsVFhFxI_yhUjynEKw3l9vN71ms7w/exec";
 let DB=null;
 </script>
 <script>
@@ -2209,6 +2266,149 @@ function SW(id,el){
   if(id==='t4'&&MAP_GEO)setTimeout(()=>{if(MAP_G)UPDATE_MAP_COLORS();else DRAW_MAP();},50);
 }
 
+// ================================================================
+// 認証 (AUTH)
+// ================================================================
+let AUTH_EMAIL_TMP = '';
+
+async function AUTH_CHECK() {
+  // AUTH_URL未設定 → 認証スキップ (開発用)
+  if (!AUTH_URL || AUTH_URL.includes('PASTE_AUTH')) {
+    startDashboard(); return;
+  }
+  const today = new Date().toISOString().substring(0, 10);
+  const sess = JSON.parse(localStorage.getItem('mdb_sess_' + today) || 'null');
+  if (sess && sess.ok) {
+    startDashboard();
+  } else {
+    document.getElementById('AUTH_SCREEN').style.display = 'flex';
+  }
+}
+
+function setAuthUI(loading) {
+  ['auth_btn1','auth_btn2'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) { b.disabled = loading; b.textContent = loading ? '送信中...' : (id === 'auth_btn1' ? '認証コードを送信' : '確認'); }
+  });
+  document.getElementById('auth_err').style.display = 'none';
+  document.getElementById('auth_ok').style.display  = 'none';
+}
+function showAuthErr(msg) {
+  const el = document.getElementById('auth_err');
+  el.textContent = msg; el.style.display = 'block';
+  ['auth_btn1','auth_btn2'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) { b.disabled = false; b.textContent = id === 'auth_btn1' ? '認証コードを送信' : '確認'; }
+  });
+}
+function showAuthOk(msg) {
+  const el = document.getElementById('auth_ok');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+async function AUTH_STEP1() {
+  const email = (document.getElementById('auth_email').value || '').trim().toLowerCase();
+  if (!email || !email.includes('@')) { showAuthErr('メールアドレスを正しく入力してください。'); return; }
+  // ① フロント側ドメインチェック
+  if (!email.endsWith('@gtn.co.jp')) {
+    showAuthErr('このシステムは社内（@gtn.co.jp）専用です。');
+    return;
+  }
+  setAuthUI(true);
+  try {
+    const res  = await fetch(AUTH_URL + '?type=send_code&email=' + encodeURIComponent(email));
+    const data = await res.json();
+    if (data.sent) {
+      AUTH_EMAIL_TMP = email;
+      document.getElementById('auth_s1').style.display = 'none';
+      document.getElementById('auth_s2').style.display = 'block';
+      document.getElementById('auth_email_disp').textContent = email;
+      document.getElementById('auth_code').value = '';
+      document.getElementById('auth_code').focus();
+      document.getElementById('auth_btn2').disabled = false;
+      document.getElementById('auth_btn2').textContent = '確認';
+    } else if (data.error === 'not_allowed') {
+      showAuthErr('アクセス権限がありません。権限が必要な場合はエージェント部署（大友 進 / 朴 卿韓）までご連絡ください。');
+    } else if (data.error === 'invalid_domain') {
+      showAuthErr('このシステムは社内（@gtn.co.jp）専用です。');
+    } else {
+      showAuthErr('エラーが発生しました。もう一度お試しください。');
+    }
+  } catch(e) { showAuthErr('通信エラーが発生しました。'); }
+}
+
+async function AUTH_STEP2() {
+  const code = (document.getElementById('auth_code').value || '').trim();
+  if (!code || code.length !== 6) { showAuthErr('6桁のコードを入力してください。'); return; }
+  setAuthUI(true);
+  try {
+    const res  = await fetch(AUTH_URL + '?type=verify&email=' + encodeURIComponent(AUTH_EMAIL_TMP) + '&code=' + encodeURIComponent(code));
+    const data = await res.json();
+    if (data.valid) {
+      showAuthOk('✅ 認証成功！ダッシュボードを読み込みます...');
+      // IP情報取得 + ログ記録
+      let ipData = { ip: '不明', country_name: '不明', country_code: 'XX', city: '不明' };
+      try {
+        const ir = await fetch('https://ipapi.co/json/');
+        ipData = await ir.json();
+      } catch(e) {}
+      const ua = navigator.userAgent;
+      const getBr = u => u.includes('Edg') ? 'Edge' : u.includes('Chrome') ? 'Chrome' : u.includes('Firefox') ? 'Firefox' : u.includes('Safari') ? 'Safari' : 'Other';
+      const getOs = u => u.includes('Windows') ? 'Windows' : u.includes('Mac') ? 'macOS' : u.includes('iPhone')||u.includes('iPad') ? 'iOS' : u.includes('Android') ? 'Android' : 'Other';
+      try {
+        await fetch(AUTH_URL +
+          '?type=log&email=' + encodeURIComponent(AUTH_EMAIL_TMP) +
+          '&ip=' + encodeURIComponent(ipData.ip || '不明') +
+          '&country=' + encodeURIComponent(ipData.country_name || '不明') +
+          '&country_code=' + encodeURIComponent(ipData.country_code || 'XX') +
+          '&city=' + encodeURIComponent(ipData.city || '不明') +
+          '&browser=' + encodeURIComponent(getBr(ua)) +
+          '&os=' + encodeURIComponent(getOs(ua))
+        );
+      } catch(e) {}
+      // セッション保存
+      const today = new Date().toISOString().substring(0, 10);
+      localStorage.setItem('mdb_sess_' + today, JSON.stringify({ ok: true, email: AUTH_EMAIL_TMP }));
+      setTimeout(() => {
+        document.getElementById('AUTH_SCREEN').style.display = 'none';
+        startDashboard();
+      }, 800);
+    } else {
+      if (data.error === 'expired') showAuthErr('コードの有効期限が切れました（3分）。再送してください。');
+      else if (data.error === 'wrong_code') showAuthErr('コードが正しくありません。もう一度確認してください。');
+      else showAuthErr('検証エラーが発生しました。');
+    }
+  } catch(e) { showAuthErr('通信エラーが発生しました。'); }
+}
+
+function AUTH_BACK() {
+  document.getElementById('auth_s2').style.display = 'none';
+  document.getElementById('auth_s1').style.display = 'block';
+  document.getElementById('auth_err').style.display = 'none';
+  document.getElementById('auth_ok').style.display  = 'none';
+  document.getElementById('auth_btn1').disabled = false;
+  document.getElementById('auth_btn1').textContent = '認証コードを送信';
+}
+
+async function AUTH_RESEND() {
+  setAuthUI(true);
+  try {
+    const res  = await fetch(AUTH_URL + '?type=send_code&email=' + encodeURIComponent(AUTH_EMAIL_TMP));
+    const data = await res.json();
+    if (data.sent) { showAuthOk('コードを再送しました。'); document.getElementById('auth_btn2').disabled=false; document.getElementById('auth_btn2').textContent='確認'; }
+    else showAuthErr('再送に失敗しました。');
+  } catch(e) { showAuthErr('通信エラーが発生しました。'); }
+}
+
+function AUTH_CODE_INPUT(el) {
+  el.value = el.value.replace(/\D/g, '').substring(0, 6);
+  if (el.value.length === 6) AUTH_STEP2();
+}
+
+// ================================================================
+// ダッシュボード起動 (認証後に呼び出す)
+// ================================================================
+async function startDashboard() {
 window.addEventListener('DOMContentLoaded',async function(){
   const prog=document.getElementById('lprog');
   const msg=document.getElementById('lmsg');
@@ -2314,7 +2514,11 @@ window.addEventListener('DOMContentLoaded',async function(){
     prog.style.width='100%';
     console.error(e);
   }
-});
+}); // ← startDashboard 内の window.addEventListener
+} // ← startDashboard 関数の終わり
+
+// DOMContentLoaded → 認証チェックから開始
+window.addEventListener('DOMContentLoaded', AUTH_CHECK);
 </script>
 </body>
 </html>
