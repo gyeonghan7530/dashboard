@@ -585,7 +585,7 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbzehTnRgSfcRERMzlqmFv9N1tqAb_peZo2Bi93QVmsVFhFxI_yhUjynEKw3l9vN71ms7w/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbwiYBZ_PbDszQBfYe_Ad9XCF3TIIrwQeh4o5OlefdQ5EooevUL0oNZhDBL7iqAQfffPNw/exec";
 // ↓ auth_gas.gs をデプロイ後にURLを貼り付け
 const AUTH_URL="https://script.google.com/macros/s/AKfycbzehTnRgSfcRERMzlqmFv9N1tqAb_peZo2Bi93QVmsVFhFxI_yhUjynEKw3l9vN71ms7w/exec";
 let DB=null;
@@ -2409,7 +2409,6 @@ function AUTH_CODE_INPUT(el) {
 // ダッシュボード起動 (認証後に呼び出す)
 // ================================================================
 async function startDashboard() {
-window.addEventListener('DOMContentLoaded',async function(){
   const prog=document.getElementById('lprog');
   const msg=document.getElementById('lmsg');
   const prog2=document.getElementById('lprog2');
@@ -2430,7 +2429,6 @@ window.addEventListener('DOMContentLoaded',async function(){
       await new Promise(r=>setTimeout(r,100));
       document.getElementById('loading').style.display='none';
       INIT();
-      // キャッシュヒット時はT3/T6も即時有効
       const t3=document.getElementById('tab_t3');
       const t6=document.getElementById('tab_t6');
       if(t3){t3.style.opacity='1';t3.style.pointerEvents='';}
@@ -2443,15 +2441,13 @@ window.addEventListener('DOMContentLoaded',async function(){
     prog.style.width='5%';
     msg.textContent='🚀 データを取得中...';
 
-    // ── PERF: 4本同時fetch開始 (1段階完了を待たず2段階も即開始)
-    const [pHf,pA,pDa,pDb]=[ 
+    const [pHf,pA,pDa,pDb]=[
       fetch(API_URL+'?type=hosho_fast',{redirect:'follow',mode:'cors'}),
       fetch(API_URL+'?type=agent',{redirect:'follow',mode:'cors'}),
       fetch(API_URL+'?type=detail_a',{redirect:'follow',mode:'cors'}),
       fetch(API_URL+'?type=detail_b',{redirect:'follow',mode:'cors'})
     ];
 
-    // ── 1段階: hosho_fast + agent が揃ったら即表示
     prog.style.width='20%';
     const [rHf,rA]=await Promise.all([pHf,pA]);
     prog.style.width='50%';msg.textContent='データを受信中...';
@@ -2472,7 +2468,6 @@ window.addEventListener('DOMContentLoaded',async function(){
     if(t6){t6.style.opacity='.4';t6.style.pointerEvents='none';}
     INIT();
 
-    // ── 2段階: detail_a + detail_b (既にfetch済みなのでレスポンス待ちのみ)
     if(p2wrap)p2wrap.style.display='block';
     if(msg2)msg2.textContent='⏳ 詳細データを受信中...';
     if(prog2)prog2.style.width='30%';
@@ -2495,7 +2490,6 @@ window.addEventListener('DOMContentLoaded',async function(){
     const raw2={hosho:hoshoFull,agent:rawA,updated:rawHf.updated||new Date().toISOString()};
     DB=buildDB(raw2);
 
-    // ── sessionStorageにキャッシュ保存
     try{
       sessionStorage.setItem(CACHE_KEY,JSON.stringify(raw2));
     }catch(e){/* 容量超過等は無視 */}
@@ -2514,8 +2508,7 @@ window.addEventListener('DOMContentLoaded',async function(){
     prog.style.width='100%';
     console.error(e);
   }
-}); // ← startDashboard 内の window.addEventListener
-} // ← startDashboard 関数の終わり
+}
 
 // DOMContentLoaded → 認証チェックから開始
 window.addEventListener('DOMContentLoaded', AUTH_CHECK);
