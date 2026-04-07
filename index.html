@@ -439,9 +439,9 @@ tr:hover td{background:#f8fafc}
   <div class="card">
     <div class="ctitle">管理会社別 成約 / キャンセル実績 <small>行クリックで詳細モーダル</small></div>
     <div style="display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap">
-      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge bg" style="font-size:10px">🟢 A優良</span>成約率50%以上</div>
-      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge by" style="font-size:10px">🟡 B普通</span>成約率30〜49%</div>
-      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge br" style="font-size:10px">🔴 C要注意</span>成約率30%未満</div>
+      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge bg" style="font-size:10px">🟢 A優良</span>成約率70%以上</div>
+      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge by" style="font-size:10px">🟡 B普通</span>成約率40〜69%</div>
+      <div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><span class="badge br" style="font-size:10px">🔴 C要注意</span>成約率40%未満</div>
       <div style="font-size:11px;color:var(--t3)">※総申込数ベース（成約÷総申込数）</div>
     </div>
     <div class="tw"><table><thead><tr>
@@ -480,8 +480,24 @@ tr:hover td{background:#f8fafc}
 <!-- T7 -->
 <div id="t7" class="tc">
   <div class="g2">
-    <div class="card"><div class="ctitle">⭐ お気に入り管理会社</div><div id="favL"><div style="color:var(--t3);font-size:12px;padding:8px">お気に入りはまだありません</div></div></div>
-    <div class="card"><div class="ctitle">🕐 検索履歴 <button onclick="CLRH()" style="padding:3px 10px;background:#f1f5f9;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:11px">クリア</button></div><div id="histL"><div style="color:var(--t3);font-size:12px;padding:8px">履歴はありません</div></div></div>
+    <div class="card">
+      <div class="ctitle">⭐ お気に入り管理会社
+        <button onclick="CLRF()" style="padding:3px 10px;background:#f1f5f9;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:11px">クリア</button>
+      </div>
+      <div id="favL"><div style="color:var(--t3);font-size:12px;padding:8px">お気に入りはまだありません</div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">🕐 検索履歴
+        <button onclick="CLRH()" style="padding:3px 10px;background:#f1f5f9;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:11px">クリア</button>
+      </div>
+      <div id="histL"><div style="color:var(--t3);font-size:12px;padding:8px">履歴はありません</div></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="ctitle">👁 閲覧履歴
+      <button onclick="CLRBH()" style="padding:3px 10px;background:#f1f5f9;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:11px">クリア</button>
+    </div>
+    <div id="browseL"><div style="color:var(--t3);font-size:12px;padding:8px">閲覧履歴はありません</div></div>
   </div>
 </div>
 
@@ -918,8 +934,13 @@ const ACS={AC1:[],AC2:[],AC3:[],AC5:[]};
 const ACD={AC1:[],AC2:[],AC3:[],AC5:[]};
 const SSV={ss1v:null,ss1n:null,ss1p:null,ss2p:null,ss3p:null,ss3n:null,ss3v:null,ss4n:null,ss4v:null,ss5p:null,ss5cr:null,ss6p:null};
 const SSD={};
-let FAVS=JSON.parse(localStorage.getItem('mdb_f')||'[]');
+let FAVS=JSON.parse(localStorage.getItem('mdb_f2')||'[]'); // {nm, time}
 let HIST=JSON.parse(localStorage.getItem('mdb_h')||'[]');
+let BROWSE=JSON.parse(localStorage.getItem('mdb_bh')||'[]'); // {nm, time}
+
+function NOW_STR(){
+  return new Date().toLocaleString('ja-JP',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
 let SEL_PREFS=[];
 let CUR_PD=null;
 let MAP_GEO=null, MAP_SVG=null, MAP_G=null, MAP_ZOOM_OBJ=null;
@@ -940,9 +961,8 @@ function KRBADGE(kr){
 }
 function SCORE(cr){
   if(cr===null||cr===undefined||isNaN(cr))return '<span style="color:var(--t3);font-size:11px">—</span>';
-  // FIX: 申込数ベースに変更 → 基準値を調整
-  if(cr>=50)return `<span class="badge bg">🟢 A優良 ${cr}%</span>`;
-  if(cr>=30)return `<span class="badge by">🟡 B普通 ${cr}%</span>`;
+  if(cr>=70)return `<span class="badge bg">🟢 A優良 ${cr}%</span>`;
+  if(cr>=40)return `<span class="badge by">🟡 B普通 ${cr}%</span>`;
   return `<span class="badge br">🔴 C要注意 ${cr}%</span>`;
 }
 function BW(pct,col){return `<div class="bw"><div class="bbg"><div class="bf" style="width:${pct}%;background:${col}"></div></div><span>${pct}%</span></div>`;}
@@ -1038,7 +1058,7 @@ function INIT(){
 
   CUR_PD=DB.PD;
   A1();A2();A3();A4();A5();DMX();
-  LOAD_MAP();RFav();RHIST();
+  LOAD_MAP();RFav();RHIST();RBROWSE();
 }
 
 // ================================================================
@@ -1182,7 +1202,7 @@ function RT1(){
     <td class="mono">¥${r.rent.toLocaleString()}</td>
     <td>${KRBADGE(r.kr)}</td>
     <td style="display:flex;gap:4px;align-items:center">
-      <button class="fav" onclick="TFav('${ESC(r.nm)}')">${FAVS.includes(r.nm)?'⭐':'☆'}</button>
+      <button class="fav" onclick="TFav('${ESC(r.nm)}')">${isFav(r.nm)?'⭐':'☆'}</button>
       <button onclick="TADD_CMP('${ESC(r.nm)}')" title="比較に追加" style="background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;color:${CMP_LIST.includes(r.nm)?'#2563eb':'#cbd5e1'}">${CMP_LIST.includes(r.nm)?'⊖':'⊕'}</button>
     </td>
   </tr>`).join('');
@@ -1201,7 +1221,7 @@ function RT2(){
     <td class="mono">¥${r.rent.toLocaleString()}</td>
     <td>${fmtDate(r.date)}</td>
     <td style="display:flex;gap:4px;align-items:center">
-      <button class="fav" onclick="TFav('${ESC(r.nm)}')">${FAVS.includes(r.nm)?'⭐':'☆'}</button>
+      <button class="fav" onclick="TFav('${ESC(r.nm)}')">${isFav(r.nm)?'⭐':'☆'}</button>
       <button onclick="TADD_CMP('${ESC(r.nm)}')" title="比較に追加" style="background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;color:${CMP_LIST.includes(r.nm)?'#2563eb':'#cbd5e1'}">${CMP_LIST.includes(r.nm)?'⊖':'⊕'}</button>
     </td>
   </tr>`).join('');
@@ -1816,13 +1836,14 @@ function OM(nm){
   }
 
   document.getElementById('MTIT').textContent='🏢 '+nm;
+  SAVEBH(nm);
   document.getElementById('MBOD').innerHTML=`
     <div class="full" style="grid-column:1/-1">
       <div class="insight">
         <div class="insight-title">💡 営業インサイト</div>
         <div class="insight-row"><span class="il">外国人顧客の受入タイプ</span><span class="ir">${KRBADGE(kr)}</span></div>
         <div class="insight-row"><span class="il">保証件数</span><span class="ir">${tot.toLocaleString()}件（海外審査 ${kr}%）</span></div>
-        ${a?`<div class="insight-row"><span class="il">成約スコア <small style="opacity:.6;font-size:10px">申込数ベース・50%以上でA優良</small></span><span class="ir">${SCORE(a.cr)}</span></div>`:''}
+        ${a?`<div class="insight-row"><span class="il">成約スコア <small style="opacity:.6;font-size:10px">申込数ベース・70%以上でA優良</small></span><span class="ir">${SCORE(a.cr)}</span></div>`:''}
         ${visaPass.length?`<div class="insight-row"><span class="il">実績の多い在留資格</span><span class="ir">${visaPass.slice(0,2).map(v=>v.visa).join(' / ')}</span></div>`:''}
         ${TOPN(tnMap,2).length?`<div class="insight-row"><span class="il">実績の多い国籍</span><span class="ir">${TOPN(tnMap,2).map(e=>e[0]).join(' / ')}</span></div>`:''}
         <div class="insight-tip">📌 ${advice}</div>
@@ -2030,13 +2051,14 @@ function OPEN_DRAWER(nm){
       (topVisa2cnt?`なお、${topVisa2cnt}の実績は一定数確認されています。`:'')+agScore;
   }
   document.getElementById('DRAWER_TIT').textContent='🏢 '+nm;
+  SAVEBH(nm);
   document.getElementById('DRAWER_BOD').innerHTML=`
     <div class="full">
       <div class="insight">
         <div class="insight-title">💡 営業インサイト</div>
         <div class="insight-row"><span class="il">外国人顧客の受入タイプ</span><span class="ir">${KRBADGE(kr)}</span></div>
         <div class="insight-row"><span class="il">保証件数</span><span class="ir">${tot.toLocaleString()}件（海外審査 ${kr}%）</span></div>
-        ${a?`<div class="insight-row"><span class="il">成約スコア <small style="opacity:.6;font-size:10px">申込数ベース・50%以上でA優良</small></span><span class="ir">${SCORE(a.cr)}</span></div>`:''}
+        ${a?`<div class="insight-row"><span class="il">成約スコア <small style="opacity:.6;font-size:10px">申込数ベース・70%以上でA優良</small></span><span class="ir">${SCORE(a.cr)}</span></div>`:''}
         ${visaPass.length?`<div class="insight-row"><span class="il">実績の多い在留資格</span><span class="ir">${visaPass.slice(0,2).map(v=>v.visa).join(' / ')}</span></div>`:''}
         ${TOPN(tnMap,2).length?`<div class="insight-row"><span class="il">実績の多い国籍</span><span class="ir">${TOPN(tnMap,2).map(e=>e[0]).join(' / ')}</span></div>`:''}
         <div class="insight-tip">📌 ${advice}</div>
@@ -2133,14 +2155,49 @@ function RAC(id){ACS[id]=[];ACTAG(id);}
 function ACTAG(id){const el=document.getElementById(id+'t');if(!el)return;el.innerHTML=(ACS[id]||[]).map(v=>`<span class="actag">${v}<button onclick="ACRM('${id}','${ESC(v)}')">×</button></span>`).join('');}
 
 // ================================================================
-// FAV / HIST
+// FAV / HIST / BROWSE (タイムスタンプ付き)
 // ================================================================
-function TFav(nm){if(FAVS.includes(nm))FAVS=FAVS.filter(v=>v!==nm);else FAVS.push(nm);localStorage.setItem('mdb_f',JSON.stringify(FAVS));RFav();RT1();RT2();}
-function RFav(){const el=document.getElementById('favL');if(!el)return;if(!FAVS.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">お気に入りはまだありません</div>';return;}el.innerHTML=FAVS.map(nm=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid var(--bg);cursor:pointer;font-size:12px" onclick="OM('${ESC(nm)}')"><span>${nm}</span><button onclick="event.stopPropagation();TFav('${ESC(nm)}')" style="background:none;border:none;cursor:pointer;color:#aaa">✕</button></div>`).join('');}
-function SHIST(){const visa=SSV.ss1v,nat=SSV.ss1n,pref=SSV.ss1p;if(!visa&&!nat&&!pref)return;const label=[visa,nat,pref].filter(Boolean).join(' / ');HIST=HIST.filter(h=>h.label!==label);HIST.unshift({label,visa,nat,pref,time:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})});HIST=HIST.slice(0,15);localStorage.setItem('mdb_h',JSON.stringify(HIST));RHIST();}
-function RHIST(){const el=document.getElementById('histL');if(!el)return;if(!HIST.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">履歴はありません</div>';return;}el.innerHTML=HIST.map(h=>`<div style="display:flex;justify-content:space-between;padding:7px 6px;border-bottom:1px solid var(--bg);cursor:pointer;font-size:12px" onclick="LH(${JSON.stringify(h).replace(/"/g,'&quot;')})"><span>🔍 ${h.label}</span><span style="color:var(--t3);font-size:11px">${h.time}</span></div>`).join('');}
+function TFav(nm){
+  const already=FAVS.find(f=>f.nm===nm);
+  if(already)FAVS=FAVS.filter(f=>f.nm!==nm);
+  else FAVS.unshift({nm,time:NOW_STR()});
+  localStorage.setItem('mdb_f2',JSON.stringify(FAVS));RFav();RT1();RT2();
+}
+function isFav(nm){return FAVS.some(f=>f.nm===nm);}
+function CLRF(){FAVS=[];localStorage.setItem('mdb_f2','[]');RFav();}
+function RFav(){
+  const el=document.getElementById('favL');if(!el)return;
+  if(!FAVS.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">お気に入りはまだありません</div>';return;}
+  el.innerHTML=FAVS.map(f=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid var(--bg);font-size:12px"><span class="tl" onclick="OPEN_DRAWER('${ESC(f.nm)}')">⭐ ${f.nm}</span><span style="color:var(--t3);font-size:11px;white-space:nowrap">${f.time} <button onclick="TFav('${ESC(f.nm)}')" style="background:none;border:none;cursor:pointer;color:#aaa">✕</button></span></div>`).join('');
+}
+function SHIST(){
+  const visa=SSV.ss1v,nat=SSV.ss1n,pref=SSV.ss1p;
+  if(!visa&&!nat&&!pref)return;
+  const label=[visa,nat,pref].filter(Boolean).join(' / ');
+  HIST=HIST.filter(h=>h.label!==label);
+  HIST.unshift({label,visa,nat,pref,time:NOW_STR()});
+  HIST=HIST.slice(0,20);
+  localStorage.setItem('mdb_h',JSON.stringify(HIST));RHIST();
+}
+function RHIST(){
+  const el=document.getElementById('histL');if(!el)return;
+  if(!HIST.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">履歴はありません</div>';return;}
+  el.innerHTML=HIST.map(h=>`<div style="display:flex;justify-content:space-between;padding:7px 6px;border-bottom:1px solid var(--bg);cursor:pointer;font-size:12px" onclick="LH(${JSON.stringify(h).replace(/"/g,'&quot;')})"><span>🔍 ${h.label}</span><span style="color:var(--t3);font-size:11px;white-space:nowrap">${h.time}</span></div>`).join('');
+}
 function LH(h){SSV.ss1v=h.visa||null;SSV.ss1n=h.nat||null;SSV.ss1p=h.pref||null;['ss1vi','ss1ni','ss1pi'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=SSV[id.replace('i','')]||'';});A1();SW('t1',document.querySelectorAll('.tab')[0]);}
 function CLRH(){HIST=[];localStorage.setItem('mdb_h','[]');RHIST();}
+function SAVEBH(nm){
+  BROWSE=BROWSE.filter(b=>b.nm!==nm);
+  BROWSE.unshift({nm,time:NOW_STR()});
+  BROWSE=BROWSE.slice(0,30);
+  localStorage.setItem('mdb_bh',JSON.stringify(BROWSE));RBROWSE();
+}
+function RBROWSE(){
+  const el=document.getElementById('browseL');if(!el)return;
+  if(!BROWSE.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:8px">閲覧履歴はありません</div>';return;}
+  el.innerHTML=BROWSE.map(b=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid var(--bg);font-size:12px"><span class="tl" onclick="OPEN_DRAWER('${ESC(b.nm)}')">👁 ${b.nm}</span><span style="color:var(--t3);font-size:11px;white-space:nowrap">${b.time}</span></div>`).join('');
+}
+function CLRBH(){BROWSE=[];localStorage.setItem('mdb_bh','[]');RBROWSE();}
 
 // ================================================================
 // TABS + LOAD
