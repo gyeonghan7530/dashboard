@@ -513,7 +513,7 @@ tr:hover td{background:#f8fafc}
 <div id="t6" class="tc">
   <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025年1月1日以降</div>
   <div class="fbar">
-    <div class="fg"><label>表示モード</label><select id="mxmd" onchange="DMX()"><option value="vn">在留資格 × 国籍</option><option value="nv">国籍 × 在留資格</option><option value="vm">管理会社 × 在留資格</option><option value="mn">管理会社 × 国籍</option></select></div>
+    <div class="fg"><label>表示モード</label><select id="mxmd" onchange="DMX()"><option value="vn">在留資格 × 国籍</option><option value="vm">管理会社 × 在留資格</option><option value="mn">管理会社 × 国籍</option></select></div>
     <div class="fg"><label>地域</label><div class="ss" id="ss6p"><input class="ss-inp" id="ss6pi" placeholder="すべて" readonly onclick="SST('ss6p')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss6pd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss6p',this.value)"></div><div class="ss-list" id="ss6pl"></div></div></div></div>
     <div class="fg"><label>審査区分</label><select id="mxs" onchange="DMX()"><option value="">すべて</option><option value="海外">海外のみ</option><option value="国内">国内のみ</option></select></div>
     <div class="fg"><label>最小件数</label><select id="mxmn" onchange="DMX()"><option value="0">すべて</option><option value="10">10件以上</option><option value="30">30件以上</option><option value="50" selected>50件以上</option><option value="100">100件以上</option></select></div>
@@ -826,15 +826,21 @@ function buildDB(raw){
   // ── フィルタリスト (件数多い順)
   const visaCounts={};
   CV.forEach(m=>{visaCounts[m.visa]=(visaCounts[m.visa]||0)+m.cnt;});
+  // fallback用: byVisa からも件数を集計
+  const visaFbCounts={};
+  (hosho.byVisa||[]).forEach(r=>{const v=cleanVisa(r.visa||'');if(v)visaFbCounts[v]=(visaFbCounts[v]||0)+(r.cnt||0);});
   const allVisa=CV.length
     ?[...new Set(CV.map(m=>m.visa).filter(Boolean))].sort((a,b)=>(visaCounts[b]||0)-(visaCounts[a]||0))
-    :[...new Set((hosho.byVisa||[]).map(r=>cleanVisa(r.visa||'')).filter(Boolean))].sort();
+    :[...new Set(Object.keys(visaFbCounts))].sort((a,b)=>(visaFbCounts[b]||0)-(visaFbCounts[a]||0));
 
   const natCounts={};
   CN.forEach(m=>{natCounts[m.nat]=(natCounts[m.nat]||0)+m.cnt;});
+  // fallback用: byNat からも件数を集計
+  const natFbCounts={};
+  (hosho.byNat||[]).forEach(r=>{const n=cleanNat(r.nat||'');if(n)natFbCounts[n]=(natFbCounts[n]||0)+(r.cnt||0);});
   const allNat=CN.length
     ?[...new Set(CN.map(m=>m.nat).filter(Boolean))].sort((a,b)=>(natCounts[b]||0)-(natCounts[a]||0))
-    :[...new Set((hosho.byNat||[]).map(r=>cleanNat(r.nat||'')).filter(Boolean))].sort();
+    :[...new Set(Object.keys(natFbCounts))].sort((a,b)=>(natFbCounts[b]||0)-(natFbCounts[a]||0));
 
   // 地域: 件数多い順
   const allPref=[...Object.keys(PD)].sort((a,b)=>(PD[b]?.t||0)-(PD[a]?.t||0));
@@ -2545,6 +2551,8 @@ async function startDashboard() {
     const hoshoFull=Object.assign({},rawHf,rawHd);
     const raw2={hosho:hoshoFull,agent:rawA,updated:rawHf.updated||new Date().toISOString()};
     DB=buildDB(raw2);
+    // 仲介会社リスト更新 (detail後に再セット)
+    ACD.AC3=DB.fck.slice();
 
     try{
       sessionStorage.setItem(CACHE_KEY,JSON.stringify(raw2));
