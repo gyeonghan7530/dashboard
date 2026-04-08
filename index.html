@@ -2276,9 +2276,9 @@ async function AUTH_CHECK() {
   if (!AUTH_URL || AUTH_URL.includes('PASTE_AUTH')) {
     startDashboard(); return;
   }
-  const today = new Date().toISOString().substring(0, 10);
-  const sess = JSON.parse(localStorage.getItem('mdb_sess_' + today) || 'null');
-  if (sess && sess.ok) {
+  const sess = JSON.parse(localStorage.getItem('mdb_sess') || 'null');
+  const now9 = Date.now();
+  if (sess && sess.ok && sess.exp && now9 < sess.exp) {
     startDashboard();
   } else {
     document.getElementById('AUTH_SCREEN').style.display = 'flex';
@@ -2367,8 +2367,8 @@ async function AUTH_STEP2() {
         );
       } catch(e) {}
       // セッション保存
-      const today = new Date().toISOString().substring(0, 10);
-      localStorage.setItem('mdb_sess_' + today, JSON.stringify({ ok: true, email: AUTH_EMAIL_TMP }));
+      const exp9h = Date.now() + 9 * 60 * 60 * 1000; // 9時間後
+      localStorage.setItem('mdb_sess', JSON.stringify({ ok: true, email: AUTH_EMAIL_TMP, exp: exp9h }));
       setTimeout(() => {
         document.getElementById('AUTH_SCREEN').style.display = 'none';
         startDashboard();
