@@ -513,7 +513,7 @@ tr:hover td{background:#f8fafc}
 <div id="t6" class="tc">
   <div class="dsrc">📊 保証審査データ (mgmt_hosho_data) ／ 対象: 2025年1月1日以降</div>
   <div class="fbar">
-    <div class="fg"><label>表示モード</label><select id="mxmd" onchange="DMX()"><option value="vn">在留資格 × 国籍</option><option value="nv">国籍 × 在留資格</option></select></div>
+    <div class="fg"><label>表示モード</label><select id="mxmd" onchange="DMX()"><option value="vn">在留資格 × 国籍</option><option value="nv">国籍 × 在留資格</option><option value="vm">管理会社 × 在留資格</option><option value="mn">管理会社 × 国籍</option></select></div>
     <div class="fg"><label>地域</label><div class="ss" id="ss6p"><input class="ss-inp" id="ss6pi" placeholder="すべて" readonly onclick="SST('ss6p')"><span class="ss-arrow">▼</span><div class="ss-drop" id="ss6pd"><div class="ss-search"><input type="text" placeholder="検索..." oninput="SSF('ss6p',this.value)"></div><div class="ss-list" id="ss6pl"></div></div></div></div>
     <div class="fg"><label>審査区分</label><select id="mxs" onchange="DMX()"><option value="">すべて</option><option value="海外">海外のみ</option><option value="国内">国内のみ</option></select></div>
     <div class="fg"><label>最小件数</label><select id="mxmn" onchange="DMX()"><option value="0">すべて</option><option value="10">10件以上</option><option value="30">30件以上</option><option value="50" selected>50件以上</option><option value="100">100件以上</option></select></div>
@@ -823,24 +823,35 @@ function buildDB(raw){
   const totRent=coList.reduce((s,r)=>s+(r.rent||0)*(r.total||0),0);
   const totForRent=coList.filter(r=>r.rent>0).reduce((s,r)=>s+(r.total||0),0);
 
-  // ── フィルタリスト
+  // ── フィルタリスト (件数多い順)
+  const visaCounts={};
+  CV.forEach(m=>{visaCounts[m.visa]=(visaCounts[m.visa]||0)+m.cnt;});
   const allVisa=CV.length
-    ?[...new Set(CV.map(m=>m.visa).filter(Boolean))].sort()
+    ?[...new Set(CV.map(m=>m.visa).filter(Boolean))].sort((a,b)=>(visaCounts[b]||0)-(visaCounts[a]||0))
     :[...new Set((hosho.byVisa||[]).map(r=>cleanVisa(r.visa||'')).filter(Boolean))].sort();
+
+  const natCounts={};
+  CN.forEach(m=>{natCounts[m.nat]=(natCounts[m.nat]||0)+m.cnt;});
   const allNat=CN.length
-    ?[...new Set(CN.map(m=>m.nat).filter(Boolean))].sort()
+    ?[...new Set(CN.map(m=>m.nat).filter(Boolean))].sort((a,b)=>(natCounts[b]||0)-(natCounts[a]||0))
     :[...new Set((hosho.byNat||[]).map(r=>cleanNat(r.nat||'')).filter(Boolean))].sort();
-  const PREF_ORDER_LIST=['北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県', '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県', '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県', '静岡県', '愛知県', '三重県', '滋賀県', '京都府', '大阪府', '兵庫県', '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県', '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'];
-  const allPref=[...Object.keys(PD)].sort((a,b)=>{
-    const ai=PREF_ORDER_LIST.indexOf(a),bi=PREF_ORDER_LIST.indexOf(b);
-    return (ai<0?999:ai)-(bi<0?999:bi);
+
+  // 地域: 件数多い順
+  const allPref=[...Object.keys(PD)].sort((a,b)=>(PD[b]?.t||0)-(PD[a]?.t||0));
+  const allAgPref=[...new Set(AL.map(r=>r.pref).filter(Boolean))].sort((a,b)=>{
+    const ac=AL.filter(r=>r.pref===a).reduce((s,r)=>s+r.total,0);
+    const bc=AL.filter(r=>r.pref===b).reduce((s,r)=>s+r.total,0);
+    return bc-ac;
   });
-  const allAgPref=[...new Set(AL.map(r=>r.pref).filter(Boolean))].sort();
 
   // ── インデックスキャッシュ
   const CV_IDX={}, CN_IDX={};
   CV.forEach(m=>{if(!CV_IDX[m.nm])CV_IDX[m.nm]={};CV_IDX[m.nm][m.visa]=(CV_IDX[m.nm][m.visa]||0)+m.cnt;});
   CN.forEach(m=>{if(!CN_IDX[m.nm])CN_IDX[m.nm]={};CN_IDX[m.nm][m.nat]=(CN_IDX[m.nm][m.nat]||0)+m.cnt;});
+
+  // 仲介会社: 件数多い順
+  const ckCounts={};
+  CK.forEach(r=>{ckCounts[r.ck]=(ckCounts[r.ck]||0)+r.t;});
 
   return{
     s:{th:totH, ta:AL.reduce((s,r)=>s+r.total,0),
@@ -850,7 +861,7 @@ function buildDB(raw){
     CV, CN, VN, coBase, coMonthMap, CK, PD, AL, CR, CV_IDX, CN_IDX,
     fv:allVisa, fn:allNat, fp:allPref, fa:allAgPref,
     fcr:Object.keys(CR).sort(),
-    fck:[...new Set(CK.map(r=>r.ck))].sort(),
+    fck:[...new Set(CK.map(r=>r.ck))].sort((a,b)=>(ckCounts[b]||0)-(ckCounts[a]||0)),
   };
 }
 
@@ -1098,8 +1109,11 @@ function INIT(){
     yearPill.textContent=y+'年 保証データ';
   }
 
-  ACD.AC1=Object.keys(DB.coBase).sort();ACD.AC2=ACD.AC1.slice();
-  ACD.AC3=DB.fck.slice();ACD.AC5=DB.AL.map(r=>r.nm).sort();
+  // 管理会社: 件数多い順
+  ACD.AC1=Object.keys(DB.coBase).sort((a,b)=>(DB.coBase[b]?.total||0)-(DB.coBase[a]?.total||0));
+  ACD.AC2=ACD.AC1.slice();
+  ACD.AC3=DB.fck.slice(); // 既に件数多い順
+  ACD.AC5=DB.AL.map(r=>r.nm); // AL は既に件数多い順
 
   SSI('ss1v',DB.fv);SSI('ss1n',DB.fn);SSI('ss1p',DB.fp);
   SSI('ss2p',DB.fp);SSI('ss3p',DB.fp);SSI('ss3n',DB.fn);SSI('ss3v',DB.fv);
@@ -1752,26 +1766,59 @@ function FBP(pref){SSV.ss1p=pref;const e=document.getElementById('ss1pi');if(e)e
 // MATRIX
 // ================================================================
 function DMX(){
-  if(!DB||!DB.VN||!DB.VN.length){
+  const mode=GV('mxmd'),pref=SSV.ss6p,sh=GV('mxs');
+  const minC=parseInt(GV('mxmn')||'0');
+
+  // データ利用可能チェック
+  const needsVN=(mode==='vn'||mode==='nv');
+  const needsCV=(mode==='vm');
+  const needsCN=(mode==='mn');
+  if(needsVN&&(!DB||!DB.VN||!DB.VN.length)){
     document.getElementById('mxwrap').innerHTML='<div style="padding:40px;text-align:center;color:var(--t2)">⏳ データ読み込み中... しばらくお待ちください</div>';
     document.getElementById('mxsum').innerHTML='';
     return;
   }
-  const mode=GV('mxmd'),pref=SSV.ss6p,sh=GV('mxs');
-  const minC=parseInt(GV('mxmn')||'0');
-  const rk=mode==='vn'?'visa':'nat',ck=mode==='vn'?'nat':'visa';
-  let data=DB.VN;
-  if(pref){const pa=Array.isArray(pref)?pref:[pref];const pNms=new Set(DB.CV.filter(m=>pa.includes(m.pref)).map(m=>m.nm));data=data.filter(m=>pNms.has(m.nm));}
-  if(sh==='海外')data=data.filter(m=>m.shinsa==='海外');
-  else if(sh==='国内')data=data.filter(m=>m.shinsa==='国内');
+  if((needsCV&&(!DB||!DB.CV||!DB.CV.length))||(needsCN&&(!DB||!DB.CN||!DB.CN.length))){
+    document.getElementById('mxwrap').innerHTML='<div style="padding:40px;text-align:center;color:var(--t2)">⏳ データ読み込み中... しばらくお待ちください</div>';
+    document.getElementById('mxsum').innerHTML='';
+    return;
+  }
 
+  // モード設定
+  const modeConf={
+    vn:{rkF:'visa',ckF:'nat',src:'VN', hdr:'在留資格 \\ 国籍', kpi4:'最多在留資格'},
+    nv:{rkF:'nat', ckF:'visa',src:'VN', hdr:'国籍 \\ 在留資格', kpi4:'最多国籍'},
+    vm:{rkF:'nm',  ckF:'visa',src:'CV', hdr:'管理会社 \\ 在留資格', kpi4:'最多管理会社'},
+    mn:{rkF:'nm',  ckF:'nat', src:'CN', hdr:'管理会社 \\ 国籍', kpi4:'最多管理会社'},
+  };
+  const conf=modeConf[mode]||modeConf['vn'];
+
+  // データソース選択
+  let rawData = DB[conf.src].map(m=>({
+    rk: m[conf.rkF]||'',
+    ck: m[conf.ckF]||'',
+    shinsa: m.shinsa||'',
+    cnt: m.cnt||0,
+    nm: m.nm||''
+  }));
+
+  // フィルタ適用
+  if(pref){
+    const pa=Array.isArray(pref)?pref:[pref];
+    const pNms=new Set(DB.CV.filter(m=>pa.includes(m.pref)).map(m=>m.nm));
+    rawData=rawData.filter(m=>pNms.has(m.nm));
+  }
+  if(sh==='海外') rawData=rawData.filter(m=>m.shinsa==='海外');
+  else if(sh==='国内') rawData=rawData.filter(m=>m.shinsa==='国内');
+
+  // セル集計
   const cells={};
-  data.forEach(m=>{
-    const rv=m[rk],cv=m[ck];if(!rv||!cv)return;
-    const k=rv+'|||'+cv;
-    if(!cells[k])cells[k]={rk:rv,ck:cv,t:0,k:0,cos:{}};
+  rawData.forEach(m=>{
+    if(!m.rk||!m.ck) return;
+    const k=m.rk+'|||'+m.ck;
+    if(!cells[k]) cells[k]={rk:m.rk,ck:m.ck,t:0,k:0,cos:{}};
     cells[k].t+=m.cnt;
-    if(m.shinsa==='海外')cells[k].k+=m.cnt;
+    if(m.shinsa==='海外') cells[k].k+=m.cnt;
     cells[k].cos[m.nm]=(cells[k].cos[m.nm]||0)+m.cnt;
   });
 
@@ -1783,21 +1830,25 @@ function DMX(){
   const rtot={},ctot={};
   rows.forEach(r=>{rtot[r]=cols.reduce((s,c)=>s+(cells[r+'|||'+c]?.t||0),0);});
   cols.forEach(c=>{ctot[c]=rows.reduce((s,r)=>s+(cells[r+'|||'+c]?.t||0),0);});
-  const gtot=data.reduce((s,m)=>s+m.cnt,0),gkai=data.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
+  const gtot=rawData.reduce((s,m)=>s+m.cnt,0);
+  const gkai=rawData.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
   const maxC=Math.max(...Object.values(cells).map(c=>c.t),1);
 
+  // KPI (有効セル廃止 → 表示行数)
   document.getElementById('mxsum').innerHTML=`
     <div class="mxs"><div class="mxs-l">対象データ</div><div class="mxs-v">${gtot.toLocaleString()}</div></div>
-    <div class="mxs"><div class="mxs-l">有効セル(${minC}件以上)</div><div class="mxs-v">${Object.values(cells).filter(c=>c.t>=minC).length}</div></div>
+    <div class="mxs"><div class="mxs-l">表示行数</div><div class="mxs-v">${rows.length}行</div></div>
     <div class="mxs"><div class="mxs-l">全体海外率</div><div class="mxs-v">${gtot?Math.round(gkai/gtot*100)+'%':'-'}</div></div>
-    <div class="mxs"><div class="mxs-l">${mode==='vn'?'最多在留資格':'最多国籍'}</div><div class="mxs-v" style="font-size:11px;font-family:'Noto Sans JP'">${rows[0]||'-'}</div></div>`;
+    <div class="mxs"><div class="mxs-l">${conf.kpi4}</div><div class="mxs-v" style="font-size:11px;font-family:'Noto Sans JP'">${rows[0]||'-'}</div></div>`;
 
+  // テーブル描画
   let html=`<table class="mxt"><thead><tr>
-    <th class="rh">${mode==='vn'?'在留資格 \\ 国籍':'国籍 \\ 在留資格'}</th>
-    ${cols.map(c=>`<th style="text-align:center;white-space:normal;max-width:88px;padding:7px 8px;font-size:10px">${c}<br><span style="opacity:.5;font-weight:400">${ctot[c]}件</span></th>`).join('')}
+    <th class="rh">${conf.hdr}</th>
+    ${cols.map(c=>`<th style="text-align:center;white-space:normal;max-width:88px;padding:7px 8px;font-size:10px">${c.length>16?c.substring(0,16)+'…':c}<br><span style="opacity:.5;font-weight:400">${ctot[c]}件</span></th>`).join('')}
     <th style="background:#0b1c35">合計</th></tr></thead><tbody>`;
   rows.forEach(row=>{
-    html+=`<tr><th class="rh">${row}<br><span style="font-size:9.5px;font-weight:400;opacity:.5">${rtot[row]}件</span></th>`;
+    const rowLabel=row.length>18?row.substring(0,18)+'…':row;
+    html+=`<tr><th class="rh">${rowLabel}<br><span style="font-size:9.5px;font-weight:400;opacity:.5">${rtot[row]}件</span></th>`;
     cols.forEach(col=>{
       const cell=cells[row+'|||'+col];
       if(!cell||cell.t<minC){html+=`<td class="h0"><div class="mc"><span style="font-size:11px">—</span></div></td>`;return;}
@@ -1805,10 +1856,11 @@ function DMX(){
       const cls=kr<=30?'h1':kr<=60?'h2':'h3';
       const bw=Math.round(cell.t/maxC*100);
       const topco=TOPN(cell.cos,1)[0]?.[0]||'';
+      const topcoLabel=(needsVN||mode==='vn'||mode==='nv')?(topco.length>14?topco.substring(0,14)+'…':topco):'';
       html+=`<td class="${cls}" onclick="OMX('${ESC(row)}','${ESC(col)}','${mode}')"><div class="mc">
         <div class="mc-n">${cell.t}</div>
         <div class="mc-b"><div class="mc-bf" style="width:${bw}%"></div></div>
-        <div class="mc-c">${topco.length>14?topco.substring(0,14)+'…':topco}</div>
+        ${topcoLabel?`<div class="mc-c">${topcoLabel}</div>`:''}
         <div class="mc-r">海外${kr}%</div></div></td>`;
     });
     html+=`<td class="tc-cell">${rtot[row]}</td></tr>`;
@@ -1818,6 +1870,12 @@ function DMX(){
 }
 
 function OMX(rv,cv,mode){
+  // 管理会社モードはドロワーで詳細表示
+  if(mode==='vm'||mode==='mn'){
+    OPEN_DRAWER(rv);
+    return;
+  }
+  // 既存: vn/nv
   const rk=mode==='vn'?'visa':'nat',ck=mode==='vn'?'nat':'visa';
   const sub=DB.VN.filter(m=>m[rk]===rv&&m[ck]===cv);
   const tot=sub.reduce((s,m)=>s+m.cnt,0),kai=sub.filter(m=>m.shinsa==='海外').reduce((s,m)=>s+m.cnt,0);
@@ -2327,8 +2385,6 @@ async function AUTH_STEP1() {
       document.getElementById('auth_code').focus();
       document.getElementById('auth_btn2').disabled = false;
       document.getElementById('auth_btn2').textContent = '確認';
-    } else if (data.error === 'not_allowed') {
-      showAuthErr('アクセス権限がありません。権限が必要な場合はエージェント部署（大友 進 / 朴 卿韓）までご連絡ください。');
     } else if (data.error === 'invalid_domain') {
       showAuthErr('このシステムは社内（@gtn.co.jp）専用です。');
     } else {
